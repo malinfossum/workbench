@@ -3,7 +3,7 @@
 #   bash ~/Documents/Development/_template/csharp-console/init.sh
 #
 # Auto-detects project name and TargetFramework from the .csproj in the
-# current directory, copies VS Code + VS 2026 editor configs in, and
+# current directory, copies VS Code editor configs in, and
 # replaces placeholders. Verifies the build at the end.
 
 set -e
@@ -32,7 +32,7 @@ fi
 # Verify the build still works after scaffolding
 echo "Running dotnet build to verify..."
 if dotnet build > /dev/null 2>&1; then
-    echo "✓ Initialized $PROJECT_NAME (target: ${TARGET_FRAMEWORK:-net10.0}) — F5 will work in both editors"
+    echo "✓ Initialized $PROJECT_NAME (target: ${TARGET_FRAMEWORK:-net10.0}) — F5 will work in VS Code"
 else
     echo "✗ Build failed after scaffolding. Inspect output of: dotnet build"
     exit 1

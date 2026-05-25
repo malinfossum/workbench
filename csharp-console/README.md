@@ -1,6 +1,6 @@
 # csharp-console template
 
-Editor configs for VS Code (F5 debug, build task) and VS 2026 (`launchSettings.json`).
+Editor configs for VS Code (F5 debug, build task). Rider needs no setup — it runs console apps out of the box.
 Auto-scaffolds into a new project — no placeholders to remember.
 
 ## Use
@@ -19,7 +19,7 @@ code .   # then press F5
 
 ## What it adds
 
-- `Properties/launchSettings.json` — unblocks F5 in VS 2026 (avoids the CoreCLR start error)
+- `Properties/launchSettings.json` — launch profile (args, env, working dir); used by `dotnet run` and the VS Code debugger
 - `.vscode/launch.json` — F5 debug config for VS Code
 - `.vscode/tasks.json` — `dotnet build` task for VS Code
 

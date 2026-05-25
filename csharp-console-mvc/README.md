@@ -15,14 +15,14 @@ Use this for: Claim the Square, Studentadministrasjon, Lagerstyringssystem, Boss
 1. Copy this folder to wherever the project lives.
 2. Rename `App.slnx` and each `App.*` project + folder to `<YourName>.*` (find/replace `App.` across files).
 3. Run `dotnet restore && dotnet build && dotnet test`.
-4. Open `App.slnx` in Visual Studio 2026.
+4. Open `App.slnx` in Rider.
 5. Start writing domain types in `App.Core/Models/`. Wire them from `Program.cs`.
 
 ## Working rules
 
 - State, rules, and pure logic live in `App.Core`. If a class needs `Console.WriteLine` or `File.ReadAllText`, it belongs in `App.Console`, not `App.Core`.
 - `App.Tests` references `App.Core` only. If something can't be unit-tested without IO, it doesn't belong in `App.Core`.
-- `dotnet format` is the formatter (see `.editorconfig`). VS 2026 runs it on save.
+- `dotnet format` is the formatter (see `.editorconfig`); Rider applies the same rules on save.
 
 ## Adding an Api project later (Uke 5+)
 
