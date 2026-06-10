@@ -40,11 +40,11 @@ Each scaffold has its own `README.md` with the first 5 setup steps and conventio
 
 ## Design system (web)
 
-The shared `design-system/` lives at the top level and is the canonical source of truth for the web scaffold. `web-vite/` ships a lean copy (no showcase or docs) so a single folder copy is enough to start.
+The shared `design-system/` lives at the top level and is the canonical source of truth for the web scaffold. `web-vite/` ships a lean copy (no gallery, sandbox, or docs) so a single folder copy is enough to start.
 
 When the system improves, edit the canonical `design-system/` and sync the lean parts (`tokens/`, `base/`, `primitives/`, `components/`, `compositions/`, `utilities/`, `theme/`) into `web-vite/`.
 
-See [`design-system/README.md`](./design-system/README.md) for principles and structure. Current version: see `design-system/VERSION`.
+See [`design-system/README.md`](./design-system/README.md) for principles, structure, and how to preview the component **gallery** locally. Current version: see `design-system/VERSION`.
 
 ## License
 
