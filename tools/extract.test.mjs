@@ -3,7 +3,11 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadManifest, assertWithinRoot, planCopy } from "./extract.mjs";
+import {
+  loadManifest, assertWithinRoot, planCopy,
+  readCanonicalVersion, anchorRel, readRecordedVersion, writeVersionHeader,
+} from "./extract.mjs";
+import { readFileSync } from "node:fs";
 
 function fixtureLib() {
   const dir = mkdtempSync(join(tmpdir(), "wb-lib-"));
@@ -49,4 +53,28 @@ test("planCopy includes tokens, excludes gallery", () => {
   const files = planCopy(dir, loadManifest(dir));
   assert.deepEqual(files, [join("tokens", "index.css")]);
   rmSync(dir, { recursive: true, force: true });
+});
+
+test("readCanonicalVersion trims the VERSION file", () => {
+  const dir = fixtureLib();
+  assert.equal(readCanonicalVersion(dir, loadManifest(dir)), "1.3.0");
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("version header round-trips through the anchor CSS", () => {
+  const target = mkdtempSync(join(tmpdir(), "wb-tgt-"));
+  mkdirSync(join(target, "tokens"));
+  writeFileSync(join(target, "tokens", "index.css"), "/* tokens */\n.a{}");
+  const anchor = "tokens/index.css";
+  assert.equal(readRecordedVersion(target, anchor), null);
+  writeVersionHeader(target, anchor, "design-system", "1.3.0");
+  assert.equal(readRecordedVersion(target, anchor), "1.3.0");
+  // original content preserved below the header
+  assert.match(readFileSync(join(target, "tokens", "index.css"), "utf8"), /\.a\{\}/);
+  // re-writing replaces, does not stack, the header
+  writeVersionHeader(target, anchor, "design-system", "1.4.0");
+  const lines = readFileSync(join(target, "tokens", "index.css"), "utf8").split("\n");
+  assert.equal(lines.filter((l) => l.includes("workbench-lib")).length, 1);
+  assert.equal(readRecordedVersion(target, anchor), "1.4.0");
+  rmSync(target, { recursive: true, force: true });
 });

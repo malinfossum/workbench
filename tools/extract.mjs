@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, relative, isAbsolute } from "node:path";
 
 const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -61,4 +61,30 @@ export function planCopy(libraryDir, manifest) {
     }
   }
   return files;
+}
+
+export function readCanonicalVersion(libraryDir, manifest) {
+  return readFileSync(assertWithinRoot(libraryDir, manifest.versionFile), "utf8").trim();
+}
+
+export function anchorRel(manifest) {
+  return join(manifest.include[0], "index.css");
+}
+
+const HEADER_LINE_RE = /^\/\* workbench-lib:.*\*\/\r?\n?/;
+const HEADER_READ_RE = /^\/\* workbench-lib:\s*\S+\s+v(\S+?)\s*(?:—|-).*\*\//;
+
+export function readRecordedVersion(targetLibDir, anchor) {
+  const file = join(targetLibDir, anchor);
+  if (!existsSync(file)) return null;
+  const firstLine = readFileSync(file, "utf8").split("\n", 1)[0];
+  const m = firstLine.match(HEADER_READ_RE);
+  return m ? m[1] : null;
+}
+
+export function writeVersionHeader(targetLibDir, anchor, libraryName, version) {
+  const file = join(targetLibDir, anchor);
+  const header = `/* workbench-lib: ${libraryName} v${version} — extracted; edit in the workbench, not here */`;
+  const existing = existsSync(file) ? readFileSync(file, "utf8") : "";
+  writeFileSync(file, `${header}\n${existing.replace(HEADER_LINE_RE, "")}`);
 }
