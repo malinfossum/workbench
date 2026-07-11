@@ -1,8 +1,6 @@
-# csharp-console-mvc
+# csharp-layered
 
-C# starter for Emne 3 and general OOP work. Solution with a class library, a console front-end, and an NUnit test project.
-
-Use this for: Claim the Square, Studentadministrasjon, Lagerstyringssystem, Bossfight, and any console-based C# assignment.
+C# starter for console-based projects. Solution with a class library, a console front-end, and an NUnit test project — the same layering that later scales to an API.
 
 ## Folder structure
 
@@ -24,7 +22,7 @@ Use this for: Claim the Square, Studentadministrasjon, Lagerstyringssystem, Boss
 - `App.Tests` references `App.Core` only. If something can't be unit-tested without IO, it doesn't belong in `App.Core`.
 - `dotnet format` is the formatter (see `.editorconfig`); Rider applies the same rules on save.
 
-## Adding an Api project later (Uke 5+)
+## Adding an API project later
 
 ```powershell
 dotnet new webapi -n App.Api
@@ -34,6 +32,6 @@ dotnet add App.Api/App.Api.csproj reference App.Core/App.Core.csproj
 
 ## What's deliberately not here
 
-- No DI container — add `Microsoft.Extensions.DependencyInjection` when Uke 8 (SRP/DIP) calls for it.
-- No Api project — add on demand.
-- No async, no JSON serialization — added per assignment.
+- No DI container — add `Microsoft.Extensions.DependencyInjection` when the project earns it.
+- No API project — add on demand.
+- No async, no JSON serialization — added per project.
