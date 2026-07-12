@@ -149,9 +149,11 @@ MVC trio, gallery-style:
   - **Hash routing:** the URL hash (`#board@empty`) is the single navigation source of
     truth. Navigation writes the hash; `hashchange` drives the model (guarded against
     echo loops by comparing before setting). Browser back/forward and deep links come free.
-    A missing or unresolvable hash — at load **or** on any later `hashchange` (hand-edited
-    URLs) — falls back to the first registered screen and **replaces** the bad hash, so the
-    Back button never traps the user on a broken entry.
+    A missing or unresolvable hash at load falls back to the first registered screen; on a
+    later `hashchange` (hand-edited URLs) the storyboard **stays on the current screen** and
+    restores its hash. Both paths **replace** the bad hash, so the Back button never traps
+    the user on a broken entry. *(Amended 2026-07-13 at final review: mid-session fallback
+    targets the current screen, not the first — better UX, same guarantees.)*
 
 ### Untrusted input & chrome escaping
 

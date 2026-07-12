@@ -36,3 +36,5 @@ and per-project storyboards may be too. Never real names, emails, or user conten
    gut and make them yours. You own these files; only `engine/` re-syncs.
 3. Keep `storyboard/` next to your project's extracted `design-system/` — the
    stylesheet links assume siblings.
+4. Exclude `storyboard/engine/` from your formatter (like `design-system/`) —
+   a reformatted engine file trips extract's drift detection on re-sync.
