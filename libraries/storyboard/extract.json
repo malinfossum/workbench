@@ -1,0 +1,4 @@
+{
+  "versionFile": "VERSION",
+  "include": ["engine"]
+}
