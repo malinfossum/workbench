@@ -108,6 +108,13 @@ export function loadScripts(relPaths) {
   }
   return { ctx, evalIn: (expr) => vm.runInContext(expr, ctx) };
 }
+
+// vm objects live in a different realm — their prototypes differ from the
+// host's, so strict deepEqual fails on structurally-equal values. Normalize
+// vm-derived structures through JSON before deep comparison.
+export function plain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 ```
 
 - [ ] **Step 3: Write the failing registry tests**
@@ -116,7 +123,7 @@ export function loadScripts(relPaths) {
 ```js
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { loadScripts } from "./storyboard-harness.mjs";
+import { loadScripts, plain } from "./storyboard-harness.mjs";
 
 function freshRegistry() {
   const { evalIn } = loadScripts(["engine/registry.js"]);
@@ -134,7 +141,7 @@ test("addScreen registers and defaults states to ['default']", () => {
   const { Storyboard } = freshRegistry();
   Storyboard.addScreen(SCREEN());
   assert.equal(Storyboard.screens.length, 1);
-  assert.deepEqual(Storyboard.screens[0].states, ["default"]);
+  assert.deepEqual(plain(Storyboard.screens[0].states), ["default"]);
 });
 
 test("addScreen throws on duplicate id, bad id charset, empty states, missing render", () => {
@@ -165,8 +172,8 @@ test("escapeHtml escapes the five specials", () => {
 
 test("parseTarget / formatTarget round-trip", () => {
   const { parseTarget, formatTarget } = freshRegistry();
-  assert.deepEqual(parseTarget("plants@empty"), { screenId: "plants", stateId: "empty" });
-  assert.deepEqual(parseTarget("plants"), { screenId: "plants", stateId: null });
+  assert.deepEqual(plain(parseTarget("plants@empty")), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(parseTarget("plants")), { screenId: "plants", stateId: null });
   assert.equal(parseTarget(""), null);
   assert.equal(parseTarget("a@b@c"), null);
   assert.equal(formatTarget({ screenId: "plants", stateId: "empty" }), "plants@empty");
@@ -297,11 +304,11 @@ function freshModel() {
 
 test("model resolves unknown state to the screen's first state, unknown screen to null", () => {
   const model = freshModel();
-  assert.deepEqual(model.resolve({ screenId: "plants", stateId: "empty" }), { screenId: "plants", stateId: "empty" });
-  assert.deepEqual(model.resolve({ screenId: "plants", stateId: "nope" }), { screenId: "plants", stateId: "default" });
-  assert.deepEqual(model.resolve({ screenId: "plants", stateId: null }), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.resolve({ screenId: "plants", stateId: "empty" })), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(model.resolve({ screenId: "plants", stateId: "nope" })), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.resolve({ screenId: "plants", stateId: null })), { screenId: "plants", stateId: "default" });
   assert.equal(model.resolve({ screenId: "nope", stateId: null }), null);
-  assert.deepEqual(model.fallback(), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.fallback()), { screenId: "plants", stateId: "default" });
 });
 
 test("model setActive notifies subscribers, no-ops on same target, rejects unknown", () => {
@@ -310,7 +317,7 @@ test("model setActive notifies subscribers, no-ops on same target, rejects unkno
   model.subscribe(() => { calls += 1; });
   assert.equal(model.setActive({ screenId: "plants", stateId: "empty" }), true);
   assert.equal(calls, 1);
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "empty" });
   assert.equal(model.setActive({ screenId: "plants", stateId: "empty" }), true);
   assert.equal(calls, 1, "same target must not notify");
   assert.equal(model.setActive({ screenId: "nope", stateId: null }), false);
@@ -710,7 +717,7 @@ function freshController(initialHash) {
 
 test("boot with no hash lands on first screen and replaces the hash (no focus steal)", () => {
   const { model, win, view } = freshController("");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "default" });
   assert.equal(win.location.hash, "#plants@default");
   assert.deepEqual(win.replaced, ["#plants@default"]);
   assert.ok(view.calls.includes("screen:false"), "initial render must not focus");
@@ -718,7 +725,7 @@ test("boot with no hash lands on first screen and replaces the hash (no focus st
 
 test("boot with a valid deep link honors it; partial hash is canonicalized via replace", () => {
   const deep = freshController("#settings@default");
-  assert.deepEqual(deep.model.getCurrent(), { screenId: "settings", stateId: "default" });
+  assert.deepEqual(plain(deep.model.getCurrent()), { screenId: "settings", stateId: "default" });
   assert.equal(deep.win.replaced.length, 0, "exact hash needs no rewrite");
   const partial = freshController("#plants");
   assert.equal(partial.win.location.hash, "#plants@default");
@@ -727,7 +734,7 @@ test("boot with a valid deep link honors it; partial hash is canonicalized via r
 
 test("boot with garbage hash falls back and replaces — Back is never trapped", () => {
   const { model, win } = freshController("#<img src=x>");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "default" });
   assert.equal(win.location.hash, "#plants@default");
 });
 
@@ -735,7 +742,7 @@ test("hashchange drives the model; user navigation focuses the viewport", () => 
   const { model, win, view } = freshController("");
   win.location.hash = "#plants@empty";
   win.fire("hashchange");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "empty" });
   assert.ok(view.calls.includes("screen:true"), "post-boot renders focus the viewport");
 });
 
@@ -743,18 +750,18 @@ test("hashchange to garbage restores the current hash and leaves the model alone
   const { model, win } = freshController("");
   win.location.hash = "#nope@nope";
   win.fire("hashchange");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "default" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "default" });
   assert.equal(win.location.hash, "#plants@default");
 });
 
 test("nav/state/flow/goto handlers navigate; unknown goto announces and stays", () => {
   const { model, view } = freshController("");
   view.handlers.state("empty");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "empty" });
   view.handlers.nav("settings");
   assert.equal(model.getCurrent().screenId, "settings");
   view.handlers.flow("add-a-plant");
-  assert.deepEqual(model.getCurrent(), { screenId: "plants", stateId: "empty" });
+  assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "empty" });
   view.handlers.goto("settings@default");
   assert.equal(model.getCurrent().screenId, "settings");
   view.handlers.goto("nope");
