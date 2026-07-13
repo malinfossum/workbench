@@ -8,3 +8,8 @@
 @import url("./wend.css");
 @import url("./daily.css");
 @import url("./ignite.css");
+
+/* Type skins — opt-in via <html data-typeskin="NAME">; compose with any palette. */
+@import url("./fraunces.css");
+@import url("./instrument.css");
+@import url("./nordic.css");

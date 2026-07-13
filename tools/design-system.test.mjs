@@ -141,3 +141,26 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		}
 	}
 });
+
+test("type skins exist, scope via data-typeskin, and are imported", () => {
+	const index = read("tokens/palettes/index.css");
+	for (const [file, display] of [
+		["fraunces.css", "Fraunces"],
+		["instrument.css", "Instrument Serif"],
+		["nordic.css", "Schibsted Grotesk"],
+	]) {
+		const css = read(`tokens/palettes/${file}`);
+		const skin = file.replace(".css", "");
+		assert.ok(css.includes(`[data-typeskin="${skin}"]`), `${file} must scope via data-typeskin`);
+		assert.ok(css.includes(`"${display}"`), `${file} must set display font ${display}`);
+		assert.ok(index.includes(`./${file}`), `palettes/index.css must import ${file}`);
+	}
+	for (const file of ["fraunces.css", "instrument.css"]) {
+		assert.match(
+			read(`tokens/palettes/${file}`),
+			/h3,\n\[data-typeskin="[a-z]+"\] h4 \{\n\tfont-family: var\(--font-sans\);/,
+			`${file} must return h3/h4 to the body sans (serif reads poorly small)`,
+		);
+	}
+	assert.ok(read("tokens/palettes/nordic.css").includes("Atkinson Hyperlegible Next"), "nordic must set the hyperlegible body");
+});
