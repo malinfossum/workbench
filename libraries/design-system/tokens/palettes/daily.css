@@ -19,6 +19,12 @@
 	/* Type skin — Space Grotesk headings, Inter body. */
 	--font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 	--font-display: "Space Grotesk", "Inter", sans-serif;
+
+	/* Solid-button ink — ember is mid-tone, so the button fill deepens
+	   (button-only) to carry white text at AA contrast. */
+	--on-accent: #ffffff;
+	--accent-solid: #943c16;
+	--accent-solid-strong: #a8481e;
 }
 
 /* Headings opt into the display face only under this palette. */

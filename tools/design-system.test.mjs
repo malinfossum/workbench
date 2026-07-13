@@ -75,3 +75,69 @@ test("interactive controls are 42px", () => {
 	}
 	assert.ok(read("components/button.css").includes("width: 2.625rem"), "icon-btn width should match");
 });
+
+function luminance([r, g, b]) {
+	const lin = (c) => {
+		c /= 255;
+		return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+	};
+	return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function contrast(a, b) {
+	const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+	return (hi + 0.05) / (lo + 0.05);
+}
+function blockVars(css, selectorRe) {
+	const m = css.match(selectorRe);
+	if (!m) return {};
+	const body = css.slice(m.index).match(/\{([\s\S]*?)\n\}/)[1];
+	const vars = {};
+	for (const [, name, value] of body.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) vars[name] = value.trim();
+	return vars;
+}
+function resolveColor(value, scope) {
+	const hex = value.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+	if (hex) {
+		let h = hex[1];
+		if (h.length === 3) h = [...h].map((c) => c + c).join("");
+		return [0, 2, 4].map((i) => Number.parseInt(h.slice(i, i + 2), 16));
+	}
+	const triplet = value.match(/^(\d+)\s+(\d+)\s+(\d+)$/);
+	if (triplet) return triplet.slice(1, 4).map(Number);
+	const rgbvar = value.match(/^rgb\(var\((--[a-z0-9-]+)\)\)$/);
+	if (rgbvar) return resolveColor(scope(rgbvar[1]), scope);
+	const varref = value.match(/^var\((--[a-z0-9-]+)\)$/);
+	if (varref) return resolveColor(scope(varref[1]), scope);
+	throw new Error(`cannot resolve color: ${value}`);
+}
+
+test("solid primary button meets 4.5:1 in every theme and palette", () => {
+	const colors = read("tokens/colors.css");
+	const scopes = [
+		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
+		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
+	];
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css"]) {
+		const css = read(`tokens/palettes/${file}`);
+		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
+		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
+		const light = blockVars(css, /\[data-theme="light"\]\[data-palette="[a-z]+"\]/);
+		if (Object.keys(light).length > 0) {
+			scopes.push({
+				label: `palette ${file} (light)`,
+				layers: [light, dark, blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)],
+			});
+		}
+	}
+	for (const { label, layers } of scopes) {
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`${label}: token ${name} not found`);
+		};
+		const ink = resolveColor(scope("--on-accent"), scope);
+		for (const fill of ["--accent-solid", "--accent-solid-strong"]) {
+			const c = contrast(resolveColor(scope(fill), scope), ink);
+			assert.ok(c >= 4.5, `${label}: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=4.5)`);
+		}
+	}
+});

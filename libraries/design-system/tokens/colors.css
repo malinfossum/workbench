@@ -32,6 +32,13 @@
 	--accent-soft: rgb(var(--accent-rgb) / 16%);
 	--accent-ghost: rgb(var(--accent-rgb) / 8%);
 
+	/* Solid-button ink — fill + text of .btn-primary only. Defaults derive
+	   from the accent; a palette with a mid-tone accent overrides these
+	   instead of changing its accent identity. */
+	--accent-solid: var(--accent);
+	--accent-solid-strong: var(--accent-strong);
+	--on-accent: #0a0d10;
+
 	--secondary: rgb(var(--secondary-rgb));
 	--secondary-soft: rgb(var(--secondary-rgb) / 14%);
 
@@ -86,6 +93,10 @@ body.light {
 	--accent-strong: rgb(var(--accent-strong-rgb));
 	--accent-soft: rgb(var(--accent-rgb) / 14%);
 	--accent-ghost: rgb(var(--accent-rgb) / 8%);
+
+	--accent-solid: var(--accent);
+	--accent-solid-strong: var(--accent-strong);
+	--on-accent: #ffffff;
 
 	--secondary: rgb(var(--secondary-rgb));
 	--secondary-soft: rgb(var(--secondary-rgb) / 12%);

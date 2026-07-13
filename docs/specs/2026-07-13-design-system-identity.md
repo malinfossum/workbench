@@ -5,6 +5,13 @@
 - **Depends on:** nothing new (pure CSS/token/asset change)
 - **Blocks:** Ignite v2 styling (wants the new default look)
 
+> **Revision note (implementation):** §7 gains two sibling tokens next to `--on-accent`:
+> `--accent-solid` / `--accent-solid-strong` (fill + hover fill of `.btn-primary`,
+> defaulting to `var(--accent)` / `var(--accent-strong)`). Palettes whose accent is
+> mid-tone override the *solid fill* to reach 4.5:1 instead of altering their accent —
+> keeping §3's "palettes visually untouched" promise everywhere except the one new
+> solid surface. Enforced by the contrast test in `tools/design-system.test.mjs`.
+
 ## 1. Overview
 
 The design system's default look finally gets a committed identity. Today `--font-sans`
