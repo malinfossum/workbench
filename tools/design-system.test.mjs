@@ -164,3 +164,11 @@ test("type skins exist, scope via data-typeskin, and are imported", () => {
 	}
 	assert.ok(read("tokens/palettes/nordic.css").includes("Atkinson Hyperlegible Next"), "nordic must set the hyperlegible body");
 });
+
+test("VERSION is 2.0.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "2.0.0");
+	const readme = read("README.md");
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
+		assert.ok(readme.includes(needle), `README should mention ${needle}`);
+	}
+});
