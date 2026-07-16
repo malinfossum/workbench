@@ -1,0 +1,28 @@
+@host = http://localhost:5005
+
+### List all notes
+GET {{host}}/api/notes
+
+### Create a note
+POST {{host}}/api/notes
+Content-Type: application/json
+
+{ "title": "First note", "body": "Hello from the scaffold." }
+
+### Get one note
+GET {{host}}/api/notes/1
+
+### Update a note
+PUT {{host}}/api/notes/1
+Content-Type: application/json
+
+{ "title": "Renamed note", "body": "Edited body." }
+
+### Delete a note
+DELETE {{host}}/api/notes/1
+
+### Validation error — missing title (expect 400 problem+json)
+POST {{host}}/api/notes
+Content-Type: application/json
+
+{ "body": "no title" }
