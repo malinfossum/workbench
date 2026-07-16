@@ -9,6 +9,7 @@ Module-based MVC starter, Vite + Biome. Use this for personal projects and anyth
 - Mobile-first responsive baseline
 - Accessibility defaults (focus rings, reduced-motion, forced-colors, skip link)
 - Biome (formatter + linter + import organizer)
+- Tests via node's built-in runner (`tests/`, no extra packages) with an example model test
 
 ## First 5 steps
 
@@ -24,6 +25,7 @@ Module-based MVC starter, Vite + Biome. Use this for personal projects and anyth
 npm run dev            # start dev server
 npm run build          # build for production
 npm run preview        # preview the build
+npm test               # run tests (node --test, discovers *.test.js)
 
 npm run format         # format files in place
 npm run format:check   # report files that would be reformatted
@@ -38,6 +40,7 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/app.js` — wires `createModel` / `createView` / `createController`
 - `src/model/`, `src/view/`, `src/controller/` — MVC layers
 - `src/styles/main.css` — project-specific overrides
+- `tests/` — model tests (DOM-free, node's built-in runner)
 - `design-system/` — read-only foundation, do not edit
 - `biome.json` — formatter and linter config
 - `vite.config.js` — Vite config
