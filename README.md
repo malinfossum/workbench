@@ -25,6 +25,7 @@ App content — screens, flows, data — never lives here. It lives in the proje
 | [`scaffolds/csharp-console/`](./scaffolds/csharp-console) | Single-project console app — `init.sh` injects editor configs | `dotnet build` |
 | [`scaffolds/csharp-layered/`](./scaffolds/csharp-layered) | Solution with class library, console front-end, NUnit | `dotnet build` |
 | [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop — CommunityToolkit.Mvvm, tokens.xaml, xUnit | `dotnet build` |
+| [`scaffolds/csharp-api/`](./scaffolds/csharp-api) | ASP.NET Core Web API — layered API + repository, EF Core + SQLite, xUnit | `dotnet build` |
 
 The web scaffold ships a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. Each scaffold's `README.md` has the first setup steps.
 

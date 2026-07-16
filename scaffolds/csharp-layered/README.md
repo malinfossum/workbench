@@ -24,11 +24,9 @@ C# starter for console-based projects. Solution with a class library, a console 
 
 ## Adding an API project later
 
-```powershell
-dotnet new webapi -n App.Api
-dotnet sln add App.Api/App.Api.csproj
-dotnet add App.Api/App.Api.csproj reference App.Core/App.Core.csproj
-```
+When a project outgrows the console, don't bolt an API on — start the next one from
+[`scaffolds/csharp-api/`](../csharp-api), which ships this same layering with controllers,
+EF Core + SQLite, and xUnit already wired.
 
 ## What's deliberately not here
 

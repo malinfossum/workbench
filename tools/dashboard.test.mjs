@@ -22,6 +22,7 @@ test("dashboard links the key destinations", () => {
     "guide/#csharp-console",
     "guide/#csharp-layered",
     "guide/#csharp-wpf",
+    "guide/#csharp-api",
     "docs/",
     "libraries/storyboard/",
   ]) assert.ok(html.includes(href), `missing link: ${href}`);

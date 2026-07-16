@@ -206,6 +206,25 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 				<a class="wb-ghlink" href="https://github.com/malinfossum/workbench/tree/main/scaffolds/csharp-layered">View csharp-layered on GitHub →</a>
 			</section>
 
+			<section class="wb-section" id="csharp-api" aria-labelledby="h-api">
+				<p class="wb-kicker">Scaffold · C# · Web API</p>
+				<h2 id="h-api">csharp-api</h2>
+				<p>
+					An ASP.NET Core Web API in the layered API + repository shape:
+					controllers → service (<code>App.Core</code>, no IO) → repository →
+					EF Core + SQLite. xUnit tests cover the service with a hand-rolled fake
+					and the full HTTP pipeline via <code>WebApplicationFactory</code>.
+				</p>
+				<ol>
+					<li>Copy <code>scaffolds/csharp-api/</code> to wherever the project lives.</li>
+					<li>Rename <code>App.slnx</code> and each <code>App.*</code> project + folder to <code>&lt;YourName&gt;.*</code> (find/replace <code>App.</code> across files).</li>
+					<li><code>dotnet tool restore &amp;&amp; dotnet restore &amp;&amp; dotnet build &amp;&amp; dotnet test</code></li>
+					<li>Create the database: <code>dotnet ef migrations add Init --project &lt;YourName&gt;.Data --startup-project &lt;YourName&gt;.Api</code>, then <code>dotnet ef database update</code> with the same flags.</li>
+					<li><code>dotnet run --project &lt;YourName&gt;.Api</code> and send the requests in <code>&lt;YourName&gt;.Api.http</code>.</li>
+				</ol>
+				<a class="wb-ghlink" href="https://github.com/malinfossum/workbench/tree/main/scaffolds/csharp-api">View csharp-api on GitHub →</a>
+			</section>
+
 			<section class="wb-section" id="csharp-wpf" aria-labelledby="h-wpf">
 				<p class="wb-kicker">Scaffold · C# · Desktop</p>
 				<h2 id="h-wpf">csharp-wpf</h2>
