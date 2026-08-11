@@ -216,8 +216,8 @@ test("every palette's lead typeface is actually bundled", () => {
 	assert.ok(!read("tokens/palettes/daily.css").includes("Inter"), "daily.css must not reference the unbundled Inter");
 });
 
-test("VERSION is 2.0.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.0.0");
+test("VERSION is 2.0.1 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "2.0.1");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
