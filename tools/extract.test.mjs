@@ -49,10 +49,10 @@ test("assertWithinRoot rejects escapes", () => {
   assert.equal(assertWithinRoot("/a/b", "tokens").endsWith("tokens"), true);
 });
 
-test("planCopy includes tokens, excludes gallery", () => {
+test("planCopy includes tokens and the version file, excludes gallery", () => {
   const dir = fixtureLib();
   const files = planCopy(dir, loadManifest(dir));
-  assert.deepEqual(files, [join("tokens", "index.css")]);
+  assert.deepEqual(files, [join("tokens", "index.css"), "VERSION"]);
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -79,6 +79,16 @@ test("extract copies lean parts and records version, excludes gallery", () => {
   assert.ok(exists(join(target, "design-system", "tokens", "index.css")));
   assert.ok(!exists(join(target, "design-system", "gallery")));
   assert.equal(r.canonical, "1.3.0");
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
+test("extract copies the VERSION file so the consumer tree is self-describing", () => {
+  const { root, target } = fixtureWorkbench();
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  const copied = join(target, "design-system", "VERSION");
+  assert.ok(exists(copied), "VERSION should be copied into the consumer");
+  assert.equal(readFileSync(copied, "utf8").trim(), "1.3.0");
+  assert.ok(r.files.includes("VERSION"), "planCopy should list the version file");
   rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
 });
 

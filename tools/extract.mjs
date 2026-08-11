@@ -61,6 +61,9 @@ export function planCopy(libraryDir, manifest) {
       files.push(entry);
     }
   }
+  // The version file always travels with the copy so the consumer tree is self-describing (#8).
+  const vf = manifest.versionFile;
+  if (existsSync(assertWithinRoot(libraryDir, vf)) && !files.includes(vf)) files.push(vf);
   return files;
 }
 
@@ -119,6 +122,8 @@ function doCopy(libraryDir, targetLibDir, manifest) {
     if (!existsSync(src)) continue;
     cpSync(src, join(targetLibDir, entry), { recursive: true });
   }
+  const vf = assertWithinRoot(libraryDir, manifest.versionFile);
+  if (existsSync(vf)) cpSync(vf, join(targetLibDir, manifest.versionFile));
 }
 
 export function extract({ libraryName, workbenchRoot, targetDir, check = false, force = false }) {
