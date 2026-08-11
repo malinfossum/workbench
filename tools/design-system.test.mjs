@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -174,6 +174,19 @@ test("type skins exist, scope via data-typeskin, and are imported", () => {
 		);
 	}
 	assert.ok(read("tokens/palettes/nordic.css").includes("Atkinson Hyperlegible Next"), "nordic must set the hyperlegible body");
+});
+
+test("every palette's lead typeface is actually bundled", () => {
+	// A stack may fall back to system faces, but the FIRST quoted family is the
+	// documented identity — it must have an @font-face, or it silently never renders (#9).
+	const faces = [...read("tokens/typography.css").matchAll(/font-family:\s*"([^"]+)"/g)].map((m) => m[1]);
+	const palettes = readdirSync(join(DS, "tokens", "palettes")).filter((f) => f.endsWith(".css"));
+	for (const file of palettes) {
+		for (const [, name, lead] of read(`tokens/palettes/${file}`).matchAll(/(--font-[a-z-]+):\s*"([^"]+)"/g)) {
+			assert.ok(faces.includes(lead), `${file}: ${name} leads with "${lead}", which has no bundled @font-face`);
+		}
+	}
+	assert.ok(!read("tokens/palettes/daily.css").includes("Inter"), "daily.css must not reference the unbundled Inter");
 });
 
 test("VERSION is 2.0.0 and README documents the identity", () => {
