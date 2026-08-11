@@ -42,6 +42,16 @@ test("base headings and stat numbers carry the display face", () => {
 	assert.match(read("components/stat.css"), /\.stat-value \{[^}]*font-family: var\(--font-display\);/s);
 });
 
+test("[hidden] wins against component display rules, once, at the root", () => {
+	// An author `display` beats the UA [hidden] rule regardless of specificity,
+	// so the reset must carry an !important guard (#6).
+	assert.match(read("base/reset.css"), /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/);
+	// With the root guard in place, no component needs a local [hidden] patch.
+	for (const file of ["tabs", "button", "badge", "input", "nav", "toast"]) {
+		assert.ok(!read(`components/${file}.css`).includes("[hidden]"), `components/${file}.css should not carry a local [hidden] patch`);
+	}
+});
+
 test("radius scale is the crisp remap", () => {
 	const css = read("tokens/radius.css");
 	for (const [token, value] of Object.entries({
