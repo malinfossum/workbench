@@ -119,6 +119,13 @@ function resolveColor(value, scope) {
 	if (rgbvar) return resolveColor(scope(rgbvar[1]), scope);
 	const varref = value.match(/^var\((--[a-z0-9-]+)\)$/);
 	if (varref) return resolveColor(scope(varref[1]), scope);
+	const mix = value.match(/^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+)\)$/);
+	if (mix) {
+		const a = resolveColor(mix[1], scope);
+		const b = mix[3] === "black" ? [0, 0, 0] : resolveColor(mix[3], scope);
+		const p = Number(mix[2]) / 100;
+		return a.map((c, i) => Math.round(c * p + b[i] * (1 - p)));
+	}
 	throw new Error(`cannot resolve color: ${value}`);
 }
 
@@ -149,6 +156,26 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		for (const fill of ["--accent-solid", "--accent-solid-strong"]) {
 			const c = contrast(resolveColor(scope(fill), scope), ink);
 			assert.ok(c >= 4.5, `${label}: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=4.5)`);
+		}
+	}
+});
+
+test("default-theme solid button keeps real AA headroom, not a 0.09 margin", () => {
+	// The 4.5 floor above catches outright failure; the default identity additionally
+	// holds >=5.0 so a small accent nudge can't land it on the AA line unnoticed (#10).
+	const colors = read("tokens/colors.css");
+	for (const layers of [
+		[blockVars(colors, /:root \{/)],
+		[blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)],
+	]) {
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`token ${name} not found`);
+		};
+		const ink = resolveColor(scope("--on-accent"), scope);
+		for (const fill of ["--accent-solid", "--accent-solid-strong"]) {
+			const c = contrast(resolveColor(scope(fill), scope), ink);
+			assert.ok(c >= 5.0, `default theme: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=5.0 headroom)`);
 		}
 	}
 });
