@@ -61,6 +61,9 @@ export function planCopy(libraryDir, manifest) {
       files.push(entry);
     }
   }
+  // The version file always travels with the copy so the consumer tree is self-describing (#8).
+  const vf = manifest.versionFile;
+  if (existsSync(assertWithinRoot(libraryDir, vf)) && !files.includes(vf)) files.push(vf);
   return files;
 }
 
@@ -95,6 +98,21 @@ function filesDiffer(a, b) {
   return !readFileSync(a).equals(readFileSync(b));
 }
 
+// Files whose target copy differs from canonical (anchor compared without its version header).
+function findDrift(libraryDir, targetLibDir, manifest, anchor, { requirePresent = false } = {}) {
+  return planCopy(libraryDir, manifest).filter((rel) => {
+    const targetFile = join(targetLibDir, rel);
+    if (!existsSync(targetFile)) return requirePresent;
+    if (rel === anchor) {
+      // the anchor legitimately carries the version header — compare without it
+      const src = readFileSync(join(libraryDir, rel), "utf8");
+      const tgt = readFileSync(targetFile, "utf8").replace(HEADER_LINE_RE, "");
+      return src !== tgt;
+    }
+    return filesDiffer(join(libraryDir, rel), targetFile);
+  });
+}
+
 function doCopy(libraryDir, targetLibDir, manifest) {
   const exclude = new Set(manifest.exclude);
   mkdirSync(targetLibDir, { recursive: true });
@@ -104,6 +122,8 @@ function doCopy(libraryDir, targetLibDir, manifest) {
     if (!existsSync(src)) continue;
     cpSync(src, join(targetLibDir, entry), { recursive: true });
   }
+  const vf = assertWithinRoot(libraryDir, manifest.versionFile);
+  if (existsSync(vf)) cpSync(vf, join(targetLibDir, manifest.versionFile));
 }
 
 export function extract({ libraryName, workbenchRoot, targetDir, check = false, force = false }) {
@@ -118,7 +138,11 @@ export function extract({ libraryName, workbenchRoot, targetDir, check = false, 
   const recorded = readRecordedVersion(targetLibDir, anchor);
 
   if (check) {
-    return { status: recorded === canonical ? "current" : "stale", canonical, recorded };
+    if (recorded !== canonical) return { status: "stale", canonical, recorded };
+    // Same version string can still hide content drift — compare the files themselves.
+    const conflicts = findDrift(libraryDir, targetLibDir, manifest, anchor, { requirePresent: true });
+    if (conflicts.length) return { status: "drifted", canonical, recorded, conflicts };
+    return { status: "current", canonical, recorded };
   }
 
   if (!existsSync(targetLibDir)) {
@@ -128,17 +152,7 @@ export function extract({ libraryName, workbenchRoot, targetDir, check = false, 
   }
 
   if (recorded === canonical && !force) {
-    const conflicts = planCopy(libraryDir, manifest).filter((rel) => {
-      const targetFile = join(targetLibDir, rel);
-      if (!existsSync(targetFile)) return false;
-      if (rel === anchor) {
-        // the anchor legitimately carries the version header — compare without it
-        const src = readFileSync(join(libraryDir, rel), "utf8");
-        const tgt = readFileSync(targetFile, "utf8").replace(HEADER_LINE_RE, "");
-        return src !== tgt;
-      }
-      return filesDiffer(join(libraryDir, rel), targetFile);
-    });
+    const conflicts = findDrift(libraryDir, targetLibDir, manifest, anchor);
     if (conflicts.length) return { status: "halted-modified", canonical, conflicts };
     return { status: "noop", canonical };
   }
@@ -171,7 +185,10 @@ function main(argv) {
   }
   const okStatuses = new Set(["current", "copied-fresh", "noop", "synced"]);
   console.log(`extract: ${library} → ${target}  [${r.status}${r.canonical ? " v" + r.canonical : ""}]`);
-  if (r.conflicts?.length) console.error("locally-modified files (pass --force to overwrite):\n  " + r.conflicts.join("\n  "));
+  if (r.conflicts?.length) {
+    const hint = r.status === "drifted" ? "content drift within the same version (re-run extract to sync)" : "locally-modified files (pass --force to overwrite)";
+    console.error(`${hint}:\n  ` + r.conflicts.join("\n  "));
+  }
   process.exit(okStatuses.has(r.status) ? 0 : 1);
 }
 

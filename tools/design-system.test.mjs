@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,6 +40,16 @@ test("base headings and stat numbers carry the display face", () => {
 	assert.match(base, /h1,\nh2,\nh3,\nh4 \{[^}]*letter-spacing: var\(--tracking-heading\);/s);
 	assert.match(base, /h1,\nh2 \{\n\tletter-spacing: var\(--tracking-display\);\n\}/);
 	assert.match(read("components/stat.css"), /\.stat-value \{[^}]*font-family: var\(--font-display\);/s);
+});
+
+test("[hidden] wins against component display rules, once, at the root", () => {
+	// An author `display` beats the UA [hidden] rule regardless of specificity,
+	// so the reset must carry an !important guard (#6).
+	assert.match(read("base/reset.css"), /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/);
+	// With the root guard in place, no component needs a local [hidden] patch.
+	for (const file of ["tabs", "button", "badge", "input", "nav", "toast"]) {
+		assert.ok(!read(`components/${file}.css`).includes("[hidden]"), `components/${file}.css should not carry a local [hidden] patch`);
+	}
 });
 
 test("radius scale is the crisp remap", () => {
@@ -109,6 +119,13 @@ function resolveColor(value, scope) {
 	if (rgbvar) return resolveColor(scope(rgbvar[1]), scope);
 	const varref = value.match(/^var\((--[a-z0-9-]+)\)$/);
 	if (varref) return resolveColor(scope(varref[1]), scope);
+	const mix = value.match(/^color-mix\(in srgb,\s*(.+?)\s+(\d+)%,\s*(.+)\)$/);
+	if (mix) {
+		const a = resolveColor(mix[1], scope);
+		const b = mix[3] === "black" ? [0, 0, 0] : resolveColor(mix[3], scope);
+		const p = Number(mix[2]) / 100;
+		return a.map((c, i) => Math.round(c * p + b[i] * (1 - p)));
+	}
 	throw new Error(`cannot resolve color: ${value}`);
 }
 
@@ -143,6 +160,26 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 	}
 });
 
+test("default-theme solid button keeps real AA headroom, not a 0.09 margin", () => {
+	// The 4.5 floor above catches outright failure; the default identity additionally
+	// holds >=5.0 so a small accent nudge can't land it on the AA line unnoticed (#10).
+	const colors = read("tokens/colors.css");
+	for (const layers of [
+		[blockVars(colors, /:root \{/)],
+		[blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)],
+	]) {
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`token ${name} not found`);
+		};
+		const ink = resolveColor(scope("--on-accent"), scope);
+		for (const fill of ["--accent-solid", "--accent-solid-strong"]) {
+			const c = contrast(resolveColor(scope(fill), scope), ink);
+			assert.ok(c >= 5.0, `default theme: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=5.0 headroom)`);
+		}
+	}
+});
+
 test("type skins exist, scope via data-typeskin, and are imported", () => {
 	const index = read("tokens/palettes/index.css");
 	for (const [file, display] of [
@@ -166,8 +203,21 @@ test("type skins exist, scope via data-typeskin, and are imported", () => {
 	assert.ok(read("tokens/palettes/nordic.css").includes("Atkinson Hyperlegible Next"), "nordic must set the hyperlegible body");
 });
 
-test("VERSION is 2.0.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.0.0");
+test("every palette's lead typeface is actually bundled", () => {
+	// A stack may fall back to system faces, but the FIRST quoted family is the
+	// documented identity — it must have an @font-face, or it silently never renders (#9).
+	const faces = [...read("tokens/typography.css").matchAll(/font-family:\s*"([^"]+)"/g)].map((m) => m[1]);
+	const palettes = readdirSync(join(DS, "tokens", "palettes")).filter((f) => f.endsWith(".css"));
+	for (const file of palettes) {
+		for (const [, name, lead] of read(`tokens/palettes/${file}`).matchAll(/(--font-[a-z-]+):\s*"([^"]+)"/g)) {
+			assert.ok(faces.includes(lead), `${file}: ${name} leads with "${lead}", which has no bundled @font-face`);
+		}
+	}
+	assert.ok(!read("tokens/palettes/daily.css").includes("Inter"), "daily.css must not reference the unbundled Inter");
+});
+
+test("VERSION is 2.0.1 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "2.0.1");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);

@@ -49,10 +49,10 @@ test("assertWithinRoot rejects escapes", () => {
   assert.equal(assertWithinRoot("/a/b", "tokens").endsWith("tokens"), true);
 });
 
-test("planCopy includes tokens, excludes gallery", () => {
+test("planCopy includes tokens and the version file, excludes gallery", () => {
   const dir = fixtureLib();
   const files = planCopy(dir, loadManifest(dir));
-  assert.deepEqual(files, [join("tokens", "index.css")]);
+  assert.deepEqual(files, [join("tokens", "index.css"), "VERSION"]);
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -82,6 +82,16 @@ test("extract copies lean parts and records version, excludes gallery", () => {
   rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
 });
 
+test("extract copies the VERSION file so the consumer tree is self-describing", () => {
+  const { root, target } = fixtureWorkbench();
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  const copied = join(target, "design-system", "VERSION");
+  assert.ok(exists(copied), "VERSION should be copied into the consumer");
+  assert.equal(readFileSync(copied, "utf8").trim(), "1.3.0");
+  assert.ok(r.files.includes("VERSION"), "planCopy should list the version file");
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
 test("second run is a noop when up to date", () => {
   const { root, target } = fixtureWorkbench();
   extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
@@ -96,6 +106,24 @@ test("--check reports stale when target is behind", () => {
   writeFileSync(join(root, "libraries", "design-system", "VERSION"), "1.4.0\n");
   const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target, check: true });
   assert.equal(r.status, "stale");
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
+test("--check reports drifted when contents differ within the same version", () => {
+  const { root, target } = fixtureWorkbench();
+  extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  writeFileSync(join(target, "design-system", "tokens", "index.css"), "/* workbench-lib: design-system v1.3.0 — x */\n.DRIFT{}");
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target, check: true });
+  assert.equal(r.status, "drifted");
+  assert.deepEqual(r.conflicts, [join("tokens", "index.css")]);
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
+test("--check reports current when contents match", () => {
+  const { root, target } = fixtureWorkbench();
+  extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target, check: true });
+  assert.equal(r.status, "current");
   rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
 });
 
