@@ -99,6 +99,24 @@ test("--check reports stale when target is behind", () => {
   rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
 });
 
+test("--check reports drifted when contents differ within the same version", () => {
+  const { root, target } = fixtureWorkbench();
+  extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  writeFileSync(join(target, "design-system", "tokens", "index.css"), "/* workbench-lib: design-system v1.3.0 — x */\n.DRIFT{}");
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target, check: true });
+  assert.equal(r.status, "drifted");
+  assert.deepEqual(r.conflicts, [join("tokens", "index.css")]);
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
+test("--check reports current when contents match", () => {
+  const { root, target } = fixtureWorkbench();
+  extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
+  const r = extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target, check: true });
+  assert.equal(r.status, "current");
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
 test("halts on a locally-modified up-to-date copy, --force overrides", () => {
   const { root, target } = fixtureWorkbench();
   extract({ libraryName: "design-system", workbenchRoot: root, targetDir: target });
