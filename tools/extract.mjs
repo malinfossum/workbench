@@ -93,9 +93,20 @@ export function writeVersionHeader(targetLibDir, anchor, libraryName, version) {
   writeFileSync(file, `${header}\n${existing.replace(HEADER_LINE_RE, "")}`);
 }
 
+// Text compares must ignore CRLF/LF: a Windows working tree can hold CRLF for a
+// file git stores as LF, and that is not content drift. Binary stays byte-exact.
+const TEXT_FILE_RE = /\.(css|js|mjs|html|md|json|txt)$/i;
+
+function normalizeEol(buffer) {
+  return buffer.toString("utf8").replaceAll("\r\n", "\n");
+}
+
 function filesDiffer(a, b) {
   if (!existsSync(a) || !existsSync(b)) return true;
-  return !readFileSync(a).equals(readFileSync(b));
+  const bufA = readFileSync(a);
+  const bufB = readFileSync(b);
+  if (TEXT_FILE_RE.test(a)) return normalizeEol(bufA) !== normalizeEol(bufB);
+  return !bufA.equals(bufB);
 }
 
 // Files whose target copy differs from canonical (anchor compared without its version header).
@@ -105,8 +116,8 @@ function findDrift(libraryDir, targetLibDir, manifest, anchor, { requirePresent 
     if (!existsSync(targetFile)) return requirePresent;
     if (rel === anchor) {
       // the anchor legitimately carries the version header — compare without it
-      const src = readFileSync(join(libraryDir, rel), "utf8");
-      const tgt = readFileSync(targetFile, "utf8").replace(HEADER_LINE_RE, "");
+      const src = normalizeEol(readFileSync(join(libraryDir, rel)));
+      const tgt = normalizeEol(readFileSync(targetFile)).replace(HEADER_LINE_RE, "");
       return src !== tgt;
     }
     return filesDiffer(join(libraryDir, rel), targetFile);

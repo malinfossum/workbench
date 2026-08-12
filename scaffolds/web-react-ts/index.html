@@ -30,21 +30,14 @@
 	<body>
 		<a class="skip-link" href="#main">Skip to content</a>
 
-		<div id="app" class="container stack stack-lg">
-			<header>
-				<h1>Project</h1>
-				<p>MVC starter — edit model/view/controller.</p>
-			</header>
-
-			<!-- View renders into #main -->
-			<main id="main" class="card"></main>
-		</div>
+		<!-- React renders everything inside #root (see src/main.tsx) -->
+		<div id="root"></div>
 
 		<!-- Theme behavior (click handler — init already done in head).
 		     type="module" so Vite bundles it into the production build. -->
 		<script type="module" src="/design-system/theme/theme-toggle.js"></script>
 
 		<!-- Vite entry point -->
-		<script type="module" src="/src/main.js"></script>
+		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

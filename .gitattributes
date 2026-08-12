@@ -9,6 +9,8 @@
 # broke two of them at v2.3.0. LF in the working tree ends that class of bug.
 *.css text eol=lf
 *.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
 *.mjs text eol=lf
 *.html text eol=lf
 *.md text eol=lf
