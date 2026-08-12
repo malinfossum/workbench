@@ -40,8 +40,9 @@
 			<main id="main" class="card"></main>
 		</div>
 
-		<!-- Theme behavior (click handler — init already done in head) -->
-		<script src="/design-system/theme/theme-toggle.js"></script>
+		<!-- Theme behavior (click handler — init already done in head).
+		     type="module" so Vite bundles it into the production build. -->
+		<script type="module" src="/design-system/theme/theme-toggle.js"></script>
 
 		<!-- Vite entry point -->
 		<script type="module" src="/src/main.js"></script>
