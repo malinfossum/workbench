@@ -1,0 +1,8 @@
+/* ======================================================================
+   main.css — project-specific styles only
+   Tokens, reset, base, primitives, and components come from the bundled
+   design-system/ — use its custom properties (--space-*, --text, --card-bg,
+   …) instead of hard-coded values.
+   Mobile-first: baseline styles target the smallest screen; layer up with
+   @media (min-width: 768px) and (min-width: 1024px).
+   ====================================================================== */
