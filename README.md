@@ -12,8 +12,11 @@ One canonical home for reusable libraries and copy-to-start scaffolds. Libraries
 |---|---|
 | [`libraries/`](./libraries) | Canonical, versioned, reused as-is: `design-system/` and `storyboard/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
-| [`tools/`](./tools) | `extract.mjs` — copies libraries into consuming projects |
+| [`tools/`](./tools) | `extract.mjs` plus the test suite CI runs (extract, structure, scaffold drift, links) |
+| [`guide/`](./guide) | Setup guide — the dashboard's scaffold cards link into it |
 | [`docs/`](./docs) | Specs, plans, and workbench notes |
+| [`reference/`](./reference) | Read-only reference material |
+| [`archive/`](./archive) | Retired experiments, kept for history |
 
 App content — screens, flows, data — never lives here. It lives in the project you spin up from a scaffold.
 
@@ -37,7 +40,8 @@ Libraries live in `libraries/`. Copy one into any project (web or C#) with the e
 ```bash
 node tools/extract.mjs design-system ../my-app            # → ../my-app/design-system
 node tools/extract.mjs design-system ../my-api/wwwroot    # into a C# wwwroot
-node tools/extract.mjs design-system ../my-app --check    # is my copy stale?
+node tools/extract.mjs design-system ../my-app --check    # is my copy stale or drifted?
+node tools/extract.mjs storyboard ../my-app               # engine only → ../my-app/storyboard
 ```
 
 The tool copies only the lean parts, records the version, and refuses to overwrite files you've edited locally (pass `--force` to override). Edit a library **in the workbench**, never in a consuming project, then re-run extract.
@@ -47,6 +51,10 @@ One rule for consumers: exclude the copied `design-system/` from your formatter 
 ## Design system
 
 The canonical source of truth is [`libraries/design-system/`](./libraries/design-system) — tokens, primitives, components, compositions, utilities, theme, plus its own `gallery/` (live component browser) and `sandbox/`. It versions independently via its `VERSION` file. See its [README](./libraries/design-system/README.md) for principles and structure.
+
+## Storyboard
+
+[`libraries/storyboard/`](./libraries/storyboard) is a design-first planning tool: clickable app mocks with screens, named states, and hotspot flows, running as plain scripts with no build step. Extraction copies the engine only — screens are authored in the consuming project, with `storyboard/` kept sibling to `design-system/`. The demo app (Frond) doubles as the starter. See its [README](./libraries/storyboard/README.md).
 
 ## License
 
