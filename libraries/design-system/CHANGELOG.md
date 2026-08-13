@@ -3,6 +3,24 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 2.0.2 — 2026-08-13
+
+Accessibility patch — no new tokens or components. Re-extract to pick up the fix.
+
+- **Controls return to a 44px floor.** `.btn`, `.input`/`.textarea`/`.select` and `.tab` go back
+  to `min-height: 2.75rem` from the `2.625rem` (42px) that 2.0.0's shape pass introduced as
+  "42px controls". WCAG 2.5.8 (AA) only requires 24×24, so 42px was never a conformance failure
+  — but 44×44 is the house standard, taken from 2.5.5 Enhanced, and it is the number consumers
+  write their own a11y checks against. Found when Wend synced 1.2.0 → 2.0.1 and its 44px rule
+  met a 42px bundle with nothing in between to object.
+- **Two tests now hold the floor**, because the 2.0.0 change was deliberate and documented and
+  still wrong for consumers — so the guard has to be a test rather than a habit. One asserts the
+  shortest `min-height` on each of the three control components; the other asserts no file in
+  the bundle sets a root `font-size`, since that would rescale every rem-based floor without
+  touching a single `min-height` value.
+- **Not changed:** `.nav-link` stays at `2.5rem` (40px). It predates the shape pass rather than
+  coming from it, so it is its own decision rather than part of this fix. Flagged, not folded in.
+
 ## 2.0.1 — 2026-08-11
 
 Correctness patch — no new tokens or components. Re-extract to pick up the fixes.

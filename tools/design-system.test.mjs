@@ -80,11 +80,28 @@ test("components sit on the right radius size class", () => {
 	}
 });
 
-test("interactive controls are 42px", () => {
+test("interactive controls are 44px, the touch-target floor", () => {
+	// Was pinned to 2.625rem (42px) from 2.0.0's shape pass until 2.0.2. WCAG 2.5.8 (AA) only
+	// asks for 24x24, so 42px was never a conformance failure — but 44x44 is the house standard
+	// from 2.5.5 Enhanced, and it is the number consumers write their own a11y checks against.
+	// Wend synced 1.2.0 -> 2.0.1, its 44px rule met a 42px bundle, and this assertion was
+	// happily green the whole time. Asserting an inequality rather than an exact string is the
+	// difference: a future shape pass may raise these, and only a DROP should fail.
+	const FLOOR_REM = 2.75;
 	for (const file of ["components/button.css", "components/input.css", "components/tabs.css"]) {
-		assert.ok(read(file).includes("min-height: 2.625rem"), `${file} control height should be 2.625rem`);
+		const declared = [...read(file).matchAll(/min-height:\s*([\d.]+)rem/g)].map((m) => Number(m[1]));
+		assert.ok(declared.length > 0, `${file}: no rem min-height found — did the control lose its floor?`);
+		// .textarea's 8rem is legitimately taller; only the SHORTEST control is a floor question.
+		const shortest = Math.min(...declared);
+		assert.ok(
+			shortest >= FLOOR_REM,
+			`${file}: shortest min-height is ${shortest}rem (${shortest * 16}px), under the ` +
+				`${FLOOR_REM}rem (${FLOOR_REM * 16}px) floor`,
+		);
 	}
-	assert.ok(read("components/button.css").includes("width: 2.625rem"), "icon-btn width should match");
+	// An icon button has no label to stretch it, so its width is its whole hit area.
+	const iconWidth = Number(read("components/button.css").match(/\.icon-btn \{\s*width:\s*([\d.]+)rem/)?.[1]);
+	assert.ok(iconWidth >= FLOOR_REM, `.icon-btn is ${iconWidth}rem wide, under the ${FLOOR_REM}rem floor`);
 });
 
 function luminance([r, g, b]) {
@@ -216,8 +233,19 @@ test("every palette's lead typeface is actually bundled", () => {
 	assert.ok(!read("tokens/palettes/daily.css").includes("Inter"), "daily.css must not reference the unbundled Inter");
 });
 
-test("VERSION is 2.0.1 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.0.1");
+test("nothing overrides the root font size, so rem floors are real px", () => {
+	// The 44px figure above holds only while 1rem === 16px. An html { font-size } anywhere in
+	// the bundle would rescale every control floor without changing a single min-height value.
+	for (const file of ["base/reset.css", "base/base.css", "tokens/typography.css"]) {
+		assert.ok(
+			!/(?:^|\s|,)html[^{]*\{[^}]*font-size/s.test(read(file)),
+			`${file} sets a root font-size, which invalidates every rem-based touch-target floor`,
+		);
+	}
+});
+
+test("VERSION is 2.0.2 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "2.0.2");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
