@@ -3,6 +3,23 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 2.1.0 — 2026-08-18
+
+Two new opt-in brand palettes — no changes to tokens, components, or the default identity.
+Re-extract to pick them up.
+
+- **Kenaz palette** (`data-palette="kenaz"`): the low-energy sibling to Ignite — warm
+  near-black surfaces over a true-black OLED page, torchlight amber accent. Border sits at
+  `#322b22` to hold non-text contrast parity with the default palette (WCAG 1.4.11).
+- **Tidsro palette** (`data-palette="tidsro"`): the Tidsro WPF app's palette ported to web
+  tokens — neutral (hue-free) near-black surfaces starting at `#0a0a0a` so drop shadows still
+  read, brass-gold accent as the only saturated colour, reserved `--surface-0` true black for
+  non-casting overlays.
+- Housekeeping: these palettes first landed on `main` without a version bump, which left the
+  scaffold bundles stamped 2.0.2 while canonical content moved — the extract tool then
+  (correctly) refused to sync, reading the same-version diff as local edits. This release
+  stamps them properly; the rule stands that any canonical content change bumps `VERSION`.
+
 ## 2.0.2 — 2026-08-13
 
 Accessibility patch — no new tokens or components. Re-extract to pick up the fix.
