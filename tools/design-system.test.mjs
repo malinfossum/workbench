@@ -244,8 +244,8 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 2.0.2 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.0.2");
+test("VERSION is 2.1.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "2.1.0");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
