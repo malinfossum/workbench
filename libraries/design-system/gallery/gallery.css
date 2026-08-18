@@ -34,19 +34,29 @@
 .gallery-controls [data-theme-toggle] {
 	width: 100%;
 }
+/* Auto-fitting columns: any button count wraps into as many tracks as fit,
+   so new palettes never overflow the sidebar. min-width: 0 lets a button
+   shrink below its padded text width instead of overlapping its neighbour. */
 .gallery-palettes {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr));
 	gap: var(--space-1);
 }
 .gallery-palettes .btn {
 	width: 100%;
+	min-width: 0;
+	padding-inline: var(--space-2);
 }
 
-/* Palette switcher — active button highlights from <html data-palette>, no JS state */
+/* Palette switcher — active button highlights from <html data-palette>, no JS state.
+   One selector line per palette; add the new palette's line along with its button. */
 [data-palette="default"] .gallery-palettes [data-palette-set="default"],
 [data-palette="gold"] .gallery-palettes [data-palette-set="gold"],
-[data-palette="wend"] .gallery-palettes [data-palette-set="wend"] {
+[data-palette="wend"] .gallery-palettes [data-palette-set="wend"],
+[data-palette="daily"] .gallery-palettes [data-palette-set="daily"],
+[data-palette="ignite"] .gallery-palettes [data-palette-set="ignite"],
+[data-palette="kenaz"] .gallery-palettes [data-palette-set="kenaz"],
+[data-palette="tidsro"] .gallery-palettes [data-palette-set="tidsro"] {
 	background: var(--accent-soft);
 	color: var(--text);
 }
