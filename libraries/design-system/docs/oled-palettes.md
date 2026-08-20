@@ -21,6 +21,13 @@ attribute, or `data-palette="default"`, resolves to the same values as
 app, kept as its own name so it can diverge later without touching the
 default.
 
+An unpinned consumer that syncs past 3.0.0 gets Daily whether it wants to or
+not. `tokens/palettes/classic.css` (`data-palette="classic"`) is the escape
+hatch: it restates the pre-3.0.0 default (true-black surfaces, cool
+blue-grey accent, Sora display) byte-for-byte, so pinning it reproduces
+exactly what rendered before this release without freezing the rest of the
+library at an old version.
+
 ## daily — general-purpose
 
 Warm-charcoal ground, ember accent, calm scale. Space Grotesk headings + Inter body.

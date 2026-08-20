@@ -15,15 +15,21 @@ cherry-pick. Named palettes are untouched.
   true-black / cool-blue-grey / Sora identity from 2.0.0.
 - **Those 2.0.0 values are not gone** — the plain `:root` blocks in `colors.css` and
   `typography.css` still declare them, unedited. `gold`, `wend`, `tidsro` and `kenaz`
-  never carried their own full surface/font-display, so they've always derived those
+  never carried their own surfaces or `--font-display`, so they've always derived those
   from `:root` directly; leaving it untouched and adding Daily as a
   higher-priority-but-mutually-exclusive `[data-palette="default"], html:not([data-palette])`
   block means those four palettes keep resolving exactly the colors and type they did
-  before. Verified by hand against each palette file — none of the four declare
-  `--surface-1..5`, `--on-accent`, `--accent-solid(-strong)`, or `--font-display`, so
-  none of them can pick up Daily's values by accident.
+  before. Verified by hand against each palette file: none of the four declare
+  `--surface-1..5`, `--accent-solid-strong`, or `--font-display`. `--on-accent`/
+  `--accent-solid` specifically are only ever touched by `kenaz` (its own dark
+  `--on-accent` and light `--accent-solid`), never by `gold`/`wend`/`tidsro` — so those
+  stay exactly as they were too, since the new block's selector never matches
+  `[data-palette="kenaz"]` in the first place.
   `--surface-0`/`--text`/`--border` for the new default live in `_oled.css`, extended
   to the same selector pair (it was already shared by `daily` and `ignite`).
+- **The pre-3.0.0 default is preserved as opt-in `classic`** (`data-palette="classic"`):
+  every value byte-for-byte from the (unedited) plain `:root` blocks, for any unpinned
+  consumer that wants to keep today's look on their next sync instead of adopting Daily.
 - **New opt-in palette `hugin`** (`data-palette="hugin"`): a v1 daily-derived copy for
   the Hugin app — same values as `daily.css`, header-flagged as pending its own
   branding so it can move independently later.

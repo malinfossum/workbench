@@ -164,7 +164,7 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
 		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
 	];
-	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css"]) {
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css"]) {
 		const css = read(`tokens/palettes/${file}`);
 		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
 		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
@@ -259,7 +259,7 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 test("VERSION is 3.0.0 and README documents the identity", () => {
 	assert.equal(read("VERSION").trim(), "3.0.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
 });
