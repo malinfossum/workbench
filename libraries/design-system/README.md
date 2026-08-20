@@ -16,7 +16,8 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 
 ## Principles
 
-- True-black dark mode with restrained, damped accent color
+- Warm near-black dark mode (Daily, the default identity) with a restrained accent;
+  true black stays reserved for the deepest layer via `--surface-0`
 - Semantic tokens over hard-coded values
 - Primitives before page-specific layout
 - Subtle motion only when it improves clarity
@@ -43,12 +44,15 @@ The initial theme is set by an **inline `<head>` snippet** so there's no flash o
 
 Default is dark. User's saved choice (from `localStorage`) wins.
 
-**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"` or `"ignite"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The two OLED palettes go further and also carry **type**: `daily` (warm charcoal + ember, Space Grotesk / Inter) and `ignite` (greyer + flame, Bricolage Grotesque / Hanken Grotesk) swap fonts and heading treatment along with colour, so switching palette changes the whole feel. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. No attribute (or `default`) = the base palette. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
+**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"` or `"hugin"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) now renders `daily`'s look** — since 3.0.0, Daily is the promoted default identity, not just an opt-in palette; see the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
 
 ## Type skins
 
-The default identity is Sora 600 headings over a Figtree body. Three opt-in type skins
-swap the display face (and for nordic, the body) without touching color:
+The default identity (3.0.0+) is Space Grotesk 600 headings over a Figtree body — Daily's
+type, promoted along with its color. The pre-3.0 identity (Sora display + Figtree body) is
+still what `gold`, `wend`, `tidsro` and `kenaz` resolve to, since none of them set their own
+`--font-display`. Three opt-in type skins swap the display face (and for nordic, the body)
+without touching color, and compose with any palette including the new default:
 
 | Skin | Headings | Body |
 |---|---|---|

@@ -56,7 +56,8 @@
 [data-palette="daily"] .gallery-palettes [data-palette-set="daily"],
 [data-palette="ignite"] .gallery-palettes [data-palette-set="ignite"],
 [data-palette="kenaz"] .gallery-palettes [data-palette-set="kenaz"],
-[data-palette="tidsro"] .gallery-palettes [data-palette-set="tidsro"] {
+[data-palette="tidsro"] .gallery-palettes [data-palette-set="tidsro"],
+[data-palette="hugin"] .gallery-palettes [data-palette-set="hugin"] {
 	background: var(--accent-soft);
 	color: var(--text);
 }

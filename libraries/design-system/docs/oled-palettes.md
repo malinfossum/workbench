@@ -1,8 +1,8 @@
-# OLED palettes — daily & ignite
+# OLED palettes — daily, ignite & hugin
 
-Two opt-in palettes built on a warm, near-black ground. Unlike the accent-only
-brand palettes (`gold`, `wend`), these also carry **typography** — switching to
-one swaps colour *and* type, so the whole feel changes. They're dark-first
+Opt-in palettes built on a warm, near-black ground. Unlike the accent-only
+brand palettes (`gold`, `wend`, `tidsro`, `kenaz`), these also carry **typography** —
+switching to one swaps colour *and* type, so the whole feel changes. They're dark-first
 ("OLED-focused"); in light mode they fall back to the base light surfaces with a
 contrast-tuned accent.
 
@@ -11,7 +11,15 @@ Opt in on `<html>`:
 ```html
 <html data-palette="daily">
 <html data-palette="ignite">
+<html data-palette="hugin">
 ```
+
+**Since 3.0.0, `daily` is also what renders by default** — no `data-palette`
+attribute, or `data-palette="default"`, resolves to the same values as
+`data-palette="daily"` (see the "Default identity" comment in
+`tokens/colors.css`). `hugin` is a v1 copy of `daily`'s values for the Hugin
+app, kept as its own name so it can diverge later without touching the
+default.
 
 ## daily — general-purpose
 

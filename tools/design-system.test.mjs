@@ -20,17 +20,29 @@ test("every @font-face src resolves to a bundled real woff2", () => {
 	}
 });
 
-test("default identity is Sora display + Figtree body, Inter is gone", () => {
+test("base identity (:root) is Sora display + Figtree body, Inter is gone", () => {
+	// This is the FALLBACK identity, not what unpinned consumers render (see the next
+	// test) — gold/wend/tidsro/kenaz never set their own --font-display, so they still
+	// derive Sora from here. Changing these values would silently reskin all four.
 	const css = read("tokens/typography.css");
 	assert.match(css, /--font-sans:\s*"Figtree"/, "--font-sans must lead with Figtree");
 	assert.match(css, /--font-display: "Sora", "Figtree", sans-serif;/);
 	assert.ok(!css.includes("Inter"), "Inter must not appear in typography.css");
-	for (const fam of ["Sora", "Figtree", "Instrument Serif", "Schibsted Grotesk", "Atkinson Hyperlegible Next", "Fraunces"]) {
+	for (const fam of ["Sora", "Figtree", "Instrument Serif", "Schibsted Grotesk", "Atkinson Hyperlegible Next", "Fraunces", "Space Grotesk"]) {
 		assert.ok(css.includes(`font-family: "${fam}"`), `missing @font-face for ${fam}`);
 	}
 	assert.match(css, /--weight-display: 600;/);
 	assert.match(css, /--tracking-display: -0\.03em;/);
 	assert.match(css, /--tracking-heading: -0\.02em;/);
+});
+
+test("default identity (3.0.0) is Daily, promoted: no-palette state renders Space Grotesk display", () => {
+	const css = read("tokens/typography.css");
+	assert.match(
+		css,
+		/\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{\n\t--font-display: "Space Grotesk", "Figtree", sans-serif;\n\}/,
+		"the no-palette / data-palette=default state must resolve to daily's display face",
+	);
 });
 
 test("base headings and stat numbers carry the display face", () => {
@@ -152,7 +164,7 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
 		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
 	];
-	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css"]) {
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css"]) {
 		const css = read(`tokens/palettes/${file}`);
 		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
 		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
@@ -244,10 +256,10 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 2.1.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.1.0");
+test("VERSION is 3.0.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.0.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
 });

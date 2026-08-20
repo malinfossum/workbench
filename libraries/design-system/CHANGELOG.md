@@ -3,6 +3,35 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.0.0 — 2026-08-20
+
+Identity pivot. Visual break for anyone on the default look — re-extract rather than
+cherry-pick. Named palettes are untouched.
+
+- **Default identity is Daily, promoted.** The "no palette chosen" state — no
+  `data-palette` attribute, or `data-palette="default"` (what the init snippet writes
+  when nothing is saved) — now renders Daily's warm-charcoal ground, warm ivory text,
+  warm borders, ember accent, and Space Grotesk headings. Previously it rendered the
+  true-black / cool-blue-grey / Sora identity from 2.0.0.
+- **Those 2.0.0 values are not gone** — the plain `:root` blocks in `colors.css` and
+  `typography.css` still declare them, unedited. `gold`, `wend`, `tidsro` and `kenaz`
+  never carried their own full surface/font-display, so they've always derived those
+  from `:root` directly; leaving it untouched and adding Daily as a
+  higher-priority-but-mutually-exclusive `[data-palette="default"], html:not([data-palette])`
+  block means those four palettes keep resolving exactly the colors and type they did
+  before. Verified by hand against each palette file — none of the four declare
+  `--surface-1..5`, `--on-accent`, `--accent-solid(-strong)`, or `--font-display`, so
+  none of them can pick up Daily's values by accident.
+  `--surface-0`/`--text`/`--border` for the new default live in `_oled.css`, extended
+  to the same selector pair (it was already shared by `daily` and `ignite`).
+- **New opt-in palette `hugin`** (`data-palette="hugin"`): a v1 daily-derived copy for
+  the Hugin app — same values as `daily.css`, header-flagged as pending its own
+  branding so it can move independently later.
+- `daily.css` itself is now a no-op relative to the new default: re-extract picks it up,
+  but nothing renders differently for consumers already pinning `data-palette="daily"`.
+- MAJOR bump because this changes what unpinned consumers render, the same reasoning
+  2.0.0 used for its own identity change.
+
 ## 2.1.0 — 2026-08-18
 
 Two new opt-in brand palettes — no changes to tokens, components, or the default identity.
