@@ -32,9 +32,14 @@ cherry-pick. Named palettes are untouched.
   every value byte-for-byte from the (unedited) plain `:root` blocks, for any unpinned
   consumer that wants to keep the 2.x look on their next sync instead of adopting the
   new default.
-- **New opt-in palette `hugin`** (`data-palette="hugin"`): a v1 daily-derived copy for
-  the Hugin app — header-flagged as pending its own branding so it can move
-  independently later.
+- **`hugin` hardened** (`data-palette="hugin"`): no longer a daily-derived copy —
+  Hugin now declares its own `--text`/`--border` ramp (overriding what `_oled.css`
+  supplies to daily/ignite, since hugin.css imports after it) for deeper ground,
+  wider surface steps, brighter muted text and stronger borders, plus a hotter
+  ember accent. Separation over cozy: less blending between background and text,
+  per spec item 1 ("current look is too soft/cozy"). `--border` sits at `#3b3227`
+  rather than the round `#3a3126` to clear the 1.5:1 WCAG 1.4.11 non-text floor
+  kenaz.css documents (1.48:1 on `--surface-2` otherwise).
 - MAJOR bump because this changes what unpinned consumers render, the same reasoning
   2.0.0 used for its own identity change.
 
