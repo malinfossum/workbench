@@ -2,10 +2,9 @@
  * Hugin — hardened v2, Hugin's own identity (still ember-family).
  * Deeper ground, wider surface steps, brighter text and stronger borders than
  * the OLED foundation in _oled.css — background↔text separation over cozy
- * blending (spec v3.1 item 1). Hugin now declares its own --text/--border
- * ramp here rather than sharing _oled.css's: this file imports after
- * _oled.css in palettes/index.css, so same-specificity ties resolve to these
- * values. Opt in with <html data-palette="hugin">.
+ * blending (spec v3.1 item 1). Hugin isn't in _oled.css's selector list, so
+ * every value here — including --surface-0 — is its sole source, not an
+ * override. Opt in with <html data-palette="hugin">.
  */
 [data-palette="hugin"] {
 	/* Deeper ground, wider steps — panels visibly lift off the page. */

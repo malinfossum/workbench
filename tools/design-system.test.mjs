@@ -226,6 +226,49 @@ test("default-theme solid button keeps real AA headroom, not a 0.09 margin", () 
 	}
 });
 
+test("classic.css preserves the pre-3.0.0 default byte-for-byte (values, not whole-file bytes)", () => {
+	const colors = read("tokens/colors.css");
+	const typo = read("tokens/typography.css");
+	const classic = read("tokens/palettes/classic.css");
+
+	const rootDark = blockVars(colors, /:root \{/);
+	const rootLight = blockVars(colors, /:root\[data-theme="light"\]/);
+	const classicDark = blockVars(classic, /\[data-palette="classic"\] \{/);
+	const classicLight = blockVars(classic, /\[data-theme="light"\]\[data-palette="classic"\] \{/);
+
+	for (const token of [
+		"--surface-1", "--surface-2", "--surface-3", "--surface-4", "--surface-5",
+		"--text", "--text-muted", "--text-faint",
+		"--border", "--border-strong", "--border-soft",
+		"--accent-rgb", "--accent-strong-rgb",
+		"--accent-solid", "--accent-solid-strong", "--on-accent",
+	]) {
+		assert.equal(classicDark[token], rootDark[token], `classic.css ${token} must match the plain :root value`);
+	}
+	for (const token of ["--accent-rgb", "--accent-strong-rgb"]) {
+		assert.equal(classicLight[token], rootLight[token], `classic.css light ${token} must match :root[data-theme="light"]`);
+	}
+
+	assert.match(typo, /--font-display: "Sora", "Figtree", sans-serif;/, "typography.css :root must still declare the Sora/Figtree display stack");
+	assert.equal(classicDark["--font-display"], '"Sora", "Figtree", sans-serif', "classic.css --font-display must match :root's");
+});
+
+test("hugin --border clears the 1.5:1 WCAG 1.4.11 non-text floor against hugin --surface-2", () => {
+	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
+	const c = contrast(resolveColor(hugin["--border"], () => {}), resolveColor(hugin["--surface-2"], () => {}));
+	assert.ok(c >= 1.5, `hugin --border (${hugin["--border"]}) vs --surface-2 (${hugin["--surface-2"]}) is ${c.toFixed(2)}:1 (needs >=1.5)`);
+});
+
+test("hugin --text/--border resolve from hugin.css itself, not _oled.css", () => {
+	// hugin isn't in _oled.css's selector list (3.0.0 review fix) — if it ever ends up back
+	// there, hugin.css's own values only win on import order, which is fragile to reorder.
+	const oled = read("tokens/palettes/_oled.css");
+	assert.ok(!/\[data-palette="hugin"\]/.test(oled), "_oled.css must not list hugin in its selector");
+	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
+	assert.equal(hugin["--text"], "#fbf7ef", "hugin.css must declare --text itself");
+	assert.equal(hugin["--border"], "#3b3227", "hugin.css must declare --border itself");
+});
+
 test("type skins exist, scope via data-typeskin, and are imported", () => {
 	const index = read("tokens/palettes/index.css");
 	for (const [file, display] of [

@@ -6,40 +6,38 @@ re-run `node tools/extract.mjs design-system <target>` to catch up.
 ## 3.0.0 — 2026-08-24
 
 Identity pivot. Visual break for anyone on the default look — re-extract rather than
-cherry-pick. Named palettes are untouched.
+cherry-pick.
 
 - **Default identity is a Kenaz/Gold blend.** The "no palette chosen" state — no
   `data-palette` attribute, or `data-palette="default"` (what the init snippet writes
   when nothing is saved) — now renders Kenaz's warm near-black ground, warm ivory text
   and warm borders, with an amber-gold accent at the arithmetic midpoint of Kenaz's
   torchlight amber and Gold's brass-gold (`222 166 72`), and Sora display type
-  (inherited from `:root` — no typography override). Previously it rendered the
-  true-black / cool-blue-grey / Sora identity from 2.0.0.
-- **Those 2.0.0 values are not gone** — the plain `:root` blocks in `colors.css` and
-  `typography.css` still declare them, unedited. `gold`, `wend` and `tidsro` never
-  carried their own surfaces or `--font-display`, so they've always derived those
+  (inherited from `:root` — no typography override). In 2.1.0 (the last release) this
+  state rendered the true-black / cool-blue-grey / Sora identity carried in `colors.css`'s
+  plain `:root` blocks.
+- **Those 2.1.0 values are not gone** — the plain `:root` blocks in `colors.css` and
+  `typography.css` still declare them, unedited. `gold`, `wend`, `tidsro` and `kenaz`
+  never carried their own surfaces or `--font-display`, so they've always derived those
   from `:root` directly; leaving it untouched and layering the blend on as a
   higher-priority-but-mutually-exclusive `[data-palette="default"], html:not([data-palette])`
-  block means those three palettes keep resolving exactly the colors and type they did
-  before. `--surface-0`/`--text`/`--border` for the default now live directly in
-  `colors.css`'s default block rather than sharing `_oled.css` with `daily`/`ignite`/
-  `hugin` — the blend has its own Kenaz-derived values, not the ember-adjacent ones
-  those three share.
-- **Daily stays as it is.** It is a standalone opt-in palette again
-  (`data-palette="daily"`), not the default's source — its value block in `daily.css`
-  is load-bearing, not a documented no-op.
-- **The pre-3.0.0 default is preserved as opt-in `classic`** (`data-palette="classic"`):
-  every value byte-for-byte from the (unedited) plain `:root` blocks, for any unpinned
-  consumer that wants to keep the 2.x look on their next sync instead of adopting the
-  new default.
-- **`hugin` hardened** (`data-palette="hugin"`): no longer a daily-derived copy —
-  Hugin now declares its own `--text`/`--border` ramp (overriding what `_oled.css`
-  supplies to daily/ignite, since hugin.css imports after it) for deeper ground,
-  wider surface steps, brighter muted text and stronger borders, plus a hotter
-  ember accent. Separation over cozy: less blending between background and text,
-  per spec item 1 ("current look is too soft/cozy"). `--border` sits at `#3b3227`
-  rather than the round `#3a3126` to clear the 1.5:1 WCAG 1.4.11 non-text floor
-  kenaz.css documents (1.48:1 on `--surface-2` otherwise).
+  block means those four palettes keep resolving exactly the colors and type they did
+  before.
+- **New palette: `classic`** (`data-palette="classic"`) — preserves the pre-3.0.0
+  default identity as an opt-in: true-black surfaces, cool blue-grey accent, Sora
+  display over Figtree body, every value copied byte-for-byte from the (unedited)
+  plain `:root` blocks. For any unpinned consumer that wants to keep the 2.1.0 look
+  on their next sync instead of adopting the new default.
+- **New palette: `hugin`** (`data-palette="hugin"`) — hardened ember for the Hugin
+  app: deeper ground, wider surface steps, brighter muted text and stronger borders
+  than the shared OLED foundation (`daily`/`ignite`), plus a hotter ember accent.
+  Declares its own `--text`/`--border` ramp rather than sharing `_oled.css`'s —
+  it isn't in that file's selector list. Separation over cozy: less blending between
+  background and text, per spec item 1 ("current look is too soft/cozy"). `--border`
+  sits at `#3b3227` rather than the round `#3a3126` to clear the 1.5:1 WCAG 1.4.11
+  non-text floor kenaz.css documents (1.48:1 on `--surface-2` otherwise).
+- **Daily is unaffected** — still a standalone opt-in palette (`data-palette="daily"`),
+  same as `ignite`.
 - MAJOR bump because this changes what unpinned consumers render, the same reasoning
   2.0.0 used for its own identity change.
 
