@@ -3,38 +3,38 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
-## 3.0.0 — 2026-08-20
+## 3.0.0 — 2026-08-24
 
 Identity pivot. Visual break for anyone on the default look — re-extract rather than
 cherry-pick. Named palettes are untouched.
 
-- **Default identity is Daily, promoted.** The "no palette chosen" state — no
+- **Default identity is a Kenaz/Gold blend.** The "no palette chosen" state — no
   `data-palette` attribute, or `data-palette="default"` (what the init snippet writes
-  when nothing is saved) — now renders Daily's warm-charcoal ground, warm ivory text,
-  warm borders, ember accent, and Space Grotesk headings. Previously it rendered the
+  when nothing is saved) — now renders Kenaz's warm near-black ground, warm ivory text
+  and warm borders, with an amber-gold accent at the arithmetic midpoint of Kenaz's
+  torchlight amber and Gold's brass-gold (`222 166 72`), and Sora display type
+  (inherited from `:root` — no typography override). Previously it rendered the
   true-black / cool-blue-grey / Sora identity from 2.0.0.
 - **Those 2.0.0 values are not gone** — the plain `:root` blocks in `colors.css` and
-  `typography.css` still declare them, unedited. `gold`, `wend`, `tidsro` and `kenaz`
-  never carried their own surfaces or `--font-display`, so they've always derived those
-  from `:root` directly; leaving it untouched and adding Daily as a
+  `typography.css` still declare them, unedited. `gold`, `wend` and `tidsro` never
+  carried their own surfaces or `--font-display`, so they've always derived those
+  from `:root` directly; leaving it untouched and layering the blend on as a
   higher-priority-but-mutually-exclusive `[data-palette="default"], html:not([data-palette])`
-  block means those four palettes keep resolving exactly the colors and type they did
-  before. Verified by hand against each palette file: none of the four declare
-  `--surface-1..5`, `--accent-solid-strong`, or `--font-display`. `--on-accent`/
-  `--accent-solid` specifically are only ever touched by `kenaz` (its own dark
-  `--on-accent` and light `--accent-solid`), never by `gold`/`wend`/`tidsro` — so those
-  stay exactly as they were too, since the new block's selector never matches
-  `[data-palette="kenaz"]` in the first place.
-  `--surface-0`/`--text`/`--border` for the new default live in `_oled.css`, extended
-  to the same selector pair (it was already shared by `daily` and `ignite`).
+  block means those three palettes keep resolving exactly the colors and type they did
+  before. `--surface-0`/`--text`/`--border` for the default now live directly in
+  `colors.css`'s default block rather than sharing `_oled.css` with `daily`/`ignite`/
+  `hugin` — the blend has its own Kenaz-derived values, not the ember-adjacent ones
+  those three share.
+- **Daily stays as it is.** It is a standalone opt-in palette again
+  (`data-palette="daily"`), not the default's source — its value block in `daily.css`
+  is load-bearing, not a documented no-op.
 - **The pre-3.0.0 default is preserved as opt-in `classic`** (`data-palette="classic"`):
   every value byte-for-byte from the (unedited) plain `:root` blocks, for any unpinned
-  consumer that wants to keep today's look on their next sync instead of adopting Daily.
+  consumer that wants to keep the 2.x look on their next sync instead of adopting the
+  new default.
 - **New opt-in palette `hugin`** (`data-palette="hugin"`): a v1 daily-derived copy for
-  the Hugin app — same values as `daily.css`, header-flagged as pending its own
-  branding so it can move independently later.
-- `daily.css` itself is now a no-op relative to the new default: re-extract picks it up,
-  but nothing renders differently for consumers already pinning `data-palette="daily"`.
+  the Hugin app — header-flagged as pending its own branding so it can move
+  independently later.
 - MAJOR bump because this changes what unpinned consumers render, the same reasoning
   2.0.0 used for its own identity change.
 

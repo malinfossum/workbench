@@ -36,13 +36,20 @@ test("base identity (:root) is Sora display + Figtree body, Inter is gone", () =
 	assert.match(css, /--tracking-heading: -0\.02em;/);
 });
 
-test("default identity (3.0.0) is Daily, promoted: no-palette state renders Space Grotesk display", () => {
-	const css = read("tokens/typography.css");
-	assert.match(
-		css,
-		/\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{\n\t--font-display: "Space Grotesk", "Figtree", sans-serif;\n\}/,
-		"the no-palette / data-palette=default state must resolve to daily's display face",
-	);
+test("default identity (3.0.0) is a Kenaz/Gold blend: no-palette state renders warm-black Kenaz ground with a midpoint amber accent", () => {
+	const colors = read("tokens/colors.css");
+	assert.match(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/, "the default block must exist in colors.css");
+	const block = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
+	assert.equal(block["--accent-rgb"], "222 166 72", "default accent must be the Kenaz/Gold midpoint");
+	assert.equal(block["--surface-2"], "#0b0a09", "default surfaces must be Kenaz's");
+	assert.equal(block["--on-accent"], "#241704", "default on-accent must be Kenaz's dark ink");
+
+	const oled = read("tokens/palettes/_oled.css");
+	assert.ok(!oled.includes('[data-palette="default"]'), "_oled.css selector list must no longer carry the default identity");
+	assert.ok(!oled.includes("html:not([data-palette])"), "_oled.css selector list must no longer carry the no-palette-attribute state");
+
+	const typo = read("tokens/typography.css");
+	assert.ok(!typo.includes('[data-palette="default"]'), "typography.css must carry no default block — Sora inherits from :root");
 });
 
 test("base headings and stat numbers carry the display face", () => {
