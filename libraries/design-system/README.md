@@ -16,7 +16,7 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 
 ## Principles
 
-- Warm near-black dark mode (Daily, the default identity) with a restrained accent;
+- Warm near-black dark mode (a Kenaz/Gold blend, the default identity) with a restrained accent;
   true black stays reserved for the deepest layer via `--surface-0`
 - Semantic tokens over hard-coded values
 - Primitives before page-specific layout
@@ -44,17 +44,17 @@ The initial theme is set by an **inline `<head>` snippet** so there's no flash o
 
 Default is dark. User's saved choice (from `localStorage`) wins.
 
-**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) now renders `daily`'s look** — since 3.0.0, Daily is the promoted default identity, not just an opt-in palette; see the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
+**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) now renders a Kenaz/Gold blend** — since 3.0.0, the default identity takes its surfaces, text and borders from Kenaz, with an accent at the arithmetic midpoint of Kenaz's amber and Gold's gold (`222 166 72`); Sora stays the display face, inherited from `:root` with no typography override. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
 
 ## Type skins
 
-The default identity (3.0.0+) is Space Grotesk 600 headings over a Figtree body — Daily's
-type, promoted along with its color. The pre-3.0 identity (Sora display + Figtree body) is
-still what `gold`, `wend`, `tidsro` and `kenaz` resolve to, since none of them set their own
-`--font-display` — and it's what `data-palette="classic"` opts back into wholesale, for a
-consumer that wants the full pre-3.0 default rather than just its type. Three opt-in type
-skins swap the display face (and for nordic, the body) without touching color, and compose
-with any palette including the new default:
+The default identity (3.0.0+) is Sora display over a Figtree body, inherited straight from
+`:root` — the same pairing `gold`, `wend`, `tidsro` and `kenaz` resolve to, since none of them
+set their own `--font-display` either. Only `daily` carries its own type (Space Grotesk); it's
+a standalone opt-in palette, not the default's source. `data-palette="classic"` opts back into
+the pre-3.0 default wholesale — same type as today's default, different colour. Three opt-in
+type skins swap the display face (and for nordic, the body) without touching color, and compose
+with any palette including the default:
 
 | Skin | Headings | Body |
 |---|---|---|

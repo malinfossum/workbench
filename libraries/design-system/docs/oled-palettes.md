@@ -14,19 +14,24 @@ Opt in on `<html>`:
 <html data-palette="hugin">
 ```
 
-**Since 3.0.0, `daily` is also what renders by default** — no `data-palette`
-attribute, or `data-palette="default"`, resolves to the same values as
-`data-palette="daily"` (see the "Default identity" comment in
-`tokens/colors.css`). `hugin` is a v1 copy of `daily`'s values for the Hugin
-app, kept as its own name so it can diverge later without touching the
-default.
+**As of 3.0.0, no `data-palette` (or `data-palette="default"`) resolves to
+`daily` anymore.** The default identity is now a Kenaz/Gold blend —
+Kenaz's surfaces, text and borders, an accent at the arithmetic midpoint of
+Kenaz's amber and Gold's gold, Sora display inherited from `:root` (see the
+"Default identity" comment in `tokens/colors.css`, and the design system
+README). `daily` is a standalone opt-in palette again, exactly like `ignite`
+and `hugin` below — set `data-palette="daily"` explicitly to get it.
 
-An unpinned consumer that syncs past 3.0.0 gets Daily whether it wants to or
-not. `tokens/palettes/classic.css` (`data-palette="classic"`) is the escape
-hatch: it restates the pre-3.0.0 default (true-black surfaces, cool
-blue-grey accent, Sora display) byte-for-byte, so pinning it reproduces
-exactly what rendered before this release without freezing the rest of the
-library at an old version.
+`hugin` is no longer a copy of `daily`'s values either: as of this release
+it declares its own `--text`/`--border` ramp for deeper ground, wider
+surface steps and less background↔text blending than the shared OLED
+foundation — see its own section below.
+
+`tokens/palettes/classic.css` (`data-palette="classic"`) restates the
+pre-3.0.0 default (true-black surfaces, cool blue-grey accent, Sora
+display) byte-for-byte, for a consumer that wants to pin exactly what
+rendered before Daily-as-default and its Kenaz/Gold-blend successor,
+without freezing the rest of the library at an old version.
 
 ## daily — general-purpose
 
@@ -56,6 +61,22 @@ numbers for streaks and counts.
 | headings | Bricolage Grotesque (`--font-display`) |
 | body | Hanken Grotesk (`--font-sans`) |
 
+## hugin — the Hugin app
+
+Hardened v2: deeper ground and wider surface steps than the shared OLED
+foundation, brighter muted text, stronger borders — separation over cozy
+blending. Still ember-family. Space Grotesk headings + Figtree body.
+
+| Token | Value |
+|---|---|
+| `--surface-1` … `--surface-5` | `#0a0806 → #362a1a` |
+| `--surface-0` (true black) | `#000000` |
+| `--accent` (ember) | `rgb(214 106 48)` · `#d66a30` |
+| `--text` / `--text-muted` / `--text-faint` | `#fbf7ef` / `#cfc5b4` / `#9a9080` |
+| `--border` | `#3b3227` |
+| headings | Space Grotesk (`--font-display`) |
+| body | Figtree (`--font-sans`) |
+
 ## How type-in-palette works
 
 A palette sets `--font-sans` / `--font-display` and adds a scoped rule so headings
@@ -69,6 +90,6 @@ are self-hosted woff2 in `assets/fonts/`, declared in `typography.css`.
 
 ## Light mode
 
-`daily` and `ignite` are dark-first. Toggling light keeps the base light surfaces
-and only re-tunes the accent for contrast — the same approach `gold` and `wend`
-use.
+`daily`, `ignite` and `hugin` are dark-first. Toggling light keeps the base light
+surfaces and only re-tunes the accent for contrast — the same approach `gold` and
+`wend` use.
