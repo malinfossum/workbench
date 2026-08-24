@@ -183,6 +183,16 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 			});
 		}
 	}
+	// The shipped "no palette chosen" identity (3.0.0: Kenaz/Gold blend) lives in its own
+	// [data-palette="default"] block in colors.css, not in a palettes/*.css file — without
+	// this it would be the one identity real users render that this loop never checks.
+	const defaultDark = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
+	scopes.push({ label: "default identity (dark)", layers: [defaultDark, blockVars(colors, /:root \{/)] });
+	const defaultLight = blockVars(colors, /\[data-theme="light"\]\[data-palette="default"\],\nhtml\[data-theme="light"\]:not\(\[data-palette\]\) \{/);
+	scopes.push({
+		label: "default identity (light)",
+		layers: [defaultLight, blockVars(colors, /:root\[data-theme="light"\]/), defaultDark, blockVars(colors, /:root \{/)],
+	});
 	for (const { label, layers } of scopes) {
 		const scope = (name) => {
 			for (const layer of layers) if (name in layer) return layer[name];
