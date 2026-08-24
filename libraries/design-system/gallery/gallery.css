@@ -1,5 +1,10 @@
 .gallery {
 	min-height: 100dvh;
+	/* Centered app column (Malin's standing rule: web layouts center on screen and
+	   scale with it, never hug the left edge of a wide viewport). The shell caps at
+	   sidebar + content width and centers; below the cap it simply fills the screen. */
+	max-width: 88rem;
+	margin-inline: auto;
 }
 
 .gallery-sidebar {
@@ -146,5 +151,9 @@
 	.gallery-main {
 		padding: var(--space-7);
 		padding-block-end: var(--space-9);
+		/* Center the content column inside its grid track when the track is wider
+		   than the 64rem cap (large screens under the shell's own cap). */
+		width: 100%;
+		margin-inline: auto;
 	}
 }
