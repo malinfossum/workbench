@@ -20,17 +20,36 @@ test("every @font-face src resolves to a bundled real woff2", () => {
 	}
 });
 
-test("default identity is Sora display + Figtree body, Inter is gone", () => {
+test("base identity (:root) is Sora display + Figtree body, Inter is gone", () => {
+	// This is the FALLBACK identity, not what unpinned consumers render (see the next
+	// test) — gold/wend/tidsro/kenaz never set their own --font-display, so they still
+	// derive Sora from here. Changing these values would silently reskin all four.
 	const css = read("tokens/typography.css");
 	assert.match(css, /--font-sans:\s*"Figtree"/, "--font-sans must lead with Figtree");
 	assert.match(css, /--font-display: "Sora", "Figtree", sans-serif;/);
 	assert.ok(!css.includes("Inter"), "Inter must not appear in typography.css");
-	for (const fam of ["Sora", "Figtree", "Instrument Serif", "Schibsted Grotesk", "Atkinson Hyperlegible Next", "Fraunces"]) {
+	for (const fam of ["Sora", "Figtree", "Instrument Serif", "Schibsted Grotesk", "Atkinson Hyperlegible Next", "Fraunces", "Space Grotesk"]) {
 		assert.ok(css.includes(`font-family: "${fam}"`), `missing @font-face for ${fam}`);
 	}
 	assert.match(css, /--weight-display: 600;/);
 	assert.match(css, /--tracking-display: -0\.03em;/);
 	assert.match(css, /--tracking-heading: -0\.02em;/);
+});
+
+test("default identity (3.0.0) is a Kenaz/Gold blend: no-palette state renders warm-black Kenaz ground with a midpoint amber accent", () => {
+	const colors = read("tokens/colors.css");
+	assert.match(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/, "the default block must exist in colors.css");
+	const block = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
+	assert.equal(block["--accent-rgb"], "222 166 72", "default accent must be the Kenaz/Gold midpoint");
+	assert.equal(block["--surface-2"], "#0b0a09", "default surfaces must be Kenaz's");
+	assert.equal(block["--on-accent"], "#241704", "default on-accent must be Kenaz's dark ink");
+
+	const oled = read("tokens/palettes/_oled.css");
+	assert.ok(!oled.includes('[data-palette="default"]'), "_oled.css selector list must no longer carry the default identity");
+	assert.ok(!oled.includes("html:not([data-palette])"), "_oled.css selector list must no longer carry the no-palette-attribute state");
+
+	const typo = read("tokens/typography.css");
+	assert.ok(!typo.includes('[data-palette="default"]'), "typography.css must carry no default block — Sora inherits from :root");
 });
 
 test("base headings and stat numbers carry the display face", () => {
@@ -152,7 +171,7 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
 		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
 	];
-	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css"]) {
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css"]) {
 		const css = read(`tokens/palettes/${file}`);
 		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
 		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
@@ -164,6 +183,16 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 			});
 		}
 	}
+	// The shipped "no palette chosen" identity (3.0.0: Kenaz/Gold blend) lives in its own
+	// [data-palette="default"] block in colors.css, not in a palettes/*.css file — without
+	// this it would be the one identity real users render that this loop never checks.
+	const defaultDark = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
+	scopes.push({ label: "default identity (dark)", layers: [defaultDark, blockVars(colors, /:root \{/)] });
+	const defaultLight = blockVars(colors, /\[data-theme="light"\]\[data-palette="default"\],\nhtml\[data-theme="light"\]:not\(\[data-palette\]\) \{/);
+	scopes.push({
+		label: "default identity (light)",
+		layers: [defaultLight, blockVars(colors, /:root\[data-theme="light"\]/), defaultDark, blockVars(colors, /:root \{/)],
+	});
 	for (const { label, layers } of scopes) {
 		const scope = (name) => {
 			for (const layer of layers) if (name in layer) return layer[name];
@@ -195,6 +224,49 @@ test("default-theme solid button keeps real AA headroom, not a 0.09 margin", () 
 			assert.ok(c >= 5.0, `default theme: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=5.0 headroom)`);
 		}
 	}
+});
+
+test("classic.css preserves the pre-3.0.0 default byte-for-byte (values, not whole-file bytes)", () => {
+	const colors = read("tokens/colors.css");
+	const typo = read("tokens/typography.css");
+	const classic = read("tokens/palettes/classic.css");
+
+	const rootDark = blockVars(colors, /:root \{/);
+	const rootLight = blockVars(colors, /:root\[data-theme="light"\]/);
+	const classicDark = blockVars(classic, /\[data-palette="classic"\] \{/);
+	const classicLight = blockVars(classic, /\[data-theme="light"\]\[data-palette="classic"\] \{/);
+
+	for (const token of [
+		"--surface-1", "--surface-2", "--surface-3", "--surface-4", "--surface-5",
+		"--text", "--text-muted", "--text-faint",
+		"--border", "--border-strong", "--border-soft",
+		"--accent-rgb", "--accent-strong-rgb",
+		"--accent-solid", "--accent-solid-strong", "--on-accent",
+	]) {
+		assert.equal(classicDark[token], rootDark[token], `classic.css ${token} must match the plain :root value`);
+	}
+	for (const token of ["--accent-rgb", "--accent-strong-rgb"]) {
+		assert.equal(classicLight[token], rootLight[token], `classic.css light ${token} must match :root[data-theme="light"]`);
+	}
+
+	assert.match(typo, /--font-display: "Sora", "Figtree", sans-serif;/, "typography.css :root must still declare the Sora/Figtree display stack");
+	assert.equal(classicDark["--font-display"], '"Sora", "Figtree", sans-serif', "classic.css --font-display must match :root's");
+});
+
+test("hugin --border clears the 1.5:1 WCAG 1.4.11 non-text floor against hugin --surface-2", () => {
+	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
+	const c = contrast(resolveColor(hugin["--border"], () => {}), resolveColor(hugin["--surface-2"], () => {}));
+	assert.ok(c >= 1.5, `hugin --border (${hugin["--border"]}) vs --surface-2 (${hugin["--surface-2"]}) is ${c.toFixed(2)}:1 (needs >=1.5)`);
+});
+
+test("hugin --text/--border resolve from hugin.css itself, not _oled.css", () => {
+	// hugin isn't in _oled.css's selector list (3.0.0 review fix) — if it ever ends up back
+	// there, hugin.css's own values only win on import order, which is fragile to reorder.
+	const oled = read("tokens/palettes/_oled.css");
+	assert.ok(!/\[data-palette="hugin"\]/.test(oled), "_oled.css must not list hugin in its selector");
+	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
+	assert.equal(hugin["--text"], "#fbf7ef", "hugin.css must declare --text itself");
+	assert.equal(hugin["--border"], "#3b3227", "hugin.css must declare --border itself");
 });
 
 test("type skins exist, scope via data-typeskin, and are imported", () => {
@@ -244,10 +316,10 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 2.1.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "2.1.0");
+test("VERSION is 3.0.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.0.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
 });
