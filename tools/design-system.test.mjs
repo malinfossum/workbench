@@ -36,7 +36,7 @@ test("base identity (:root) is Sora display + Figtree body, Inter is gone", () =
 	assert.match(css, /--tracking-heading: -0\.02em;/);
 });
 
-test("default identity (3.0.0) is a Kenaz/Gold blend: no-palette state renders warm-black Kenaz ground with a midpoint amber accent", () => {
+test("default identity is the house amber-gold: no-palette state renders the warm-black ground with the midpoint amber accent", () => {
 	const colors = read("tokens/colors.css");
 	assert.match(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/, "the default block must exist in colors.css");
 	const block = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
@@ -171,7 +171,7 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
 		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
 	];
-	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css"]) {
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css", "kenaz.css"]) {
 		const css = read(`tokens/palettes/${file}`);
 		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
 		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
@@ -183,7 +183,7 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 			});
 		}
 	}
-	// The shipped "no palette chosen" identity (3.0.0: Kenaz/Gold blend) lives in its own
+	// The shipped "no palette chosen" identity (the house amber-gold) lives in its own
 	// [data-palette="default"] block in colors.css, not in a palettes/*.css file — without
 	// this it would be the one identity real users render that this loop never checks.
 	const defaultDark = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
@@ -253,6 +253,28 @@ test("classic.css preserves the pre-3.0.0 default byte-for-byte (values, not who
 	assert.equal(classicDark["--font-display"], '"Sora", "Figtree", sans-serif', "classic.css --font-display must match :root's");
 });
 
+test("kenaz.css is the Lantern brand identity (cool blue-grey), not the 2.1.0 amber", () => {
+	// 3.1.0 replaced kenaz's torchlight-amber ramp with the palette its brand pack was
+	// actually designed in. The old amber must not creep back: it is what the default
+	// identity is built from, and having both means kenaz is invisible next to no-palette.
+	const kenaz = blockVars(read("tokens/palettes/kenaz.css"), /\[data-palette="kenaz"\] \{/);
+	assert.equal(kenaz["--accent-rgb"], "124 154 179", "kenaz accent must be the Lantern blue-grey");
+	assert.equal(kenaz["--surface-2"], "#0a0d10", "kenaz surfaces must be the cool near-black ramp");
+	assert.equal(kenaz["--on-accent"], "#0a0d10", "kenaz solid-button ink must be the cool near-black");
+
+	const colors = read("tokens/colors.css");
+	const dflt = blockVars(colors, /\[data-palette="default"\],\nhtml:not\(\[data-palette\]\) \{/);
+	assert.notEqual(kenaz["--accent-rgb"], dflt["--accent-rgb"], "kenaz must not render as the default identity");
+
+	// The palette declares its own full ramp rather than deriving from :root — since 3.0.0
+	// the no-palette state is warm, so inheriting would silently warm kenaz back up.
+	for (const token of ["--surface-1", "--surface-3", "--text", "--border", "--accent-strong-rgb"]) {
+		assert.ok(token in kenaz, `kenaz.css must declare ${token} itself, not inherit it`);
+	}
+	// Sora/Figtree come from :root on purpose; a --font-display here would be a silent reskin.
+	assert.ok(!("--font-display" in kenaz), "kenaz.css must inherit the display face from :root, not declare its own");
+});
+
 test("hugin --border clears the 1.5:1 WCAG 1.4.11 non-text floor against hugin --surface-2", () => {
 	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
 	const c = contrast(resolveColor(hugin["--border"], () => {}), resolveColor(hugin["--surface-2"], () => {}));
@@ -316,10 +338,10 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 3.0.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "3.0.0");
+test("VERSION is 3.1.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.1.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
 });

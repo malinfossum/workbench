@@ -8,8 +8,8 @@
  * hugin.css instead of sharing this foundation — see the header comment
  * there.
  *
- * The default identity (3.0.0: a Kenaz/Gold blend) doesn't share this
- * foundation either — it carries its own Kenaz-derived --surface-0/--text/
+ * The default identity (3.0.0: the house amber-gold) doesn't share this
+ * foundation either — it carries its own warm --surface-0/--text/
  * --border values directly in the default block in colors.css instead.
  */
 [data-palette="daily"],

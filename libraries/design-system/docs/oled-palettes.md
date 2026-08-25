@@ -15,9 +15,10 @@ Opt in on `<html>`:
 ```
 
 **As of 3.0.0, the default identity — no `data-palette` attribute, or
-`data-palette="default"` — is a Kenaz/Gold blend**: Kenaz's surfaces, text
-and borders, an accent at the arithmetic midpoint of Kenaz's amber and
-Gold's gold, Sora display inherited from `:root` (see the "Default
+`data-palette="default"` — is the house amber-gold**: a warm near-black
+ground with a `222 166 72` accent, Sora display inherited from `:root`.
+It was blended out of the Kenaz and Gold palettes as they stood in 3.0.0;
+as of 3.1.0 `kenaz` is cool blue-grey, so the default no longer mirrors it (see the "Default
 identity" comment in `tokens/colors.css`, and the design system README).
 In 2.1.0 (the last release) this state rendered the true-black,
 cool-blue-grey, Sora identity carried in the plain `:root` blocks — that
@@ -33,8 +34,9 @@ background↔text blending than `daily`/`ignite` — see its own section below.
 `tokens/palettes/classic.css` (`data-palette="classic"`), also new as of
 3.0.0, restates the 2.1.0 default (true-black surfaces, cool blue-grey
 accent, Sora display) byte-for-byte, for a consumer that wants to pin
-exactly what rendered before the Kenaz/Gold blend, without freezing the
-rest of the library at an old version.
+exactly what rendered before the amber-gold default, without freezing the
+rest of the library at an old version. `kenaz` carries these same values
+as of 3.1.0 — as a brand that may move, not a frozen pin.
 
 ## daily — general-purpose
 
