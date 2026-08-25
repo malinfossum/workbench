@@ -3,6 +3,30 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.1.0 — 2026-08-25
+
+Kenaz's palette is replaced. No change to the default identity, any other palette,
+tokens, or components — re-extract only if you consume `kenaz`.
+
+- **`kenaz` is now the Lantern brand identity**: cool blue-grey accent (`124 154 179`)
+  over the true-black / cool near-black surface ramp, Sora display over Figtree body
+  (both inherited from `:root` — the palette sets no `--font-display`). It replaces the
+  torchlight-amber ramp shipped in 2.1.0. The Kenaz app's brand pack was designed in
+  these colours, and the palette existed to serve that app; the amber version was the
+  one that didn't match. It also removes a real collision — amber Kenaz differed from
+  3.0.0's default only in the accent (`217 154 78` vs `222 166 72`), which is not a
+  visible difference.
+- **These are the same values `classic` carries**, on purpose. `classic` is a frozen
+  compatibility pin that must keep tracking the plain `:root` blocks; `kenaz` is a
+  living brand that may diverge. Both files say so, and both are covered by tests.
+- **The default identity is untouched** — still the warm amber-gold ramp with the
+  `222 166 72` accent, byte-for-byte. Its comments no longer describe it as "a
+  Kenaz/Gold blend", since Kenaz no longer looks like that; the values it was blended
+  from in 3.0.0 are recorded as history instead. Prose only, no behaviour change.
+- MINOR, not MAJOR: the "no palette chosen" state renders exactly what it did in
+  3.0.0, so no unpinned consumer changes. Consumers that opted into `data-palette="kenaz"`
+  do get a full visual replacement — today that is the Kenaz app, deliberately.
+
 ## 3.0.0 — 2026-08-24
 
 Identity pivot. Visual break for anyone on the default look — re-extract rather than

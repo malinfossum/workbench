@@ -16,7 +16,7 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 
 ## Principles
 
-- Warm near-black dark mode (a Kenaz/Gold blend, the default identity) with a restrained accent;
+- Warm near-black dark mode (the house amber-gold, the default identity) with a restrained accent;
   true black stays reserved for the deepest layer via `--surface-0`
 - Semantic tokens over hard-coded values
 - Primitives before page-specific layout
@@ -44,7 +44,7 @@ The initial theme is set by an **inline `<head>` snippet** so there's no flash o
 
 Default is dark. User's saved choice (from `localStorage`) wins.
 
-**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) now renders a Kenaz/Gold blend** — since 3.0.0, the default identity takes its surfaces, text and borders from Kenaz, with an accent at the arithmetic midpoint of Kenaz's amber and Gold's gold (`222 166 72`); Sora stays the display face, inherited from `:root` with no typography override. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
+**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) renders the house amber-gold** — since 3.0.0 the default identity is a warm near-black ground with a `222 166 72` accent; Sora stays the display face, inherited from `:root` with no typography override. It was blended out of the Kenaz and Gold palettes as they stood in 3.0.0; `kenaz` has since moved to its Lantern brand colours, so the default is now its own identity rather than a mirror of a shipped palette. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it; `kenaz` (3.1.0) carries the same values as a living brand rather than a frozen pin. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
 
 ## Type skins
 
