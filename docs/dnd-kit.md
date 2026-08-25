@@ -165,6 +165,16 @@ const manager = new DragDropManager({
 The same `Accessibility` plugin is imported from `@dnd-kit/dom` in React and passed to
 `<DragDropProvider plugins={...}>`.
 
+> **Unverified, 2026-08-25.** In a local probe (both the vendored bundle and the raw unbundled
+> package) the plugin never mounted its live region: no `#dnd-kit-announcement` element, no
+> `#dnd-kit-description`, and no `aria-roledescription` / `aria-describedby` on the handle. Reading
+> the source, `Accessibility` is a default plugin and mounts from an effect over
+> `registry.draggables`, so it should have. The probe drove the keyboard with JS-dispatched
+> `KeyboardEvent`s because the browser-driver sends keydowns with an empty `code` — untrusted events
+> are the likeliest explanation, but that is a hypothesis, not a finding. **Verify announcements on
+> real hardware with a real screen reader before trusting this section.** Dragging itself, including
+> the keyboard pickup/move/drop path, is verified working — see below.
+
 Checklist for any drag feature:
 
 1. The drag handle is a real `<button>` and reachable by Tab.
@@ -197,6 +207,66 @@ PointerSensor.configure({
 `PointerActivationConstraints.Distance({value: 8})` is the alternative — drag starts after 8px of
 movement. Delay suits vertical lists on touch; Distance suits desktop-first grids.
 
+## No build step (Wend) — vendor a bundle
+
+Wend's frontend is hand-authored vanilla JS served from `wwwroot`, with no `package.json` and no
+bundler, so it cannot `npm install @dnd-kit/dom`. Two routes exist. **Take the bundle.**
+
+**Rejected: import maps.** `@dnd-kit/dom` imports bare specifiers, and every package in the
+transitive graph has to be mapped by hand — `@dnd-kit/abstract`, `@dnd-kit/state`,
+`@dnd-kit/geometry`, `@dnd-kit/collision`, `@dnd-kit/dom/utilities`, plus `@preact/signals-core`,
+which is a dependency of a dependency and does not appear anywhere in dnd-kit's own docs. Tested
+2026-08-25: the map failed at runtime on the first unmapped specifier, and every dnd-kit upgrade can
+add another. It also ships ~30 separate module requests instead of one file.
+
+**Chosen: pre-bundle once, commit the output.** Same shape as the vendored `design-system/` — a
+build artifact that lives in the repo, produced by a script, never hand-edited.
+
+Build it in a scratch directory, outside Wend:
+
+```bash
+npm install @dnd-kit/dom@0.5.0 esbuild
+```
+
+`entry.js` — name every export the app uses, so the surface is explicit and reviewable:
+
+```js
+export {
+  DragDropManager, Draggable, Droppable,
+  PointerSensor, KeyboardSensor, Accessibility, PointerActivationConstraints,
+} from "@dnd-kit/dom";
+export { Sortable } from "@dnd-kit/dom/sortable";
+```
+
+```bash
+npx esbuild entry.js --bundle --format=esm --minify --legal-comments=inline --outfile=dnd-kit.min.js
+```
+
+Copy the result to `wwwroot/vendor/dnd-kit/dnd-kit.min.js` and import it by relative path:
+
+```js
+import { DragDropManager, Sortable } from "./vendor/dnd-kit/dnd-kit.min.js";
+```
+
+**Verified 2026-08-25** against a static server with no build step:
+
+- Output is **103 KB minified, 35 KB gzipped**, one file, zero remaining bare imports
+- All eight named exports resolve
+- Keyboard pickup → `ArrowDown` → drop reordered the list and fired `dragend` with the correct
+  `initialIndex` / `index`; `Escape` cancelled with `event.canceled === true`
+- The bundle behaved **identically to the raw unbundled package** on the same probe, including the
+  accessibility caveat above — so bundling is faithful and is not the cause of that gap
+
+Rules that come with this:
+
+- `--legal-comments=inline` keeps the MIT notices in the artifact. Do not drop it.
+- Pin the exact version in the build command and record it next to the artifact. A 0.x upgrade is a
+  deliberate act: rebuild, re-verify, commit.
+- Wend's Biome config must exclude `wwwroot/vendor/` the way it already excludes `design-system/`,
+  or the format hook will rewrite the bundle and register as a local edit.
+- The build belongs in a script beside `sync-design-system.ps1`, not in a README step someone
+  re-derives by hand.
+
 ## Gotchas
 
 - **Mixing the two lines.** `setNodeRef` next to `@dnd-kit/react` is the signature of a pasted legacy
@@ -208,9 +278,8 @@ movement. Delay suits vertical lists on touch; Distance suits desktop-first grid
 - **Cancelled drags.** Always check `event.canceled` in `dragend` before mutating state, and keep a
   pre-drag snapshot for multi-list boards.
 - **No activation constraint on touch** breaks scrolling. See above.
-- **`@dnd-kit/dom` is ESM from npm.** Wend's frontend has no build step and no `package.json`, so it
-  cannot `npm install` this. Getting dnd-kit into Wend needs a vendored ESM bundle or an import map —
-  unsolved, and the first thing to work out if the kanban board is the first real use.
+- **`@dnd-kit/dom` is ESM from npm**, so a no-build-step project cannot install it directly. Solved
+  by vendoring a pre-built bundle — see the section above. Do not reach for an import map.
 
 ## Status
 
