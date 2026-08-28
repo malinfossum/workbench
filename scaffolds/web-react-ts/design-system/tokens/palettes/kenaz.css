@@ -37,6 +37,10 @@
 	--border-strong: #313c48;
 	--border-soft: #1a2128;
 
+	/* Control boundary (SC 1.4.11, see colors.css) — same value as :root,
+	   declared here for the same reason as the rest of the ramp. */
+	--control-border: #516377;
+
 	/* Accent — single source; soft / ghost / focus derive from it. */
 	--accent-rgb: 124 154 179;
 	--accent-strong-rgb: 144 173 197;

@@ -3,6 +3,35 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.2.0 — 2026-08-28
+
+Accessibility fix ([#16](https://github.com/malinfossum/workbench/issues/16)): control
+boundaries now clear WCAG 2.2 SC 1.4.11's 3:1. Visible change on every input and
+bordered button in every theme — re-extract.
+
+- **New token `--control-border`** — the edge that identifies an interactive control.
+  `--border` measured 1.22–1.50:1 against the page in every theme and palette, and no
+  decorative border token cleared 3:1, so this is a new token per theme/palette
+  (hue-matched to each ground), not a token swap. Every value clears 3:1 against both
+  `--page-bg` and the field fill `--surface-2`, with headroom (3.15:1+). `tidsro`
+  aliases its existing `--border-strong`, which was already tuned as its control
+  affordance (4.17:1). Light mode carries one shared value, since palettes keep the
+  base light surfaces.
+- **`.input` / `.textarea` / `.select` and the bordered `.btn` variants point at it.**
+  The base `.btn` (and so `.btn-ghost`) uses it directly; `.btn-secondary` /
+  `.btn-danger` keep their hue by mixing 28% of their tint over it, which keeps the
+  floor. Hovers strengthen toward the text ink via `color-mix` — `--border-strong` now
+  sits *below* the resting boundary, so pointing hover at it would dim the edge.
+- **Decorative edges do not move**: `.card`, `.alert`, `.table`, `.toast`, `.modal`
+  keep `--border`/`--border-soft`, per the issue's scope — SC 1.4.11 doesn't apply to
+  them, and a test now pins that they never adopt the control token.
+- **Tests**: new contrast loop asserts the 3:1 floor for the token *and* the composed
+  secondary/danger borders across every theme × palette (tidsro and the `_oled.css`
+  foundation joined the loop while it was being built). Floors, not equalities — a
+  palette may raise its value; only a drop fails.
+- **`--border` / `--border-strong` values are untouched** — same route as the 42px
+  control floor in 2.0.2: fixed here, synced out, no consumer-local overrides.
+
 ## 3.1.0 — 2026-08-25
 
 Kenaz's palette is replaced. No change to the default identity, any other palette,
