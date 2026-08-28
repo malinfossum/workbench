@@ -27,6 +27,10 @@
 	--border-strong: #4a3f2e;
 	--border-soft: #241d15;
 
+	/* Control boundary (SC 1.4.11, see colors.css) — 3.35:1 on the page,
+	   3.16:1 on the --surface-2 field. */
+	--control-border: #726147;
+
 	/* Ember accent, turned up. */
 	--accent-rgb: 214 106 48;
 	--accent-strong-rgb: 232 128 64;

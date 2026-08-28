@@ -23,4 +23,8 @@
 	--border: #2b2622;
 	--border-strong: #3a342c;
 	--border-soft: #1c1814;
+
+	/* Control boundary (SC 1.4.11, see colors.css) — one warm value that clears
+	   3:1 on both daily's and ignite's page + field ramps (3.16–3.37:1). */
+	--control-border: #6e6354;
 }

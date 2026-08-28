@@ -165,21 +165,28 @@ function resolveColor(value, scope) {
 	throw new Error(`cannot resolve color: ${value}`);
 }
 
-test("solid primary button meets 4.5:1 in every theme and palette", () => {
-	const colors = read("tokens/colors.css");
+// Every theme × palette combination a real consumer can render, as token-lookup
+// layers ordered the way the cascade resolves them. tidsro.css shares the base
+// theme's derived tokens, so it rides along like the rest.
+function buildScopes(colors) {
 	const scopes = [
 		{ label: "default dark", layers: [blockVars(colors, /:root \{/)] },
 		{ label: "default light", layers: [blockVars(colors, /:root\[data-theme="light"\]/), blockVars(colors, /:root \{/)] },
 	];
-	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css", "kenaz.css"]) {
+	for (const file of ["gold.css", "wend.css", "daily.css", "ignite.css", "hugin.css", "classic.css", "kenaz.css", "tidsro.css"]) {
 		const css = read(`tokens/palettes/${file}`);
+		// daily and ignite pull their text/border ramp from the shared OLED foundation,
+		// which lives in _oled.css rather than in their own palette block.
+		const oled = /^(daily|ignite)\.css$/.test(file)
+			? blockVars(read("tokens/palettes/_oled.css"), /^\[data-palette="daily"\],\n\[data-palette="ignite"\] \{/m)
+			: {};
 		const dark = blockVars(css, /^\[data-palette="[a-z]+"\] \{/m);
-		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, blockVars(colors, /:root \{/)] });
+		scopes.push({ label: `palette ${file} (dark)`, layers: [dark, oled, blockVars(colors, /:root \{/)] });
 		const light = blockVars(css, /\[data-theme="light"\]\[data-palette="[a-z]+"\]/);
 		if (Object.keys(light).length > 0) {
 			scopes.push({
 				label: `palette ${file} (light)`,
-				layers: [light, blockVars(colors, /:root\[data-theme="light"\]/), dark, blockVars(colors, /:root \{/)],
+				layers: [light, blockVars(colors, /:root\[data-theme="light"\]/), dark, oled, blockVars(colors, /:root \{/)],
 			});
 		}
 	}
@@ -193,7 +200,12 @@ test("solid primary button meets 4.5:1 in every theme and palette", () => {
 		label: "default identity (light)",
 		layers: [defaultLight, blockVars(colors, /:root\[data-theme="light"\]/), defaultDark, blockVars(colors, /:root \{/)],
 	});
-	for (const { label, layers } of scopes) {
+	return scopes;
+}
+
+test("solid primary button meets 4.5:1 in every theme and palette", () => {
+	const colors = read("tokens/colors.css");
+	for (const { label, layers } of buildScopes(colors)) {
 		const scope = (name) => {
 			for (const layer of layers) if (name in layer) return layer[name];
 			throw new Error(`${label}: token ${name} not found`);
@@ -223,6 +235,62 @@ test("default-theme solid button keeps real AA headroom, not a 0.09 margin", () 
 			const c = contrast(resolveColor(scope(fill), scope), ink);
 			assert.ok(c >= 5.0, `default theme: ${fill} vs --on-accent is ${c.toFixed(2)}:1 (needs >=5.0 headroom)`);
 		}
+	}
+});
+
+test("control boundaries carry --control-border and clear SC 1.4.11's 3:1 in every theme and palette", () => {
+	// Issue #16: .input/.textarea/.select drew their edge with --border (1.22–1.50:1
+	// against the page in every theme), and WCAG 2.2 SC 1.4.11 asks 3:1 for the visual
+	// information that identifies a control. No decorative border token clears that, so
+	// controls point at a dedicated --control-border instead — same route as the 42px
+	// floor. Floors, not equalities: a palette may tune its value, only a drop fails.
+	const input = read("components/input.css");
+	const button = read("components/button.css");
+
+	// Wiring: the interactive boundary is the token, never the decorative --border.
+	assert.match(input, /\.input,\n\.textarea,\n\.select \{[^}]*border: 1px solid var\(--control-border\);/s);
+	assert.match(button, /\.btn \{[^}]*border: 1px solid var\(--control-border\);/s);
+	for (const file of ["components/input.css", "components/button.css"]) {
+		for (const legacy of ["var(--border)", "var(--border-strong)"]) {
+			assert.ok(!read(file).includes(legacy), `${file} still points a control boundary at ${legacy}`);
+		}
+	}
+	const secondaryBorder = button.match(/\.btn-secondary \{[^}]*?border-color: ([^;]+);/s)?.[1];
+	const dangerBorder = button.match(/\.btn-danger \{[^}]*?border-color: ([^;]+);/s)?.[1];
+	assert.ok(secondaryBorder?.includes("--control-border"), ".btn-secondary border must derive from --control-border");
+	assert.ok(dangerBorder?.includes("--control-border"), ".btn-danger border must derive from --control-border");
+
+	// The floor itself: 3:1 against both the page ground and the field fill (--surface-2),
+	// per scope — the issue's measured table, turned into an assertion.
+	const colors = read("tokens/colors.css");
+	for (const { label, layers } of buildScopes(colors)) {
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`${label}: token ${name} not found`);
+		};
+		const grounds = [
+			["page", resolveColor(scope("--page-bg"), scope)],
+			["field", resolveColor(scope("--surface-2"), scope)],
+		];
+		for (const [what, value] of [
+			["--control-border", scope("--control-border")],
+			[".btn-secondary border", secondaryBorder],
+			[".btn-danger border", dangerBorder],
+		]) {
+			const rgb = resolveColor(value, scope);
+			for (const [ground, groundRgb] of grounds) {
+				const c = contrast(rgb, groundRgb);
+				assert.ok(c >= 3, `${label}: ${what} vs ${ground} is ${c.toFixed(2)}:1 (needs >=3, SC 1.4.11)`);
+			}
+		}
+	}
+
+	// Decorative edges are outside SC 1.4.11 and must NOT move (issue #16 scope).
+	for (const file of ["card", "alert", "table", "toast", "modal"]) {
+		assert.ok(
+			!read(`components/${file}.css`).includes("--control-border"),
+			`components/${file}.css draws decorative edges — it keeps --border, not --control-border`,
+		);
 	}
 });
 
@@ -268,7 +336,7 @@ test("kenaz.css is the Lantern brand identity (cool blue-grey), not the 2.1.0 am
 
 	// The palette declares its own full ramp rather than deriving from :root — since 3.0.0
 	// the no-palette state is warm, so inheriting would silently warm kenaz back up.
-	for (const token of ["--surface-1", "--surface-3", "--text", "--border", "--accent-strong-rgb"]) {
+	for (const token of ["--surface-1", "--surface-3", "--text", "--border", "--control-border", "--accent-strong-rgb"]) {
 		assert.ok(token in kenaz, `kenaz.css must declare ${token} itself, not inherit it`);
 	}
 	// Sora/Figtree come from :root on purpose; a --font-display here would be a silent reskin.
@@ -338,8 +406,8 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 3.1.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "3.1.0");
+test("VERSION is 3.2.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.2.0");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
