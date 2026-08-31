@@ -3,6 +3,32 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.4.0 — 2026-08-31
+
+Light-mode redesign — crisp near-neutral ground. Visible change on every light-mode
+surface in every palette (they all share the one light block) — re-extract.
+
+- **Near-neutral grey ramp replaces the blue-tinted one.** The old ramp's tint
+  (`--surface-5` was `#e2e8ee`, blue spread 12) bends pink under a warm display shift
+  (Night Light, QD-OLED ambient cast) — the reported "light mode looks pink on every
+  palette". New surfaces hold a blue spread ≤8 (`#f7f8f9` page → `#dee2e6`), pinned by
+  a direction test (R ≤ G ≤ B, spread ≤ 8) like hugin's cool-cast test.
+- **Crisper text and borders.** `--text` `#12161b` (18.2:1), `--text-muted` `#4e565f`
+  (7.45:1, was 6.46), `--text-faint` `#697079` (5.01:1 — the old `#6f7b87` measured
+  4.32:1 on the white field, under AA; a new test pins the 4.5 floor). Borders darken
+  a step for edge definition; `--control-border` is `#82888f` (3.37:1 page, 3.58:1
+  field — more headroom than 3.2.0's 3.16).
+- **Neutral-first accent washes.** The dark wash formula (accent at 14% alpha) reads
+  salmon over white for every warm accent — the old light washes carried an R-B excess
+  of 19–25 on ember/amber/rust palettes. Light `--accent-soft`/`--accent-ghost` now mix
+  a small accent share into the grey ramp (8% into `--surface-4`, 5% into `--surface-3`),
+  opaque, so active/hover fills read as warm-neutral grey with a whisper of brand. A
+  test caps the wash R-B excess at 10 for every palette's light scope.
+- **Light-tuned shadows.** `shadows.css` shipped only the dark set (16–24% black,
+  24–40px blurs — grey smears on white). A light block under the same selector pair
+  carries lighter ink and tighter blurs; `--shadow-focus` stays derived.
+- Light accents untouched (pinned by the classic freeze test); dark mode untouched.
+
 ## 3.3.0 — 2026-08-31
 
 Hugin palette v3 "ember on slate" — a redesign of the hugin ground. Visible change on

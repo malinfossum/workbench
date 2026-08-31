@@ -374,6 +374,66 @@ test("hugin ground is cool slate — ember is the only warm element", () => {
 	assert.equal(hugin["--accent-rgb"], "214 106 48", "hugin --accent-rgb is brand ember and must not drift");
 });
 
+test("light ground is crisp near-neutral — never pink", () => {
+	// 3.4.0: the shared light ramp carried a visible blue tint (--surface-5 was
+	// #e2e8ee, B-R spread 12). Under a warm display shift — Night Light, or a
+	// QD-OLED's ambient magenta cast — a blue-leaning grey lands in pink/lavender,
+	// which is how "light mode looks pink on every palette" was reported: every
+	// palette shares this one block. Near-neutral greys shift to warm paper
+	// instead. Direction + a tint budget, not exact hexes: cool-cast (R<=G<=B)
+	// with a blue spread no wider than 8, so the ramp can be retuned but never
+	// drift saturated again.
+	const light = blockVars(read("tokens/colors.css"), /:root\[data-theme="light"\]/);
+	for (const token of ["--surface-1", "--surface-2", "--surface-3", "--surface-4", "--surface-5"]) {
+		const [r, g, b] = resolveColor(light[token], () => {});
+		assert.ok(r <= g && g <= b, `light ${token} (${light[token]}) must be cool-cast (R<=G<=B), got ${r},${g},${b}`);
+		assert.ok(b - r <= 8, `light ${token} (${light[token]}) blue spread is ${b - r} (max 8 — tint reads as color on light surfaces)`);
+	}
+});
+
+test("light accent washes are neutral-first — a warm accent can never read salmon", () => {
+	// The dark formula (accent at 14–16% alpha) is fine on black, but over a white
+	// ground a warm accent's low-alpha wash lands in salmon (the old washes carried
+	// an R-B excess of 19–25 on ember/amber/rust palettes). Light mode mixes a
+	// small accent share into the grey ramp instead, so active/hover fills read as
+	// warm-neutral grey. The floor: no light wash may exceed an R-B excess of 10,
+	// for any palette's accent — cool accents pass trivially, which is the point.
+	const colors = read("tokens/colors.css");
+	for (const { label, layers } of buildScopes(colors)) {
+		if (!label.includes("light")) continue;
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`${label}: token ${name} not found`);
+		};
+		for (const token of ["--accent-soft", "--accent-ghost"]) {
+			const [r, , b] = resolveColor(scope(token), scope);
+			assert.ok(r - b <= 10, `${label}: ${token} has R-B excess ${r - b} (max 10 — reads salmon over a light ground)`);
+		}
+	}
+});
+
+test("light de-emphasized text still clears 4.5:1 on the white field", () => {
+	// Pre-3.4.0 --text-faint (#6f7b87) measured 4.32:1 on #ffffff — under AA for
+	// the smallest text it decorates. Floor, not equality: darkening passes.
+	const light = blockVars(read("tokens/colors.css"), /:root\[data-theme="light"\]/);
+	for (const token of ["--text-muted", "--text-faint"]) {
+		const c = contrast(resolveColor(light[token], () => {}), [255, 255, 255]);
+		assert.ok(c >= 4.5, `light ${token} (${light[token]}) vs --surface-2 white is ${c.toFixed(2)}:1 (needs >=4.5)`);
+	}
+});
+
+test("shadows are tuned per theme — the dark blurs never land on a light page", () => {
+	// shadows.css shipped one dark-tuned set (blacks at 16–24% with 24–40px
+	// blurs); on white those render as grey smears. The light theme carries its
+	// own lighter, tighter set under the same selector pair colors.css uses.
+	const css = read("tokens/shadows.css");
+	assert.match(css, /:root\[data-theme="light"\],\nbody\.light \{/, "shadows.css must carry a light-theme override block");
+	const light = blockVars(css, /:root\[data-theme="light"\]/);
+	for (const token of ["--shadow-xs", "--shadow-sm", "--shadow-md"]) {
+		assert.ok(token in light, `light shadow block must redefine ${token}`);
+	}
+});
+
 test("hugin folds in the brand typography weights", () => {
 	// Brand pack ships Space Grotesk 700 + Figtree 400/500/600 only. Root's
 	// --weight-display: 600 has no Space Grotesk face (faux-bold render), and the
@@ -436,8 +496,8 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 3.3.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "3.3.0");
+test("VERSION is 3.4.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.4.0");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
