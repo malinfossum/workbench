@@ -107,8 +107,15 @@ body.light {
 
 	--accent: rgb(var(--accent-rgb));
 	--accent-strong: rgb(var(--accent-strong-rgb));
-	--accent-soft: rgb(var(--accent-rgb) / 14%);
-	--accent-ghost: rgb(var(--accent-rgb) / 8%);
+
+	/* Washes are neutral-first in light mode (3.4.0). The dark formula — accent
+	   at low alpha — reads salmon over white for every warm accent (ember,
+	   amber, rust). A small accent share mixed into the grey ramp keeps the
+	   fill a warm-neutral grey with a whisper of brand instead; a test caps
+	   the R-B excess at 10. Opaque on purpose: every consumer paints these
+	   onto panel/page surfaces, and opaque mixes render the same everywhere. */
+	--accent-soft: color-mix(in srgb, rgb(var(--accent-rgb)) 8%, var(--surface-4));
+	--accent-ghost: color-mix(in srgb, rgb(var(--accent-rgb)) 5%, var(--surface-3));
 
 	/* Light accents are mid-tone: white on var(--accent) is only 4.59:1, so the
 	   solid fill steps down to the strong accent and hover mixes deeper still.

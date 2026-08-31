@@ -18,6 +18,12 @@ surface in every palette (they all share the one light block) — re-extract.
   4.32:1 on the white field, under AA; a new test pins the 4.5 floor). Borders darken
   a step for edge definition; `--control-border` is `#82888f` (3.37:1 page, 3.58:1
   field — more headroom than 3.2.0's 3.16).
+- **Neutral-first accent washes.** The dark wash formula (accent at 14% alpha) reads
+  salmon over white for every warm accent — the old light washes carried an R-B excess
+  of 19–25 on ember/amber/rust palettes. Light `--accent-soft`/`--accent-ghost` now mix
+  a small accent share into the grey ramp (8% into `--surface-4`, 5% into `--surface-3`),
+  opaque, so active/hover fills read as warm-neutral grey with a whisper of brand. A
+  test caps the wash R-B excess at 10 for every palette's light scope.
 - **Light-tuned shadows.** `shadows.css` shipped only the dark set (16–24% black,
   24–40px blurs — grey smears on white). A light block under the same selector pair
   carries lighter ink and tighter blurs; `--shadow-focus` stays derived.

@@ -391,6 +391,27 @@ test("light ground is crisp near-neutral — never pink", () => {
 	}
 });
 
+test("light accent washes are neutral-first — a warm accent can never read salmon", () => {
+	// The dark formula (accent at 14–16% alpha) is fine on black, but over a white
+	// ground a warm accent's low-alpha wash lands in salmon (the old washes carried
+	// an R-B excess of 19–25 on ember/amber/rust palettes). Light mode mixes a
+	// small accent share into the grey ramp instead, so active/hover fills read as
+	// warm-neutral grey. The floor: no light wash may exceed an R-B excess of 10,
+	// for any palette's accent — cool accents pass trivially, which is the point.
+	const colors = read("tokens/colors.css");
+	for (const { label, layers } of buildScopes(colors)) {
+		if (!label.includes("light")) continue;
+		const scope = (name) => {
+			for (const layer of layers) if (name in layer) return layer[name];
+			throw new Error(`${label}: token ${name} not found`);
+		};
+		for (const token of ["--accent-soft", "--accent-ghost"]) {
+			const [r, , b] = resolveColor(scope(token), scope);
+			assert.ok(r - b <= 10, `${label}: ${token} has R-B excess ${r - b} (max 10 — reads salmon over a light ground)`);
+		}
+	}
+});
+
 test("light de-emphasized text still clears 4.5:1 on the white field", () => {
 	// Pre-3.4.0 --text-faint (#6f7b87) measured 4.32:1 on #ffffff — under AA for
 	// the smallest text it decorates. Floor, not equality: darkening passes.
