@@ -276,7 +276,7 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 				<p class="wb-kicker">Library</p>
 				<h2 id="h-ds">Design system in your project</h2>
 				<p>
-					The canonical design system lives in <code>libraries/design-system/</code> and is
+					The design system's source of truth lives in <code>libraries/design-system/</code> and is
 					copied into projects with the extract tool — web and C# <code>wwwroot</code> alike:
 				</p>
 				<pre><code>node tools/extract.mjs design-system ../my-app          # → ../my-app/design-system
@@ -284,7 +284,7 @@ node tools/extract.mjs design-system ../my-api/wwwroot  # into a C# wwwroot
 node tools/extract.mjs design-system ../my-app --check  # is my copy stale?</code></pre>
 				<ul>
 					<li>Copies only the lean parts and records the version in the copy.</li>
-					<li><code>--check</code> tells you when a project is behind the canonical version.</li>
+					<li><code>--check</code> tells you when a project is behind the workbench version.</li>
 					<li>Refuses to overwrite files you've edited locally (<code>--force</code> to override).</li>
 					<li>One rule: edit the system <strong>in the workbench</strong>, re-extract — never patch a copy.</li>
 				</ul>
