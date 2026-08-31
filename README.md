@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/malinfossum/workbench/actions/workflows/ci.yml/badge.svg)](https://github.com/malinfossum/workbench/actions/workflows/ci.yml)
 
-One canonical home for reusable libraries and copy-to-start scaffolds. Libraries are edited here and extracted into projects; scaffolds are copied once and owned by the project.
+One source-of-truth home for reusable libraries and copy-to-start scaffolds. Libraries are edited here and extracted into projects; scaffolds are copied once and owned by the project.
 
 **Front door:** [`index.html`](./index.html) — the dashboard GitHub Pages serves, linking every tier.
 
@@ -10,7 +10,7 @@ One canonical home for reusable libraries and copy-to-start scaffolds. Libraries
 
 | Tier | What it is |
 |---|---|
-| [`libraries/`](./libraries) | Canonical, versioned, reused as-is: `design-system/` and `storyboard/` |
+| [`libraries/`](./libraries) | The source of truth — versioned, reused as-is: `design-system/` and `storyboard/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
 | [`tools/`](./tools) | `extract.mjs` plus the test suite CI runs (extract, structure, scaffold drift, links) |
 | [`guide/`](./guide) | Setup guide — the dashboard's scaffold cards link into it |
@@ -50,7 +50,7 @@ One rule for consumers: exclude the copied `design-system/` from your formatter 
 
 ## Design system
 
-The canonical source of truth is [`libraries/design-system/`](./libraries/design-system) — tokens, primitives, components, compositions, utilities, theme, plus its own `gallery/` (live component browser) and `sandbox/`. It versions independently via its `VERSION` file. See its [README](./libraries/design-system/README.md) for principles and structure.
+The source of truth is [`libraries/design-system/`](./libraries/design-system) — tokens, primitives, components, compositions, utilities, theme, plus its own `gallery/` (live component browser) and `sandbox/`. It versions independently via its `VERSION` file. See its [README](./libraries/design-system/README.md) for principles and structure.
 
 ## Storyboard
 
