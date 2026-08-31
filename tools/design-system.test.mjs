@@ -356,7 +356,37 @@ test("hugin --text/--border resolve from hugin.css itself, not _oled.css", () =>
 	assert.ok(!/\[data-palette="hugin"\]/.test(oled), "_oled.css must not list hugin in its selector");
 	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
 	assert.equal(hugin["--text"], "#fbf7ef", "hugin.css must declare --text itself");
-	assert.equal(hugin["--border"], "#3b3227", "hugin.css must declare --border itself");
+	assert.equal(hugin["--border"], "#2f3439", "hugin.css must declare --border itself");
+});
+
+test("hugin ground is cool slate — ember is the only warm element", () => {
+	// v3 "ember on slate" (2026-08-31): the warm v2 ramp put surfaces, borders and
+	// accent in one hue family and everything blended. The redesign keeps every
+	// grey at its v2 contrast ratio but flips the cast cool: R <= G <= B, so the
+	// ember accent is the sole warm element on screen. Direction, not exact hexes —
+	// a retune stays cool or this fails.
+	const hugin = blockVars(read("tokens/palettes/hugin.css"), /\[data-palette="hugin"\] \{/);
+	for (const token of ["--surface-1", "--surface-2", "--surface-3", "--surface-4", "--surface-5", "--border", "--border-strong", "--border-soft", "--control-border"]) {
+		const [r, g, b] = resolveColor(hugin[token], () => {});
+		assert.ok(r <= g && g <= b, `hugin ${token} (${hugin[token]}) must be cool-cast (R<=G<=B), got ${r},${g},${b}`);
+	}
+	// The brand ember itself is pinned — the slate exists to serve it.
+	assert.equal(hugin["--accent-rgb"], "214 106 48", "hugin --accent-rgb is brand ember and must not drift");
+});
+
+test("hugin folds in the brand typography weights", () => {
+	// Brand pack ships Space Grotesk 700 + Figtree 400/500/600 only. Root's
+	// --weight-display: 600 has no Space Grotesk face (faux-bold render), and the
+	// browser default 700 for th/strong/b has no Figtree face. Both fixes lived as
+	// local overrides in hugin-web/main.css — folded into the palette here.
+	const css = read("tokens/palettes/hugin.css");
+	const hugin = blockVars(css, /\[data-palette="hugin"\] \{/);
+	assert.equal(hugin["--weight-display"], "700", "hugin.css must set --weight-display to Space Grotesk's bundled 700");
+	assert.match(
+		css,
+		/\[data-palette="hugin"\] th,\s*\[data-palette="hugin"\] strong,\s*\[data-palette="hugin"\] b \{[^}]*font-weight: 600/,
+		"hugin.css must pin th/strong/b to Figtree's bundled 600",
+	);
 });
 
 test("type skins exist, scope via data-typeskin, and are imported", () => {
@@ -406,8 +436,8 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 3.2.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "3.2.0");
+test("VERSION is 3.3.0 and README documents the identity", () => {
+	assert.equal(read("VERSION").trim(), "3.3.0");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);

@@ -3,6 +3,25 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.3.0 — 2026-08-31
+
+Hugin palette v3 "ember on slate" — a redesign of the hugin ground. Visible change on
+every surface under `data-palette="hugin"` — re-extract.
+
+- **Cool-slate ramp replaces the warm v2 ramp.** v2 put surfaces, borders and the ember
+  accent in one warm hue family and everything blended. Every grey is re-found at its
+  exact v2 contrast ratio (±0.001) on a cool cast (R ≤ G ≤ B), so nothing got lighter
+  or darker — only the cast flipped. Ember `214 106 48` is now the sole warm element
+  and is pinned by test; ivory `--text` stays; `--text-muted`/`--text-faint`
+  desaturate to near-neutral. `--control-border` is `#5a656e` (3.34:1 page, 3.17:1
+  field); `--border` `#2f3439` holds 1.51:1 on `--surface-2`. A new test asserts the
+  cool-cast direction so a retune can't silently warm the ground back up.
+- **Brand typography weights folded in** (previously local overrides in hugin-web):
+  `--weight-display: 700` (Space Grotesk ships 700 only; root's 600 faux-bolded) and
+  `th/strong/b` pinned to `font-weight: 600` (Figtree ships 400/500/600; the browser
+  default 700 rendered synthesized).
+- Light-mode ember values and all component wiring unchanged.
+
 ## 3.2.0 — 2026-08-28
 
 Accessibility fix ([#16](https://github.com/malinfossum/workbench/issues/16)): control
