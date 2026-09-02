@@ -1,4 +1,4 @@
-# Malin Design System Spec
+# Design System Spec
 
 ## Goal
 A calm, reusable standard for static websites, MVC apps, dashboards, and small games.
