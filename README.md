@@ -10,7 +10,7 @@ One source-of-truth home for reusable libraries and copy-to-start scaffolds. Lib
 
 | Tier | What it is |
 |---|---|
-| [`libraries/`](./libraries) | The source of truth — versioned, reused as-is: `design-system/` and `storyboard/` |
+| [`libraries/`](./libraries) | The source of truth — versioned, reused as-is: `design-system/`, `storyboard/` and `i18n/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
 | [`tools/`](./tools) | `extract.mjs` plus the test suite CI runs (extract, structure, scaffold drift, links) |
 | [`guide/`](./guide) | Setup guide — the dashboard's scaffold cards link into it |
@@ -31,7 +31,7 @@ App content — screens, flows, data — never lives here. It lives in the proje
 | [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop — CommunityToolkit.Mvvm, tokens.xaml, xUnit | `dotnet build` |
 | [`scaffolds/csharp-api/`](./scaffolds/csharp-api) | ASP.NET Core Web API — layered API + repository, EF Core + SQLite, xUnit | `dotnet build` |
 
-Both web scaffolds ship a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. Each scaffold's `README.md` has the first setup steps.
+Both web scaffolds ship a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. `web-vite` also ships the i18n library wired through its MVC layers, with English and Norwegian bundles. Each scaffold's `README.md` has the first setup steps.
 
 ## Reuse a library
 
@@ -42,11 +42,12 @@ node tools/extract.mjs design-system ../my-app            # → ../my-app/design
 node tools/extract.mjs design-system ../my-api/wwwroot    # into a C# wwwroot
 node tools/extract.mjs design-system ../my-app --check    # is my copy stale or drifted?
 node tools/extract.mjs storyboard ../my-app               # engine only → ../my-app/storyboard
+node tools/extract.mjs i18n ../my-app                     # translator → ../my-app/i18n
 ```
 
 The tool copies only the lean parts, records the version, and refuses to overwrite files you've edited locally (pass `--force` to override). Edit a library **in the workbench**, never in a consuming project, then re-run extract.
 
-One rule for consumers: exclude the copied `design-system/` from your formatter (Biome: `"!design-system"` in `files.includes` — the web scaffold already ships this), so format hooks don't count as local edits.
+One rule for consumers: exclude copied libraries from your formatter (Biome: `"!design-system"`, `"!i18n"` in `files.includes` — the web scaffold already ships this), so format hooks don't count as local edits.
 
 ## Design system
 
@@ -55,6 +56,10 @@ The source of truth is [`libraries/design-system/`](./libraries/design-system) �
 ## Storyboard
 
 [`libraries/storyboard/`](./libraries/storyboard) is a design-first planning tool: clickable app mocks with screens, named states, and hotspot flows, running as plain scripts with no build step. Extraction copies the engine only — screens are authored in the consuming project, with `storyboard/` kept sibling to `design-system/`. The demo app (Frond) doubles as the starter. See its [README](./libraries/storyboard/README.md).
+
+## i18n
+
+[`libraries/i18n/`](./libraries/i18n) is a one-file, DOM-free translator: `t(lang, key, vars)`, `plural` via `Intl.PluralRules`, and `resolveLang`. Language bundles are project content (`src/locales/<lang>.json`); the library only turns a key into a string, so the current language stays in the model and persistence in the controller. See its [README](./libraries/i18n/README.md).
 
 ## License
 

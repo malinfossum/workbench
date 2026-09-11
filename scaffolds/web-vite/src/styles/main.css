@@ -6,3 +6,9 @@
    Mobile-first: baseline styles target the smallest screen; layer up with
    @media (min-width: 768px) and (min-width: 1024px).
    ====================================================================== */
+
+/* Language switcher — the active language reads as pressed, not just announced. */
+[data-action="set-lang"][aria-pressed="true"] {
+	background: var(--accent-soft);
+	border-color: var(--accent-solid);
+}

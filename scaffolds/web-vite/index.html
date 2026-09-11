@@ -31,13 +31,9 @@
 		<a class="skip-link" href="#main">Skip to content</a>
 
 		<div id="app" class="container stack stack-lg">
-			<header>
-				<h1>Project</h1>
-				<p>MVC starter — edit model/view/controller.</p>
-			</header>
-
-			<!-- View renders into #main -->
-			<main id="main" class="card"></main>
+			<!-- View renders into #main. UI text lives in src/locales, not here;
+			     the controller keeps <html lang> and <title> in sync. -->
+			<main id="main" class="card stack"></main>
 		</div>
 
 		<!-- Theme behavior (click handler — init already done in head).

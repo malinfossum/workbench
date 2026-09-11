@@ -4,7 +4,9 @@
    happens in src/model, src/view, and src/controller.
    ====================================================================== */
 
-import { createController } from "./controller/controller.js"
+import { createTranslator } from "../i18n/index.js"
+import { createController, initialLang } from "./controller/controller.js"
+import { bundles, FALLBACK_LANG } from "./locales/index.js"
 import { createModel } from "./model/model.js"
 import { createView } from "./view/view.js"
 
@@ -13,9 +15,10 @@ export function createApp() {
 	const root = document.getElementById("main")
 	if (!root) throw new Error("Missing #main element in index.html")
 
-	const model = createModel()
-	const view = createView(root)
-	const controller = createController({ model, view })
+	const i18n = createTranslator(bundles, { fallback: FALLBACK_LANG })
+	const model = createModel({ lang: initialLang(i18n) })
+	const view = createView(root, i18n)
+	const controller = createController({ model, view, i18n })
 
 	controller.init()
 }

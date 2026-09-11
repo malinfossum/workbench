@@ -26,6 +26,7 @@ export function loadManifest(libraryDir) {
     versionFile: typeof data.versionFile === "string" ? data.versionFile : "VERSION",
     include,
     exclude: Array.isArray(data.exclude) ? data.exclude : [],
+    anchor: typeof data.anchor === "string" ? data.anchor : null,
   };
 }
 
@@ -71,8 +72,11 @@ export function readCanonicalVersion(libraryDir, manifest) {
   return readFileSync(assertWithinRoot(libraryDir, manifest.versionFile), "utf8").trim();
 }
 
+// The anchor is the file that carries the version header. CSS libraries default
+// to <first include>/index.css; a JS library names its own (e.g. "index.js") —
+// the /* */ header is valid in both.
 export function anchorRel(manifest) {
-  return join(manifest.include[0], "index.css");
+  return manifest.anchor ?? join(manifest.include[0], "index.css");
 }
 
 const HEADER_LINE_RE = /^\/\* workbench-lib:.*\*\/\r?\n?/;
@@ -145,6 +149,7 @@ export function extract({ libraryName, workbenchRoot, targetDir, check = false, 
   const manifest = loadManifest(libraryDir);
   const canonical = readCanonicalVersion(libraryDir, manifest);
   const anchor = anchorRel(manifest);
+  assertWithinRoot(libraryDir, anchor); // a manifest anchor of "../x" must not escape
   const targetLibDir = join(resolve(targetDir), libraryName);
   const recorded = readRecordedVersion(targetLibDir, anchor);
 

@@ -11,7 +11,7 @@ import { test } from "node:test"
 import { createModel } from "../src/model/model.js"
 
 test("notify calls every subscriber with the state", () => {
-	const model = createModel()
+	const model = createModel({ lang: "en" })
 	const seen = []
 	model.subscribe((state) => seen.push(state))
 	model.subscribe((state) => seen.push(state))
@@ -21,7 +21,7 @@ test("notify calls every subscriber with the state", () => {
 })
 
 test("state changes are visible to subscribers on the next notify", () => {
-	const model = createModel()
+	const model = createModel({ lang: "en" })
 	let rendered = null
 	model.subscribe((state) => {
 		rendered = { ...state }
@@ -34,7 +34,7 @@ test("state changes are visible to subscribers on the next notify", () => {
 })
 
 test("subscribers added later are not called for past notifies", () => {
-	const model = createModel()
+	const model = createModel({ lang: "en" })
 	let calls = 0
 	model.notify()
 	model.subscribe(() => {
@@ -42,5 +42,17 @@ test("subscribers added later are not called for past notifies", () => {
 	})
 	assert.equal(calls, 0)
 	model.notify()
+	assert.equal(calls, 1)
+})
+
+test("setLang stores the language and notifies once; a repeat is a no-op", () => {
+	const model = createModel({ lang: "en" })
+	let calls = 0
+	model.subscribe(() => {
+		calls++
+	})
+	model.setLang("nb")
+	model.setLang("nb")
+	assert.equal(model.state.lang, "nb")
 	assert.equal(calls, 1)
 })
