@@ -168,3 +168,43 @@ test("version header round-trips through the anchor CSS", () => {
   assert.equal(readRecordedVersion(target, anchor), "1.4.0");
   rmSync(target, { recursive: true, force: true });
 });
+
+// A JS library has no index.css to stamp — its manifest names the anchor.
+function fixtureJsLibrary() {
+  const root = mkdtempSync(join(tmpdir(), "wb-jsroot-"));
+  const lib = join(root, "libraries", "i18n");
+  mkdirSync(lib, { recursive: true });
+  writeFileSync(join(lib, "index.js"), "export const x = 1\n");
+  writeFileSync(join(lib, "VERSION"), "1.0.0\n");
+  writeFileSync(join(lib, "extract.json"), JSON.stringify({
+    versionFile: "VERSION", include: ["index.js"], anchor: "index.js",
+  }));
+  const target = mkdtempSync(join(tmpdir(), "wb-jsconsumer-"));
+  return { root, target };
+}
+
+test("anchorRel honours a manifest anchor and defaults to <include[0]>/index.css", () => {
+  assert.equal(anchorRel({ include: ["index.js"], anchor: "index.js" }), "index.js");
+  assert.equal(anchorRel({ include: ["tokens"], anchor: null }), join("tokens", "index.css"));
+});
+
+test("extract stamps a JS library through its manifest anchor and stays in sync", () => {
+  const { root, target } = fixtureJsLibrary();
+  const first = extract({ libraryName: "i18n", workbenchRoot: root, targetDir: target });
+  assert.equal(first.status, "copied-fresh");
+  const copied = readFileSync(join(target, "i18n", "index.js"), "utf8");
+  assert.match(copied, /^\/\* workbench-lib: i18n v1\.0\.0 /);
+  assert.match(copied, /export const x = 1/);
+  const check = extract({ libraryName: "i18n", workbenchRoot: root, targetDir: target, check: true });
+  assert.equal(check.status, "current");
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});
+
+test("extract refuses a manifest anchor that escapes the library", () => {
+  const { root, target } = fixtureJsLibrary();
+  writeFileSync(join(root, "libraries", "i18n", "extract.json"), JSON.stringify({
+    versionFile: "VERSION", include: ["index.js"], anchor: "../escape.js",
+  }));
+  assert.throws(() => extract({ libraryName: "i18n", workbenchRoot: root, targetDir: target }), /escapes/);
+  rmSync(root, { recursive: true, force: true }); rmSync(target, { recursive: true, force: true });
+});

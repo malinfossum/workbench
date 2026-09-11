@@ -5,10 +5,11 @@
    re-renders.
    ====================================================================== */
 
-export function createModel() {
+export function createModel({ lang }) {
 	const subscribers = []
 
 	const state = {
+		lang, // active UI language — a bundle key from src/locales
 		// project state goes here
 	}
 
@@ -20,5 +21,11 @@ export function createModel() {
 		for (const fn of subscribers) fn(state)
 	}
 
-	return { subscribe, notify, state }
+	function setLang(next) {
+		if (next === state.lang) return
+		state.lang = next
+		notify()
+	}
+
+	return { subscribe, notify, state, setLang }
 }
