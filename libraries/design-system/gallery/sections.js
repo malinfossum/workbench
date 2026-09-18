@@ -193,6 +193,62 @@ const GALLERY_SECTIONS = [
     },
   },
   {
+    id: "icons",
+    label: "Icons",
+    render() {
+      // `icon` and `ICON_NAMES` are put on window by app.js (a module) before any
+      // panel renders — this file stays a classic script like the rest of the gallery.
+      const set = ICON_NAMES.map(
+        (name) => `
+          <div class="stack stack-sm icon-cell">
+            <div class="icon-tile">${icon(name)}</div>
+            <code class="spec-class">${name}</code>
+          </div>`,
+      ).join("");
+      const ramp = [16, 20, 24, 32, 48]
+        .map(
+          (size) => `
+          <div class="stack stack-sm icon-cell">
+            <div class="icon-tile">${icon("disc", { size })}</div>
+            <code class="spec-class">${size}px</code>
+          </div>`,
+        )
+        .join("");
+      return (
+        panelHeader(
+          "Component",
+          "Icons",
+          "Inline SVG from components/icons.js — stroke: currentColor, decorative, one stroke family.",
+        ) +
+        specimen({
+          title: "The set",
+          note: "Every icon inherits the colour of the control it sits in and follows the theme.",
+          classes: ["icon(name)", ".icon"],
+          demo: `<div class="icon-grid">${set}</div>`,
+        }) +
+        specimen({
+          title: "Size ramp",
+          note: "The stroke thins from 1.75 to 1.25 at 40px and up, so a large icon keeps the weight of a small one.",
+          classes: ["icon(name, { size })", "icon(name, { size, strokeWidth })"],
+          demo: `<div class="icon-grid">${ramp}</div>`,
+        }) +
+        specimen({
+          title: "In controls",
+          note: "Visible text names the action; an icon-only button carries an aria-label.",
+          classes: [".btn", ".icon-btn"],
+          demo: `
+            <div class="cluster">
+              <button class="btn btn-primary" type="button">${icon("plus")} Add record</button>
+              <button class="btn btn-secondary" type="button">${icon("search")} Search</button>
+              <button class="btn btn-ghost" type="button">${icon("calendar")} Pick a date</button>
+              <button class="btn icon-btn" type="button" aria-label="Close">${icon("close")}</button>
+              <button class="btn icon-btn" type="button" aria-label="Toggle theme">${icon("moon")}</button>
+            </div>`,
+        })
+      );
+    },
+  },
+  {
     id: "inputs",
     label: "Inputs",
     render() {

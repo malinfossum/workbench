@@ -29,7 +29,7 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 - `tokens/` — colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes)
 - `base/` — `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
 - `primitives/` — layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
-- `components/` — `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`
+- `components/` — `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon` (CSS) + `icons.js` (the SVG set)
 - `compositions/` — page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
 - `utilities/` — single-purpose helpers
 - `theme/` — `theme-toggle.js`, `palette-switch.js`, and `theme-init-snippet.html` (inline `<head>` snippet)
@@ -37,6 +37,22 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 - `gallery/` — panel-swap MVC reference (browse every component live)
 - `sandbox/` — scratch page for quick experiments
 - `docs/` — system spec and usage notes
+
+## Icons
+
+`components/icons.js` is an ES module: `icon(name, { size = 20, strokeWidth })` returns an
+inline SVG string on a 24-unit grid with `stroke: currentColor`, so an icon takes the colour
+of the control it sits in and follows the theme. Every icon is decorative (`aria-hidden`,
+`focusable="false"`) — the control carries the name: visible text beside the icon, or an
+`aria-label` on an icon-only `.btn.icon-btn`. Stroke thins from 1.75 to 1.25 at 40px and up,
+so a 48px empty-state icon keeps the weight of a 20px one. `ICON_NAMES` lists the set.
+
+```js
+import { icon } from "./design-system/components/icons.js";
+
+`<button class="btn btn-primary" type="button">${icon("plus")} Add</button>`;
+`<button class="btn icon-btn" type="button" aria-label="Close">${icon("close")}</button>`;
+```
 
 ## Theme behavior
 

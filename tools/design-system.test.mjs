@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const DS = join(dirname(fileURLToPath(import.meta.url)), "..", "libraries", "design-system");
 // Normalize CRLF so content assertions hold on Windows checkouts (core.autocrlf).
@@ -496,10 +496,39 @@ test("nothing overrides the root font size, so rem floors are real px", () => {
 	}
 });
 
-test("VERSION is 3.4.0 and README documents the identity", () => {
-	assert.equal(read("VERSION").trim(), "3.4.0");
+test("icons: every icon is a decorative currentColor inline SVG on the 24 grid", async () => {
+	const { icon, ICON_NAMES } = await import(pathToFileURL(join(DS, "components", "icons.js")).href);
+	assert.ok(ICON_NAMES.length >= 13, `expected the 13 promoted icons, got ${ICON_NAMES.length}`);
+	for (const name of ICON_NAMES) {
+		const svg = icon(name);
+		assert.match(svg, /^<svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" /, `${name}: default box is 20px on the 24 grid, inheriting colour`);
+		assert.ok(svg.includes('aria-hidden="true"'), `${name}: must be decorative`);
+		assert.ok(svg.includes('focusable="false"'), `${name}: must not be a tab stop`);
+		assert.ok(!/(?:stroke|fill)="(?!currentColor|none)/.test(svg), `${name}: no hard-coded colour — every icon follows the control it sits in`);
+	}
+	// A typo renders nothing rather than throwing inside a view template.
+	assert.equal(icon("no-such-icon"), "");
+	// Stroke thins as the box grows, so a 48px empty-state icon is not a heavier 20px one.
+	assert.match(icon("plus"), /stroke-width="1\.75"/);
+	assert.match(icon("plus", { size: 48 }), /width="48" height="48"[^>]*stroke-width="1\.25"/);
+	assert.match(icon("plus", { size: 48, strokeWidth: 2 }), /stroke-width="2"/, "an explicit strokeWidth wins");
+});
+
+test("icons: the .icon rule is bundled and buttons space an icon from their label", () => {
+	assert.match(read("components/index.css"), /@import url\("\.\/icon\.css"\);/, "icon.css must be imported by components/index.css");
+	// Block, not inline: an inline SVG sits on the text baseline and a line-height can
+	// push it off the control's centre. No shrink: the icon keeps its box when the label wraps.
+	assert.match(read("components/icon.css"), /\.icon \{[^}]*display: block;[^}]*flex-shrink: 0;/s);
+	// Flex containers drop whitespace-only text nodes, so without a gap an icon and its
+	// label touch.
+	assert.match(read("components/button.css"), /\.btn \{[^}]*gap: var\(--space-2\);/s);
+});
+
+test("VERSION is 3.5.0 and README documents the identity and the icon set", () => {
+	assert.equal(read("VERSION").trim(), "3.5.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
+	assert.match(read("CHANGELOG.md"), /^## 3\.5\.0 — /m, "CHANGELOG must carry the 3.5.0 entry");
 });

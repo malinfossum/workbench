@@ -1,3 +1,12 @@
+// A module (the rest of the gallery is classic scripts sharing globals) so it can
+// import the icon set. Module scripts run after the classic ones, so every global
+// this file reads already exists — and every panel renders after this line, so
+// sections.js can call `icon()` as a global.
+import { ICON_NAMES, icon } from "../components/icons.js";
+
+window.icon = icon;
+window.ICON_NAMES = ICON_NAMES;
+
 const galleryModel = createGalleryModel(GALLERY_SECTIONS);
 const galleryView = createGalleryView(document);
 createGalleryController(galleryModel, galleryView);

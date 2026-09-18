@@ -6,6 +6,12 @@
 - Ghost: low-priority action
 - Danger: destructive action
 
+## Icons
+- `icon(name)` from `components/icons.js`; never emoji, never a hard-coded colour
+- an icon is decorative — the control carries the name (visible label, or `aria-label` on `.icon-btn`)
+- 20px inside controls; 48px for empty states, and let the stroke ramp thin it
+- one stroke family — no mixing in filled or outline icons from elsewhere
+
 ## Cards
 - Use cards for grouped content
 - Default padding: `--space-5`
