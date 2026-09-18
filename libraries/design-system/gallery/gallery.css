@@ -130,6 +130,25 @@
 	border-radius: var(--radius-lg);
 	background: var(--surface-1);
 }
+/* Icons panel: a wrapping grid of named tiles. The tile is a fixed 3.5rem box
+   so the size ramp lines up on one centre line regardless of the icon box. */
+.icon-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+	gap: var(--space-4);
+}
+.icon-cell {
+	align-items: center;
+}
+.icon-tile {
+	display: grid;
+	place-items: center;
+	height: 3.5rem;
+	width: 100%;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	background: var(--surface-2);
+}
 
 @media (min-width: 768px) {
 	.gallery {

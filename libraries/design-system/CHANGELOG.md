@@ -3,6 +3,27 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.5.0 — 2026-09-18
+
+Icon set — the system's first icon layer, promoted from Spindle where it replaced emoji.
+Additive; the only visible change on existing surfaces is a `gap` inside `.btn`
+(a no-op for single-child buttons).
+
+- **New `components/icons.js`** — `icon(name, { size, strokeWidth })` returns an inline
+  SVG string: 24-unit grid, `stroke: currentColor` so it follows the control's colour and
+  the theme, `aria-hidden` + `focusable="false"` (decorative — the control carries the
+  name). Default box 20px; stroke thins from 1.75 to 1.25 at ≥40px so a 48px empty-state
+  icon does not read as a heavier version of a 20px one. Unknown name returns `""`.
+  Thirteen icons: `disc`, `plus`, `close`, `check`, `search`, `pin`, `calendar`, `star`,
+  `lock`, `image`, `moon`, `sun`, `menu`. `ICON_NAMES` exports the list. ES module —
+  import it from a view; no sprite, no request, nothing for a CSP `img-src`.
+- **New `components/icon.css`** — `.icon { display: block; flex-shrink: 0 }` so the SVG
+  centres inside an inline-flex control instead of sitting on the text baseline.
+- **`.btn` gains `gap: var(--space-2)`** — a flex box drops the whitespace between an
+  icon and its label, so they touched without it.
+- Gallery: new **Icons** panel (the set, the size ramp, in-button usage).
+- Tests pin the decorative attributes, currentColor, the stroke ramp and the bundling.
+
 ## 3.4.0 — 2026-08-31
 
 Light-mode redesign — crisp near-neutral ground. Visible change on every light-mode
