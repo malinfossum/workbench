@@ -1,0 +1,30 @@
+name: CI
+
+# Accessibility gate on every pull request.
+# Layer 1: node --test runs the unit tests and the axe-core component tests.
+# Layer 2: Pa11y scans the built app in a real browser (contrast, document-level rules).
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Layer 1 — unit + component a11y tests
+        run: npm test
+      - run: npm run build
+      - name: Layer 2 — Pa11y full-page scan
+        run: |
+          npm run preview &
+          npx wait-on http://localhost:4173/
+          npm run a11y:scan
