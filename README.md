@@ -24,14 +24,14 @@ App content — screens, flows, data — never lives here. It lives in the proje
 
 | Scaffold | Use it for | Build step |
 |---|---|---|
-| [`scaffolds/web-vite/`](./scaffolds/web-vite) | Web projects — vanilla-JS MVC, Vite + Biome | `npm install` |
+| [`scaffolds/web-vite/`](./scaffolds/web-vite) | Web projects — vanilla-JS MVC, Vite + Biome, accessibility tests + CI gate | `npm install` |
 | [`scaffolds/web-react-ts/`](./scaffolds/web-react-ts) | Web projects — React + TypeScript, Vite + Biome + Vitest | `npm install` |
 | [`scaffolds/csharp-console/`](./scaffolds/csharp-console) | Single-project console app — `init.sh` injects editor configs | `dotnet build` |
 | [`scaffolds/csharp-layered/`](./scaffolds/csharp-layered) | Solution with class library, console front-end, NUnit | `dotnet build` |
 | [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop — CommunityToolkit.Mvvm, tokens.xaml, xUnit | `dotnet build` |
 | [`scaffolds/csharp-api/`](./scaffolds/csharp-api) | ASP.NET Core Web API — layered API + repository, EF Core + SQLite, xUnit | `dotnet build` |
 
-Both web scaffolds ship a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. `web-vite` also ships the i18n library wired through its MVC layers, with English and Norwegian bundles. Each scaffold's `README.md` has the first setup steps.
+Both web scaffolds ship a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. `web-vite` also ships the i18n library wired through its MVC layers, with English and Norwegian bundles, plus an accessibility harness: axe-core component tests and a Pa11y CI gate on pull requests. Each scaffold's `README.md` has the first setup steps.
 
 ## Reuse a library
 
