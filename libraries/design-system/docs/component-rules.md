@@ -23,6 +23,8 @@
 - inputs have roomy padding
 - help text is optional, not decorative
 - one field group = label + control + help text
+- file inputs use `.file-input-hidden` + `<label class="btn file-input-label">`; never hide the input with `display: none`
+- a file picker reflects the chosen file (name in `.help`, or a preview) — the native filename text is gone with the control
 
 ## Navigation
 - topbar stays simple by default
