@@ -35,3 +35,14 @@ document.addEventListener("click", (e) => {
   list.querySelectorAll(".nav-link").forEach((l) => l.removeAttribute("aria-current"));
   link.setAttribute("aria-current", "page");
 });
+
+// File-picker demo: the native filename text goes with the hidden control, so the
+// chosen name is echoed into the help element named by data-file-echo.
+document.addEventListener("change", (e) => {
+  const input = e.target.closest("input[type='file'][data-file-echo]");
+  if (!input) return;
+  const help = document.getElementById(input.dataset.fileEcho);
+  if (!help) return;
+  const names = [...input.files].map((f) => f.name).join(", ");
+  help.textContent = names ? `Chosen: ${names}` : "No file chosen.";
+});

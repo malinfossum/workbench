@@ -264,6 +264,26 @@ const GALLERY_SECTIONS = [
               <label class="field"><span class="label">Role</span><select class="select"><option>Student</option><option>Developer</option></select></label>
               <label class="field"><span class="label">API key</span><input class="input" value="sk-•••••••" disabled /><span class="help">Read-only once issued.</span></label>
             </div>`,
+        }) +
+        specimen({
+          title: "File picker",
+          note: "The real input is off screen but still focusable and labelled; the label is the visible control. The chosen name is echoed into the help text.",
+          classes: [".file-input-hidden", ".file-input-label"],
+          demo: `
+            <div class="grid grid-auto">
+              <div class="field">
+                <span class="label" id="gallery-cover-label">Cover image</span>
+                <input class="file-input-hidden" id="gallery-cover" type="file" accept="image/*" aria-labelledby="gallery-cover-label" aria-describedby="gallery-cover-help" data-file-echo="gallery-cover-help" />
+                <label class="btn file-input-label" for="gallery-cover">${icon("image")} Choose image</label>
+                <span class="help" id="gallery-cover-help">JPEG, PNG or WebP. No file chosen.</span>
+              </div>
+              <div class="field">
+                <span class="label" id="gallery-import-label">Import backup</span>
+                <input class="file-input-hidden" id="gallery-import" type="file" accept="application/json,.json" aria-labelledby="gallery-import-label" disabled />
+                <label class="btn file-input-label" for="gallery-import">Choose file</label>
+                <span class="help">Disabled while a backup is running.</span>
+              </div>
+            </div>`,
         })
       );
     },

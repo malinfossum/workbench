@@ -3,6 +3,21 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.6.0 — 2026-09-21
+
+File-picker pattern, promoted from Spindle. Additive: two classes in `components/input.css`,
+nothing existing changes.
+
+- **`.file-input-hidden` + `.file-input-label`** — the native "Choose File" control cannot
+  be styled, so the real `<input type="file">` goes off screen (`clip-path: inset(50%)`,
+  still in the tab order, still labelled) and a `<label class="btn file-input-label" for=…>`
+  is the visible control. `display: none` / `visibility: hidden` would drop the input from
+  the tab order, which is why neither is used. The focus ring moves to the label
+  (`:focus-visible + .file-input-label`, same ring as `base.css`, forced-colors aware) and a
+  disabled input dims its label like any other disabled control.
+- Gallery: the **Inputs** panel gains a file-picker specimen that echoes the chosen name.
+- Tests pin the off-screen technique, the moved focus ring and the README/CHANGELOG entry.
+
 ## 3.5.0 — 2026-09-18
 
 Icon set — the system's first icon layer, promoted from Spindle where it replaced emoji.

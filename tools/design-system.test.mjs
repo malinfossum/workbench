@@ -524,11 +524,26 @@ test("icons: the .icon rule is bundled and buttons space an icon from their labe
 	assert.match(read("components/button.css"), /\.btn \{[^}]*gap: var\(--space-2\);/s);
 });
 
-test("VERSION is 3.5.0 and README documents the identity and the icon set", () => {
-	assert.equal(read("VERSION").trim(), "3.5.0");
+test("file picker: the input is off screen but focusable, and the ring moves to its label", () => {
+	const css = read("components/input.css");
+	const hidden = css.match(/\.file-input-hidden \{([^}]*)\}/s)?.[1];
+	assert.ok(hidden, "input.css must define .file-input-hidden");
+	// Off screen via clip-path: display:none and visibility:hidden would both drop the
+	// input from the tab order, and the keyboard with it.
+	assert.match(hidden, /clip-path: inset\(50%\);/);
+	assert.doesNotMatch(hidden, /display: none|visibility: hidden/);
+	// The element actually focused is invisible, so the ring must show on the label —
+	// with the same ring base.css gives every other control, and a forced-colors fallback.
+	assert.match(css, /\.file-input-hidden:focus-visible \+ \.file-input-label \{[^}]*outline: 2px solid var\(--accent-strong\);[^}]*box-shadow: var\(--shadow-focus\);/s);
+	assert.match(css, /forced-colors: active[^}]*\{\s*\.file-input-hidden:focus-visible \+ \.file-input-label \{[^}]*outline: 2px solid CanvasText;/s);
+	assert.match(css, /\.file-input-hidden:disabled \+ \.file-input-label \{[^}]*cursor: not-allowed;/s);
+});
+
+test("VERSION is 3.6.0 and README documents the identity, the icon set and the file picker", () => {
+	assert.equal(read("VERSION").trim(), "3.6.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.5\.0 — /m, "CHANGELOG must carry the 3.5.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.6\.0 — /m, "CHANGELOG must carry the 3.6.0 entry");
 });

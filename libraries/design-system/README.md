@@ -54,6 +54,25 @@ import { icon } from "./design-system/components/icons.js";
 `<button class="btn icon-btn" type="button" aria-label="Close">${icon("close")}</button>`;
 ```
 
+## File picker
+
+The native file control's "Choose File" button cannot be styled. `.file-input-hidden` moves
+the real `<input type="file">` off screen without taking it out of the tab order, and a
+`<label class="btn file-input-label">` pointed at it by `for` becomes the visible control.
+Clicking the label opens the picker, Tab lands on the input and the focus ring shows on
+the label, and a screen reader still announces the field by its label. Because the native
+filename text is gone with the control, reflect the choice yourself — write the name into
+the field's `.help`, or show a preview.
+
+```html
+<div class="field">
+  <span class="label" id="cover-label">Cover image</span>
+  <input class="file-input-hidden" id="cover" type="file" accept="image/*" aria-labelledby="cover-label" aria-describedby="cover-help" />
+  <label class="btn file-input-label" for="cover">Choose image</label>
+  <span class="help" id="cover-help">JPEG, PNG or WebP.</span>
+</div>
+```
+
 ## Theme behavior
 
 The initial theme is set by an **inline `<head>` snippet** so there's no flash on first paint. Copy `theme/theme-init-snippet.html` into every scaffold's `<head>`, before stylesheets. The click handler in `theme/theme-toggle.js` toggles between dark and light when any `[data-theme-toggle]` element is clicked.
