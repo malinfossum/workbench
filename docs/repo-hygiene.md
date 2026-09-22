@@ -28,8 +28,8 @@ list is `NOTABLE` at the top of the checker; add to it when something belongs in
 # One repo, from its checkout
 node tools/repo-hygiene.mjs --repo malinfossum/spindle --path ../spindle
 
-# Every repo I own, archived included
-GITHUB_TOKEN=$(gh auth token) node tools/repo-hygiene.mjs --all --owner malinfossum --include-archived
+# Every repo I own, archived included. --owner takes a list, for my orgs.
+GITHUB_TOKEN=$(gh auth token) node tools/repo-hygiene.mjs --all --owner malinfossum,rookdex,wendhq --include-archived
 ```
 
 `--mode strict` exits 1 on findings; the default `warn` reports and exits 0.
@@ -56,13 +56,16 @@ jobs:
   hygiene:
     uses: malinfossum/workbench/.github/workflows/repo-hygiene.yml@main
     with:
-      mode: ${{ github.event_name == 'push' || github.event_name == 'pull_request' && 'warn' || 'strict' }}
+      mode: ${{ (github.event_name == 'push' || github.event_name == 'pull_request') && 'warn' || 'strict' }}
 ```
 
 Touching a README warns; a release fails the run. **GitHub has no pre-release hook** — `release:
 published` fires the moment the release goes live, not before it. To gate a release properly, run
 the check by hand (`workflow_dispatch`, or the command above) before cutting the tag; the automatic
 run is the net that catches what I forget.
+
+Org `.github` repos are skipped: their README lives at `profile/README.md` and describes the org,
+not the repo.
 
 ## Archived repos
 

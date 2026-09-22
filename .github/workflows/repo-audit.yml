@@ -18,4 +18,4 @@ jobs:
       - name: Audit every repo
         env:
           GITHUB_TOKEN: ${{ secrets.PROFILE_README_TOKEN || github.token }}
-        run: node tools/repo-hygiene.mjs --all --owner malinfossum --include-archived --mode strict
+        run: node tools/repo-hygiene.mjs --all --owner malinfossum,rookdex,wendhq --include-archived --mode strict

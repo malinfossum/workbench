@@ -3,7 +3,7 @@
 // section against the real manifests, and versions and links against reality.
 //
 //   node tools/repo-hygiene.mjs --repo owner/name [--path .] [--mode warn|strict]
-//   node tools/repo-hygiene.mjs --all --owner malinfossum [--include-archived]
+//   node tools/repo-hygiene.mjs --all --owner malinfossum,wendhq [--include-archived]
 //
 // --repo reads the files from a local checkout (what CI does per repo).
 // --all reads them over the API for every repo an owner has, which is how
@@ -310,19 +310,25 @@ async function main(argv) {
   let total = 0;
 
   if (argv.includes("--all")) {
-    const owner = arg("--owner", "malinfossum");
+    const owners = arg("--owner", "malinfossum").split(",").map((o) => o.trim()).filter(Boolean);
     const includeArchived = argv.includes("--include-archived");
-    // The authenticated owner sees their private repos too; anyone else gets
-    // the public list.
+    // My own account lists private repos too; an org lists what I can see.
     const me = token ? await api("/user", token) : null;
-    const path =
-      me && me.login === owner
-        ? "/user/repos?per_page=100&affiliation=owner"
-        : `/users/${owner}/repos?per_page=100&type=owner`;
-    const repos = (await api(path, token)) || [];
+    const repos = [];
+    for (const owner of owners) {
+      const path =
+        me && me.login === owner
+          ? "/user/repos?per_page=100&affiliation=owner"
+          : `/users/${owner}/repos?per_page=100&type=owner`;
+      const page = (await api(path, token)) || (await api(`/orgs/${owner}/repos?per_page=100`, token)) || [];
+      repos.push(...page.filter((r) => r.owner.login.toLowerCase() === owner.toLowerCase()));
+    }
     let archivedSummary = "";
-    for (const meta of repos.sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const meta of repos.sort((a, b) => a.full_name.localeCompare(b.full_name))) {
       if (meta.fork) continue;
+      // An org's .github repo keeps its README at profile/README.md and has no
+      // public face of its own.
+      if (meta.name === ".github") continue;
       if (meta.archived && !includeArchived) continue;
       const files = {};
       for (const name of ["README.md", "package.json", "pyproject.toml"]) {
