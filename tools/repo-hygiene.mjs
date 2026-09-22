@@ -56,18 +56,22 @@ export function overlap(a, b) {
   return shared / Math.min(left.size, right.size);
 }
 
-// The first real sentence of a README: not the H1, not a badge row, not a
-// blockquote, not an HTML block.
-export function readmeSummary(md) {
-  const body = md.replace(/<!--[\s\S]*?-->/g, "");
+// A README's opening pitch: every prose paragraph before the first `##`, with
+// headings, badge rows, blockquotes, tables and HTML dropped. Taglines and
+// scene-setting lines mean the description often matches the second or third
+// paragraph, not the first, so the whole intro is the fair comparison.
+export function readmeIntro(md, limit = 600) {
+  const body = md.replace(/<!--[\s\S]*?-->/g, "").split(/^##\s/m)[0];
+  const parts = [];
   for (const block of body.split(/\n\s*\n/)) {
     const line = block.trim();
     if (!line || line.startsWith("#") || line.startsWith(">")) continue;
     if (line.startsWith("<") || line.startsWith("|") || line.startsWith("```")) continue;
     if (/^\[!\[/.test(line) || /^!\[/.test(line)) continue;
-    return line.replace(/\s+/g, " ");
+    parts.push(line.replace(/\s+/g, " "));
+    if (parts.join(" ").length >= limit) break;
   }
-  return "";
+  return parts.join(" ").slice(0, limit);
 }
 
 export function readmeTitle(md) {
@@ -134,23 +138,28 @@ export function extractLocalRefs(md) {
   return [...paths].map((p) => p.split("#")[0].split("?")[0]).filter(Boolean);
 }
 
-// A README that points at a live site the repo settings do not know about.
-export function liveUrlInReadme(md) {
-  const hosts = /https?:\/\/[^\s)"]*(?:pages\.dev|github\.io|azurewebsites\.net|vercel\.app|netlify\.app|workers\.dev)[^\s)"]*/;
-  const match = md.match(hosts);
-  return match ? match[0] : "";
+// A README that points at *this repo's* live site. An index repo links a dozen
+// other projects' demos, and none of those is its homepage, so the URL has to
+// carry the repo's own name to count.
+export function liveUrlInReadme(md, repoName = "") {
+  if (!repoName) return "";
+  const hosts = /https?:\/\/[^\s)"]*(?:pages\.dev|github\.io|azurewebsites\.net|vercel\.app|netlify\.app|workers\.dev)[^\s)"]*/g;
+  for (const match of md.matchAll(hosts)) {
+    if (match[0].toLowerCase().includes(repoName.toLowerCase())) return match[0];
+  }
+  return "";
 }
 
 export function checkMetadata(meta, md) {
   const findings = [];
-  const summary = readmeSummary(md);
+  const intro = readmeIntro(md);
 
   if (!meta.description) {
     findings.push(["description", "The repo has no GitHub description."]);
-  } else if (summary && overlap(meta.description, summary) < 0.4) {
+  } else if (intro && overlap(meta.description, intro) < 0.4) {
     findings.push([
       "description",
-      `Description and README opening line have drifted apart.\n    repo:   ${meta.description}\n    README: ${summary.slice(0, 120)}`,
+      `Description and README intro have drifted apart.\n    repo:   ${meta.description}\n    README: ${intro.slice(0, 120)}`,
     ]);
   }
 
@@ -159,9 +168,12 @@ export function checkMetadata(meta, md) {
     findings.push(["topics", `Only ${topics.length} topic(s). Three or more is the bar.`]);
   }
 
-  const live = liveUrlInReadme(md);
-  if (live && !meta.homepage) {
-    findings.push(["homepage", `README links a live site but the repo has no homepage set: ${live}`]);
+  const live = liveUrlInReadme(md, meta.name);
+  if (!meta.homepage && (live || meta.has_pages)) {
+    findings.push([
+      "homepage",
+      `The repo is deployed but has no homepage set: ${live || "GitHub Pages is on"}`,
+    ]);
   }
 
   const title = readmeTitle(md);

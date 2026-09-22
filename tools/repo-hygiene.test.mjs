@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   tokenize,
   overlap,
-  readmeSummary,
+  readmeIntro,
   readmeTitle,
   manifestDeps,
   manifestVersion,
@@ -30,10 +30,20 @@ A local library for your LP and CD collection.
 - Vite for the build, Biome for formatting
 `;
 
-test("readmeSummary skips the heading, badges and blockquotes", () => {
-  assert.equal(readmeSummary(README), "A local library for your LP and CD collection.");
-  assert.equal(readmeSummary("# T\n\n> a note\n\nReal text."), "Real text.");
-  assert.equal(readmeSummary("# Only a heading"), "");
+test("readmeIntro skips the heading, badges and blockquotes", () => {
+  assert.match(readmeIntro(README), /^A local library for your LP and CD collection\./);
+  assert.equal(readmeIntro("# T\n\n> a note\n\nReal text."), "Real text.");
+  assert.equal(readmeIntro("# Only a heading"), "");
+});
+
+test("readmeIntro takes the whole pitch, so a tagline cannot hide the real line", () => {
+  const md =
+    "# Ignite\n\n*a small flame, kept going.*\n\nSometimes all it takes is a spark.\n\n" +
+    "An ADHD-friendly task app: capture a thought in one line.\n\n## Install\n\nnot the intro\n";
+  const intro = readmeIntro(md);
+  assert.match(intro, /ADHD-friendly task app/);
+  assert.doesNotMatch(intro, /not the intro/);
+  assert.ok(overlap("ADHD-friendly task app", intro) >= 0.4);
 });
 
 test("readmeTitle reads the H1", () => {
@@ -86,9 +96,26 @@ test("extractLinks and extractLocalRefs split external from in-repo", () => {
   assert.deepEqual(extractLocalRefs(md).sort(), ["./docs/plan.md", "assets/chip.svg"]);
 });
 
-test("liveUrlInReadme finds a deployed host", () => {
-  assert.equal(liveUrlInReadme(README), "https://spindle-music.pages.dev");
-  assert.equal(liveUrlInReadme("no site here"), "");
+test("liveUrlInReadme finds this repo's site, not a link to another project", () => {
+  assert.equal(liveUrlInReadme(README, "spindle"), "https://spindle-music.pages.dev");
+  const index = "Live demo: [html-intro](https://malinfossum.github.io/html-intro/).";
+  assert.equal(liveUrlInReadme(index, "getacademy"), "", "another project's demo is not this repo's site");
+  assert.equal(liveUrlInReadme(README, ""), "");
+  assert.equal(liveUrlInReadme("no site here", "x"), "");
+});
+
+test("checkMetadata flags GitHub Pages with no homepage set", () => {
+  const findings = checkMetadata(
+    {
+      name: "portfolio",
+      description: "A portfolio site",
+      topics: ["a", "b", "c"],
+      homepage: "",
+      has_pages: true,
+    },
+    "# Portfolio\n\nA portfolio site.\n",
+  );
+  assert.deepEqual(findings.map(([kind]) => kind), ["homepage"]);
 });
 
 test("checkMetadata flags a drifted description, thin topics and a missing homepage", () => {
