@@ -1,0 +1,21 @@
+# Weekly sweep over every repo I own, archived ones included. Archived repos
+# are read-only, so they are reported but never fail the run.
+name: Repo audit
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Audit every repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.PROFILE_README_TOKEN || github.token }}
+        run: node tools/repo-hygiene.mjs --all --owner malinfossum --include-archived --mode strict

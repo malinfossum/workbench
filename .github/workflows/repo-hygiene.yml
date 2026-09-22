@@ -1,0 +1,33 @@
+# Reusable: checks a repo's public face against its README. Call it from any
+# repo of mine with the caller in docs/repo-hygiene.md.
+name: Repo hygiene
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "warn (report only) or strict (fail the job on drift)"
+        type: string
+        default: warn
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the checker
+        uses: actions/checkout@v4
+        with:
+          repository: malinfossum/workbench
+          path: .workbench
+          sparse-checkout: tools/repo-hygiene.mjs
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .workbench/tools/repo-hygiene.mjs --repo ${{ github.repository }} --mode ${{ inputs.mode }}
