@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="A one-button sandbox for hearing how aria-live, aria-atomic, role and output announce with a screen reader." />
+		<title>Live region sandbox — Workbench</title>
+		<!--
+			aria-live sandbox: one button, one live region, one <output>.
+
+			Settings travel in the URL (?live=polite&atomic=1&role=&target=region) and
+			the form does a plain GET, so every setting is applied at page load. That
+			matters: screen readers register a live region when it enters the DOM, and
+			some ignore politeness changed *after* load. Insert early, change rarely.
+		-->
+
+		<!-- No-flash theme init: must run BEFORE stylesheets -->
+		<script>
+			(function () {
+				var root = document.documentElement;
+				root.dataset.theme = localStorage.getItem("theme") || "dark";
+				root.dataset.palette = localStorage.getItem("palette") || "default";
+			})();
+		</script>
+
+		<link rel="stylesheet" href="../../libraries/design-system/tokens/index.css" />
+		<link rel="stylesheet" href="../../libraries/design-system/base/reset.css" />
+		<link rel="stylesheet" href="../../libraries/design-system/base/base.css" />
+		<link rel="stylesheet" href="../../libraries/design-system/primitives/index.css" />
+		<link rel="stylesheet" href="../../libraries/design-system/components/index.css" />
+		<link rel="stylesheet" href="../../libraries/design-system/utilities/index.css" />
+
+		<style>
+			/* page-local chrome only, not part of the design system */
+			.wb-nav {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				justify-content: space-between;
+				gap: var(--space-3);
+				padding-block: var(--space-5);
+			}
+			.wb-nav a.wb-home {
+				color: var(--text-muted);
+				text-decoration: none;
+				font-size: var(--text-sm);
+			}
+			.wb-nav a.wb-home:hover,
+			.wb-nav a.wb-home:focus-visible {
+				color: var(--accent);
+			}
+			.wb-hero {
+				padding-block: var(--space-6) var(--space-5);
+			}
+			.wb-hero h1 {
+				font-family: var(--font-display);
+				font-weight: 600;
+				letter-spacing: -0.01em;
+			}
+			.wb-rule {
+				width: 64px;
+				height: 2px;
+				border-radius: 2px;
+				background: var(--accent);
+				margin-block: var(--space-4) var(--space-3);
+			}
+			.wb-lede {
+				color: var(--text-muted);
+				max-width: var(--reading-width);
+			}
+			.ls-section {
+				display: grid;
+				gap: var(--space-4);
+				padding-block: var(--space-6) 0;
+			}
+			.ls-form {
+				display: grid;
+				gap: var(--space-4);
+			}
+			.ls-section > h2 {
+				font-size: var(--text-xl);
+			}
+
+			/* How-to steps */
+			.ls-steps {
+				display: grid;
+				gap: var(--space-3);
+				max-width: var(--reading-width);
+				margin: 0;
+				padding-left: var(--space-5);
+			}
+			kbd {
+				font-family: var(--font-mono);
+				font-size: 0.85em;
+				color: var(--text);
+				padding: 0.1em 0.4em;
+				border: 1px solid var(--control-border);
+				border-radius: var(--radius-sm);
+				background: var(--surface-2);
+				white-space: nowrap;
+			}
+
+			/* Settings: three option groups, stacked on phone, side by side from tablet */
+			.ls-settings {
+				display: grid;
+				gap: var(--space-4);
+			}
+			.ls-group {
+				margin: 0;
+				padding: var(--space-4) var(--space-5) var(--space-3);
+				background: var(--card-bg);
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+			}
+			/* float pulls the legend inside the card instead of onto its border */
+			.ls-group legend {
+				float: left;
+				width: 100%;
+				padding: 0;
+				margin-bottom: var(--space-2);
+				font-size: var(--text-xs);
+				font-weight: 600;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+				color: var(--accent-strong);
+			}
+			.ls-group legend + * {
+				clear: both;
+			}
+			.ls-group .help {
+				display: block;
+				margin: var(--space-1) 0 var(--space-2);
+			}
+			.ls-option {
+				display: flex;
+				align-items: center;
+				gap: var(--space-3);
+				min-height: 2.75rem;
+				color: var(--text);
+				cursor: pointer;
+			}
+			.ls-option input {
+				width: 1.125rem;
+				height: 1.125rem;
+				margin: 0;
+				accent-color: var(--accent);
+				flex-shrink: 0;
+			}
+			.ls-option code {
+				font-size: var(--text-sm);
+			}
+			.ls-apply {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: var(--space-3);
+			}
+			.ls-markup {
+				margin: 0;
+				padding: var(--space-3) var(--space-4);
+				overflow-x: auto;
+				font-size: var(--text-sm);
+				color: var(--text);
+				background: var(--surface-2);
+				border: 1px solid var(--border-soft);
+				border-radius: var(--radius-sm);
+			}
+
+			/* The test bench */
+			.ls-bench {
+				display: grid;
+				gap: var(--space-4);
+			}
+			.ls-cart {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: var(--space-3);
+				min-height: 2.75rem;
+			}
+			.ls-cart-label {
+				font-size: var(--text-sm);
+				color: var(--text-muted);
+			}
+			.ls-cart-value {
+				font-weight: 600;
+				color: var(--text);
+				font-variant-numeric: tabular-nums;
+			}
+			.ls-bench .btn-primary {
+				justify-self: start;
+			}
+			.ls-slot {
+				display: grid;
+				gap: var(--space-2);
+				padding-top: var(--space-4);
+				border-top: 1px solid var(--line);
+			}
+			.ls-slot-head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: var(--space-3);
+				font-size: var(--text-sm);
+				color: var(--text-muted);
+			}
+			.ls-announce {
+				margin: 0;
+				min-height: 3rem;
+				padding: var(--space-3) var(--space-4);
+				border-left: 3px solid var(--accent);
+				background: var(--surface-2);
+				border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+				color: var(--text-muted);
+			}
+			.ls-announce strong {
+				color: var(--text);
+			}
+			.ls-slot[data-idle] .ls-announce {
+				border-left-color: var(--border);
+				opacity: 0.6;
+			}
+
+			/* Expectations table: the row that matches the live setting is marked */
+			.ls-expect td:first-child {
+				white-space: nowrap;
+			}
+			.ls-expect tr[data-current] td {
+				background: var(--accent-soft);
+			}
+			.ls-expect tr[data-current] td:first-child {
+				box-shadow: inset 3px 0 0 var(--accent);
+			}
+			.ls-expect code {
+				font-size: var(--text-sm);
+				color: var(--text);
+			}
+
+			.wb-footer {
+				margin-block: var(--space-9) var(--space-7);
+				padding-top: var(--space-5);
+				border-top: 1px solid var(--border-soft);
+				color: var(--text-faint);
+				font-size: var(--text-sm);
+			}
+
+			@media (min-width: 768px) {
+				.ls-settings {
+					grid-template-columns: repeat(3, minmax(0, 1fr));
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+
+		<nav class="container wb-nav" aria-label="Workbench">
+			<a class="wb-home" href="../">← Specs &amp; plans</a>
+			<button type="button" class="btn" data-theme-toggle>Toggle theme</button>
+		</nav>
+
+		<main id="main" class="container">
+			<header class="wb-hero">
+				<h1>Live region sandbox</h1>
+				<div class="wb-rule" aria-hidden="true"></div>
+				<p class="wb-lede">
+					One button, one live region, one <code>&lt;output&gt;</code>. Pick a setting, press the
+					button with a screen reader running, and compare what you hear with the table at the
+					bottom.
+				</p>
+			</header>
+
+			<section class="ls-section" aria-labelledby="howto-title">
+				<h2 id="howto-title">Run it with NVDA</h2>
+				<ol class="ls-steps">
+					<li>Start NVDA with <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd>, then open this page in the browser.</li>
+					<li>Open <strong>NVDA menu → Tools → Speech viewer</strong> (<kbd>Insert</kbd> + <kbd>N</kbd>). It prints every announcement as text, so you can copy exactly what was said.</li>
+					<li>Choose a setting and apply it. The page reloads with the live region built from scratch.</li>
+					<li>Tab to <strong>Add to cart</strong> and press <kbd>Enter</kbd> three times.</li>
+					<li>Quit NVDA with <kbd>Insert</kbd> + <kbd>Q</kbd>.</li>
+				</ol>
+			</section>
+
+			<section class="ls-section" aria-labelledby="settings-title">
+				<h2 id="settings-title">Settings</h2>
+				<!-- A GET form, so the page reloads with the region built right. -->
+				<form method="get" class="ls-form">
+					<div class="ls-settings">
+						<fieldset class="ls-group">
+							<legend>aria-live</legend>
+							<div>
+								<label class="ls-option"><input type="radio" name="live" value="off" /> <code>off</code></label>
+								<label class="ls-option"><input type="radio" name="live" value="polite" checked /> <code>polite</code></label>
+								<label class="ls-option"><input type="radio" name="live" value="assertive" /> <code>assertive</code></label>
+								<label class="ls-option"><input type="checkbox" name="atomic" value="1" /> <code>aria-atomic="true"</code></label>
+							</div>
+						</fieldset>
+						<fieldset class="ls-group" aria-describedby="role-help">
+							<legend>role</legend>
+							<div>
+								<label class="ls-option"><input type="radio" name="role" value="" checked /> none</label>
+								<label class="ls-option"><input type="radio" name="role" value="status" /> <code>status</code></label>
+								<label class="ls-option"><input type="radio" name="role" value="alert" /> <code>alert</code></label>
+								<small class="help" id="role-help">Overrides aria-live when set.</small>
+							</div>
+						</fieldset>
+						<fieldset class="ls-group">
+							<legend>Announce via</legend>
+							<div>
+								<label class="ls-option"><input type="radio" name="target" value="region" checked /> aria-live region</label>
+								<label class="ls-option"><input type="radio" name="target" value="output" /> native <code>&lt;output&gt;</code></label>
+							</div>
+						</fieldset>
+					</div>
+					<div class="ls-apply">
+						<button type="submit" class="btn">Apply settings (reloads)</button>
+					</div>
+					<div class="field">
+						<span class="label" id="markup-label">Live markup right now</span>
+						<pre class="ls-markup" aria-labelledby="markup-label"><code id="markup"></code></pre>
+					</div>
+				</form>
+			</section>
+
+			<section class="ls-section" aria-labelledby="bench-title">
+				<h2 id="bench-title">Test bench</h2>
+				<div class="card ls-bench">
+					<!-- The visual cart. Changing this is NOT news: the user pressed the button,
+					     they expect the count to move. No live attributes here on purpose. -->
+					<div class="ls-cart">
+						<span class="ls-cart-label">Cart</span>
+						<span class="ls-cart-value" id="cart-badge">0 items</span>
+					</div>
+
+					<!-- The one button. -->
+					<button type="button" class="btn btn-primary" id="add">Add to cart</button>
+
+					<!-- The one live region. Present from page load, empty until the first click.
+					     With aria-atomic="false" (default) a screen reader announces only the node
+					     that changed: the inner span. With aria-atomic="true" it announces the
+					     whole region, so the "Cart status:" label is read as well. -->
+					<div class="ls-slot" id="slot-region">
+						<div class="ls-slot-head">
+							<span>aria-live region</span>
+							<span class="badge" data-slot-badge></span>
+						</div>
+						<p class="ls-announce" id="region">
+							<strong>Cart status:</strong>
+							<span id="region-text"></span>
+						</p>
+					</div>
+
+					<!-- Native alternative. <output> maps to role="status": polite + atomic, but
+					     the region is the <output> itself, and "Cart status:" sits outside it.
+					     `for` ties it to the control whose result it shows. -->
+					<div class="ls-slot" id="slot-output">
+						<div class="ls-slot-head">
+							<span>Native <code>&lt;output&gt;</code></span>
+							<span class="badge" data-slot-badge></span>
+						</div>
+						<p class="ls-announce">
+							<strong>Cart status:</strong>
+							<output id="output" for="add"></output>
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="ls-section" aria-labelledby="expect-title">
+				<h2 id="expect-title">What to listen for</h2>
+				<p class="wb-lede">After three presses. The highlighted row matches the live setting.</p>
+				<div class="table-wrap">
+					<table class="table ls-expect">
+						<thead>
+							<tr>
+								<th scope="col">Setting</th>
+								<th scope="col">Expected announcement</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr data-case="polite">
+								<td><code>polite</code></td>
+								<td>Only the changed span, after NVDA finishes speaking: "3 items, 29.97 kr".</td>
+							</tr>
+							<tr data-case="polite-atomic">
+								<td><code>polite</code> + atomic</td>
+								<td>The whole region: "Cart status: 3 items, 29.97 kr".</td>
+							</tr>
+							<tr data-case="assertive">
+								<td><code>assertive</code></td>
+								<td>The same text, but it cuts off whatever NVDA was saying (the button name, for example).</td>
+							</tr>
+							<tr data-case="status">
+								<td><code>role="status"</code></td>
+								<td>Like polite + atomic, with no aria-live attribute needed.</td>
+							</tr>
+							<tr data-case="alert">
+								<td><code>role="alert"</code></td>
+								<td>Like assertive + atomic.</td>
+							</tr>
+							<tr data-case="output">
+								<td><code>&lt;output&gt;</code></td>
+								<td>Polite. Only "3 items, 29.97 kr": the region is the output element, and "Cart status:" is outside it.</td>
+							</tr>
+							<tr data-case="off">
+								<td><code>off</code></td>
+								<td>Nothing. The cart value still updates on screen.</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<footer class="wb-footer">
+				<a href="../">← Back to specs &amp; plans</a>
+			</footer>
+		</main>
+
+		<script src="../../libraries/design-system/theme/theme-toggle.js"></script>
+		<script>
+			const params = new URLSearchParams(location.search);
+			const live = params.get("live") ?? "polite";
+			const atomic = params.get("atomic") === "1";
+			const role = params.get("role") ?? "";
+			const target = params.get("target") ?? "region";
+
+			// Mirror the URL into the form so the checked state matches what is live.
+			for (const [name, value] of [["live", live], ["role", role], ["target", target]]) {
+				const input = document.querySelector(`[name="${name}"][value="${value}"]`);
+				if (input) input.checked = true;
+			}
+			document.querySelector('[name="atomic"]').checked = atomic;
+
+			// Build the live region *before* any update, never after.
+			const region = document.getElementById("region");
+			if (role) {
+				region.setAttribute("role", role); // status = polite+atomic, alert = assertive+atomic
+			} else {
+				region.setAttribute("aria-live", live);
+				if (atomic) region.setAttribute("aria-atomic", "true");
+			}
+
+			// Show the markup that is actually live, so what you hear maps to real attributes.
+			const liveAttrs = [...region.attributes]
+				.filter((attr) => attr.name === "role" || attr.name.startsWith("aria-"))
+				.map((attr) => `${attr.name}="${attr.value}"`)
+				.join(" ");
+			document.getElementById("markup").textContent =
+				target === "output"
+					? '<output for="add">3 items, 29.97 kr</output>'
+					: `<p ${liveAttrs}>\n  <strong>Cart status:</strong>\n  <span>3 items, 29.97 kr</span>\n</p>`;
+
+			// Mark which slot is in use and which table row applies.
+			const active = target === "output" ? "slot-output" : "slot-region";
+			for (const slot of document.querySelectorAll(".ls-slot")) {
+				const inUse = slot.id === active;
+				slot.toggleAttribute("data-idle", !inUse);
+				const badge = slot.querySelector("[data-slot-badge]");
+				badge.textContent = inUse ? "In use" : "Idle";
+				badge.classList.toggle("badge-accent", inUse);
+			}
+			const currentCase =
+				target === "output" ? "output"
+				: role ? role
+				: live === "polite" && atomic ? "polite-atomic"
+				: live;
+			document.querySelector(`[data-case="${currentCase}"]`)?.setAttribute("data-current", "");
+
+			const PRICE = 9.99;
+			let count = 0;
+
+			document.getElementById("add").addEventListener("click", () => {
+				count += 1;
+				const total = (count * PRICE).toFixed(2);
+				const result = `${count} ${count === 1 ? "item" : "items"}, ${total} kr`;
+
+				// Visual only. Not announced, and that is the point: no news is good news.
+				document.getElementById("cart-badge").textContent = result;
+
+				// Announce the *result* of the action, once, in one node.
+				// Clear first, set on the next frame: two mutations in the same tick are
+				// batched into one, so a repeated identical text would never be re-read.
+				const slot = document.getElementById(target === "output" ? "output" : "region-text");
+				slot.textContent = "";
+				setTimeout(() => { slot.textContent = result; }, 50);
+			});
+		</script>
+	</body>
+</html>

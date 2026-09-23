@@ -1,0 +1,28 @@
+name: CI
+
+# Test and accessibility gate on every pull request.
+# Layer 1: Vitest runs the service tests (Node) and the component tests (Chromium).
+# Layer 2: Playwright scans the built app with axe in both themes.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run typecheck
+      - name: Layer 1 — service + component tests
+        run: npm test
+      - name: Layer 2 — full-page axe scan
+        run: npm run test:e2e
