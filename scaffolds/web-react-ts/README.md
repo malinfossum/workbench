@@ -5,6 +5,7 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 ## What's included
 
 - Full design system (`design-system/`) — tokens, primitives, components, compositions, utilities, theme
+- Translations (`i18n/` + `src/locales/`) — `t()` from `useI18n()`, English + Norwegian bundles, typed keys, persisted choice, `<html lang>` and the tab title kept in sync
 - No-flash dark/light theme toggle (works on first load, persists in `localStorage`, plays fine with React)
 - Component → hook → service layering with a small Counter example (delete it when you start)
 - Strict TypeScript (`tsc --noEmit` runs before every build)
@@ -16,7 +17,7 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 
 1. `npm install`, then `npx playwright install --only-shell chromium` (once per machine, about 270 MB; headless tests need only the shell, not full Chrome)
 2. Set `<title>` and `<meta name="description">` in `index.html`
-3. Replace the Counter example: your logic in `src/services/`, state in `src/hooks/`, UI in `src/components/`
+3. Replace the Counter example: your logic in `src/services/`, state in `src/hooks/`, UI in `src/components/`, every UI string in `src/locales/en.json` and `nb.json`
 4. Add project-specific styles in `src/styles/main.css` (mobile-first, no `max-width` queries)
 5. `npm run dev` and start building
 
@@ -44,14 +45,31 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/services/` — pure logic, no React/DOM — this is what unit tests target
 - `src/hooks/` — state + behavior wrapping the services
 - `src/components/` — rendering + event wiring, no business logic
+- `src/locales/` — UI strings, one JSON bundle per language; `tests/locales.test.ts` fails when bundles drift
 - `src/styles/main.css` — project-specific overrides
 - `tests/` — service tests (DOM-free, run in Node) and `tests/components/` component tests (run in Chromium)
 - `e2e/` — full-page axe scan of the built app
 - `design-system/` — read-only foundation, do not edit
+- `i18n/` — read-only translator (`t`, `plural`, `resolveLang`) with its type declarations, refresh with the extract tool
 - `biome.json` — formatter and linter config
 - `tsconfig.json` — strict TS, single config
 - `vite.config.ts` — Vite config with the React plugin and the two Vitest projects
 - `playwright.config.ts` — builds, serves and scans the app for `test:e2e`
+
+## Translations
+
+`LanguageProvider` wraps the app in `src/main.tsx`. It starts from the stored choice, then the browser language, then English, and it stores a language only when someone picks one. Components read everything through the hook:
+
+```tsx
+const { t, plural, lang, setLang } = useI18n()
+
+t("app.title")                       // "Project" / "Prosjekt"
+plural("items", 3)                    // picks items.one / items.other by the language's rules
+```
+
+`t()` only accepts keys that every bundle has, so a typo or a key missing in one language is a type error. It returns plain text, which JSX escapes; never pass it to `dangerouslySetInnerHTML`. Component tests render inside the provider with `render(<Thing />, { wrapper: LanguageProvider })`, and both test browsers are pinned to `en-US` so snapshots read the same on every machine.
+
+To add a language, copy `src/locales/en.json` to `<lang>.json`, translate every value, and register it in `src/locales/index.ts`.
 
 ## Testing
 
@@ -59,7 +77,7 @@ Three layers, cheapest first:
 
 1. **Service tests** (`npm test`, `unit` project) — pure logic in `src/services/`, run in Node. Most of your tests belong here.
 2. **Component tests** (`npm test`, `browser` project) — `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`.
-3. **Full-page scan** (`npm run test:e2e`) — Playwright builds the app, serves the preview and scans it with axe in dark and light theme. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. Add a test per route as you build them.
+3. **Full-page scan** (`npm run test:e2e`) — Playwright builds the app, serves the preview and scans it with axe in dark and light theme and in Norwegian. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. Add a test per route as you build them.
 
 `.github/workflows/ci.yml` runs all three on every pull request.
 

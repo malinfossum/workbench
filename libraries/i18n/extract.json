@@ -1,5 +1,5 @@
 {
   "versionFile": "VERSION",
-  "include": ["index.js"],
+  "include": ["index.js", "index.d.ts"],
   "anchor": "index.js"
 }

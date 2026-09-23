@@ -7,16 +7,22 @@
    - services/    pure logic and data — no React, no DOM, unit-testable
    - hooks/       state + behavior (useState wrapping service functions)
    - components/  rendering + event wiring — no business logic
+   - locales/     UI strings, one JSON bundle per language; render with t()
    ====================================================================== */
 
 import { Counter } from "./components/Counter.tsx"
+import { LanguageSwitcher } from "./components/LanguageSwitcher.tsx"
+import { useI18n } from "./hooks/useI18n.ts"
 
 export function App() {
+	const { t } = useI18n()
+
 	return (
 		<div id="app" className="container stack stack-lg">
-			<header>
-				<h1>Project</h1>
-				<p>React + TS starter — replace Counter with your app.</p>
+			<header className="stack">
+				<h1>{t("app.title")}</h1>
+				<p>{t("app.tagline")}</p>
+				<LanguageSwitcher />
 			</header>
 
 			<main id="main" className="card">

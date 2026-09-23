@@ -9,7 +9,7 @@ const WORKBENCH = resolve(import.meta.dirname, "..");
 // re-sync of each of these must fail CI, not ship silently.
 const BUNDLES = {
   "design-system": ["web-vite", "web-react-ts"],
-  i18n: ["web-vite"],
+  i18n: ["web-vite", "web-react-ts"],
 };
 
 for (const [library, scaffolds] of Object.entries(BUNDLES)) {

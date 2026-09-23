@@ -1,0 +1,10 @@
+{
+	"app.title": "Prosjekt",
+	"app.tagline": "React + TS-startpakke — bytt ut Counter med appen din.",
+	"lang.label": "Språk",
+	"lang.en": "English",
+	"lang.nb": "Norsk",
+	"counter.label": "Antall:",
+	"counter.decrease": "Reduser antall",
+	"counter.increase": "Øk antall"
+}

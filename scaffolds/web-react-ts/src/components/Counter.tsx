@@ -6,23 +6,30 @@
    ====================================================================== */
 
 import { useCounter } from "../hooks/useCounter.ts"
+import { useI18n } from "../hooks/useI18n.ts"
 
 export function Counter() {
 	const { count, increment, decrement } = useCounter()
+	const { t } = useI18n()
 
 	return (
 		<div className="stack">
 			<p aria-live="polite">
-				Count: <strong>{count}</strong>
+				{t("counter.label")} <strong>{count}</strong>
 			</p>
 			<div className="cluster">
-				<button type="button" className="btn" aria-label="Decrease count" onClick={decrement}>
+				<button
+					type="button"
+					className="btn"
+					aria-label={t("counter.decrease")}
+					onClick={decrement}
+				>
 					−
 				</button>
 				<button
 					type="button"
 					className="btn btn-primary"
-					aria-label="Increase count"
+					aria-label={t("counter.increase")}
 					onClick={increment}
 				>
 					+

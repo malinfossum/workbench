@@ -1,0 +1,10 @@
+{
+	"app.title": "Project",
+	"app.tagline": "React + TS starter — replace Counter with your app.",
+	"lang.label": "Language",
+	"lang.en": "English",
+	"lang.nb": "Norsk",
+	"counter.label": "Count:",
+	"counter.decrease": "Decrease count",
+	"counter.increase": "Increase count"
+}
