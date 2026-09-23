@@ -24,6 +24,10 @@
 		"wait-on": "^9.1.0"
 	},
 	"allowScripts": {
-		"puppeteer@24.43.1": true
+		"puppeteer@25.12.0": true
+	},
+	"overrides": {
+		"pa11y": "^10.0.0",
+		"puppeteer": "^25.12.0"
 	}
 }
