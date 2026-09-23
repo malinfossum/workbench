@@ -2,8 +2,8 @@
    tests/counter.test.ts — example service test
    Services are pure and DOM-free, so they test without any browser
    environment. Real projects grow this pattern: put logic in services,
-   test it here; components stay thin enough not to need tests at first.
-   Component tests come later via jsdom + @testing-library/react.
+   test it here. Components are tested in a real browser instead — see
+   tests/components/.
    ====================================================================== */
 
 import { expect, test } from "vitest"

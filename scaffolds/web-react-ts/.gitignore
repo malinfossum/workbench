@@ -14,3 +14,8 @@ dist/
 
 # Vite cache
 .vite/
+
+# Test output (Vitest browser failures, Playwright)
+.vitest/
+test-results/
+playwright-report/
