@@ -73,6 +73,20 @@ the field's `.help`, or show a preview.
 </div>
 ```
 
+## Toggle buttons
+
+A `.btn` with `aria-pressed="true"` gets the on look: an accent wash and a doubled accent
+edge, so the state shows by shape as well as colour, and `Highlight` in forced-colors mode.
+Use it for a set of options where one is active, such as a language switcher. Screen
+readers announce the state from `aria-pressed` itself, so keep the attribute in sync.
+
+```html
+<nav aria-label="Language" class="cluster">
+  <button class="btn btn-ghost" type="button" aria-pressed="true" lang="en">English</button>
+  <button class="btn btn-ghost" type="button" aria-pressed="false" lang="nb">Norsk</button>
+</nav>
+```
+
 ## Theme behavior
 
 The initial theme is set by an **inline `<head>` snippet** so there's no flash on first paint. Copy `theme/theme-init-snippet.html` into every scaffold's `<head>`, before stylesheets. The click handler in `theme/theme-toggle.js` toggles between dark and light when any `[data-theme-toggle]` element is clicked.

@@ -3,6 +3,16 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.7.0 — 2026-09-23
+
+Pressed state for toggle buttons. Additive: one rule in `components/button.css`.
+
+- **`.btn[aria-pressed="true"]`**: accent wash (`--accent-soft`), accent border and a 1px
+  inset accent ring, so the on state differs by edge weight as well as hue (SC 1.4.1).
+  Forced-colors mode paints it `Highlight`/`HighlightText`. Before this, both scaffolds'
+  language switchers marked the active language only in the accessibility tree.
+- Gallery: the **Buttons** panel gains a toggle-group specimen.
+
 ## 3.6.0 — 2026-09-21
 
 File-picker pattern, promoted from Spindle. Additive: two classes in `components/input.css`,

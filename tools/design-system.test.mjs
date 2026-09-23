@@ -539,11 +539,21 @@ test("file picker: the input is off screen but focusable, and the ring moves to 
 	assert.match(css, /\.file-input-hidden:disabled \+ \.file-input-label \{[^}]*cursor: not-allowed;/s);
 });
 
-test("VERSION is 3.6.0 and README documents the identity, the icon set and the file picker", () => {
-	assert.equal(read("VERSION").trim(), "3.6.0");
+test("toggle buttons: the pressed state differs by edge weight, not only hue", () => {
+	const css = read("components/button.css");
+	const pressed = css.match(/\.btn\[aria-pressed="true"\] \{([^}]*)\}/s)?.[1];
+	assert.ok(pressed, 'button.css must style .btn[aria-pressed="true"]');
+	assert.match(pressed, /box-shadow: inset 0 0 0 1px var\(--accent\);/);
+	assert.match(css, /forced-colors: active[^}]*\{\s*\.btn\[aria-pressed="true"\] \{[^}]*background: Highlight;/s);
+	// Same specificity as the variants and :hover, so it must come after them.
+	assert.ok(css.indexOf('.btn[aria-pressed="true"]') > css.indexOf(".btn-danger {"), "pressed rule must follow the variants");
+});
+
+test("VERSION is 3.7.0 and README documents the identity, the icon set, the file picker and toggle buttons", () => {
+	assert.equal(read("VERSION").trim(), "3.7.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.6\.0 — /m, "CHANGELOG must carry the 3.6.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.7\.0 — /m, "CHANGELOG must carry the 3.7.0 entry");
 });

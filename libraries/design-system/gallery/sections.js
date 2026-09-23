@@ -184,6 +184,17 @@ const GALLERY_SECTIONS = [
             </div>`,
         }) +
         specimen({
+          title: "Toggle group",
+          note: "aria-pressed=\"true\" marks the active option — by edge weight as well as colour.",
+          classes: ['.btn[aria-pressed="true"]'],
+          demo: `
+            <div class="cluster">
+              <button class="btn btn-ghost" type="button" aria-pressed="true">Day</button>
+              <button class="btn btn-ghost" type="button" aria-pressed="false">Week</button>
+              <button class="btn btn-ghost" type="button" aria-pressed="false">Month</button>
+            </div>`,
+        }) +
+        specimen({
           title: "Full width",
           note: "Spans its container — good for forms and mobile CTAs.",
           classes: [".btn-full"],
