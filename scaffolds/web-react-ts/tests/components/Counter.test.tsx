@@ -6,6 +6,7 @@
    1. axe finds no violations,
    2. the accessibility tree matches its ARIA snapshot,
    3. it works from the keyboard.
+   Components that call useI18n render inside LanguageProvider (wrapper).
    Automated checks never judge whether labels make sense or whether focus
    order feels right — test those by hand before shipping.
    ====================================================================== */
@@ -14,10 +15,11 @@ import { expect, test } from "vitest"
 import { userEvent } from "vitest/browser"
 import { render } from "vitest-browser-react"
 import { Counter } from "../../src/components/Counter.tsx"
+import { LanguageProvider } from "../../src/components/LanguageProvider.tsx"
 import { axeComponent } from "./axe.ts"
 
 test("Counter renders without axe violations", async () => {
-	const screen = await render(<Counter />)
+	const screen = await render(<Counter />, { wrapper: LanguageProvider })
 	expect(await axeComponent(screen.container)).toEqual([])
 })
 
@@ -25,7 +27,7 @@ test("Counter renders without axe violations", async () => {
 // renamed button or a lost live region fails here. Update it deliberately
 // with `npx vitest -u` when the change is intended.
 test("Counter exposes the expected accessibility tree", async () => {
-	const screen = await render(<Counter />)
+	const screen = await render(<Counter />, { wrapper: LanguageProvider })
 	await expect.element(screen.container).toMatchAriaInlineSnapshot(`
 		- paragraph:
 		  - text: "Count:"
@@ -36,7 +38,7 @@ test("Counter exposes the expected accessibility tree", async () => {
 })
 
 test("Counter increases from the keyboard", async () => {
-	const screen = await render(<Counter />)
+	const screen = await render(<Counter />, { wrapper: LanguageProvider })
 	await userEvent.tab()
 	await userEvent.tab()
 	await expect.element(screen.getByRole("button", { name: "Increase count" })).toHaveFocus()

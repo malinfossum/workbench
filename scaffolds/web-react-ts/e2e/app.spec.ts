@@ -26,3 +26,18 @@ for (const theme of ["dark", "light"]) {
 		expect(violations.map(({ id, help, nodes }) => ({ id, help, count: nodes.length }))).toEqual([])
 	})
 }
+
+// Translated strings change lengths and accessible names, so the scan runs
+// in every language too. The document-level side effects are checked here
+// against the real built page.
+test("switching to Norsk translates the page with no axe violations", async ({ page }) => {
+	await page.goto("/")
+	await page.getByRole("button", { name: "Norsk" }).click()
+
+	await expect(page.getByRole("heading", { level: 1 })).toHaveText("Prosjekt")
+	await expect(page.locator("html")).toHaveAttribute("lang", "nb")
+	await expect(page).toHaveTitle("Prosjekt")
+
+	const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
+	expect(violations.map(({ id, help, nodes }) => ({ id, help, count: nodes.length }))).toEqual([])
+})

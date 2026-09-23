@@ -190,10 +190,11 @@
 					<li>Set <code>&lt;title&gt;</code> and <code>&lt;meta name="description"&gt;</code> in <code>index.html</code>.</li>
 					<li><code>npm run dev</code> — the shell opens dark with design-system styles applied.</li>
 					<li>Replace the Counter example: logic in <code>src/services</code>, state in <code>src/hooks</code>, UI in <code>src/components</code>; project styles go in <code>src/styles/main.css</code> (mobile-first).</li>
+					<li>UI strings live in <code>src/locales/en.json</code> and <code>nb.json</code>, rendered with <code>t("key")</code> from <code>useI18n()</code>. Keys are typed, so a typo or a key one language lacks fails the typecheck.</li>
 				</ol>
 				<div class="wb-note">
-					<code>design-system/</code> is read-only inside your project and excluded from Biome —
-					refresh it with the <a href="#design-system">extract tool</a>, never by hand-editing.
+					<code>design-system/</code> and <code>i18n/</code> are read-only inside your project and excluded from Biome —
+					refresh them with the <a href="#design-system">extract tool</a>, never by hand-editing.
 					<code>npm run build</code> typechecks first (<code>tsc --noEmit</code>), so type errors block the build.
 				</div>
 				<a class="wb-ghlink" href="https://github.com/malinfossum/workbench/tree/main/scaffolds/web-react-ts">View web-react-ts on GitHub →</a>

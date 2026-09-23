@@ -3,6 +3,8 @@
    The react plugin is required; everything else is optional.
    `test` holds two Vitest projects: `unit` runs DOM-free service tests
    in Node, `browser` renders components in real Chromium (Playwright).
+   The browser locale is pinned so tests read the same on every machine;
+   otherwise the app follows the OS language via navigator.language.
    ====================================================================== */
 
 import react from "@vitejs/plugin-react"
@@ -32,7 +34,7 @@ export default defineConfig({
 					browser: {
 						enabled: true,
 						headless: true,
-						provider: playwright(),
+						provider: playwright({ contextOptions: { locale: "en-US" } }),
 						instances: [{ browser: "chromium" }],
 					},
 				},
