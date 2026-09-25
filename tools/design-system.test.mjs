@@ -123,6 +123,21 @@ test("interactive controls are 44px, the touch-target floor", () => {
 	assert.ok(iconWidth >= FLOOR_REM, `.icon-btn is ${iconWidth}rem wide, under the ${FLOOR_REM}rem floor`);
 });
 
+test("single-line fields carry no block padding, so they share the 44px of .btn", () => {
+	// The floor test above stayed green while .input rendered 51.6px and .select 47px beside
+	// a 44px .btn: 0.75rem block padding on top of the 25.6px line box overshot min-height.
+	// Measured live in the sandbox after the fix: input, date input, select, .btn and
+	// .icon-btn all 44.00px on one bottom edge, and all 88px at 200% root font size.
+	const css = read("components/input.css");
+	const shared = css.match(/\.input,\s*\.textarea,\s*\.select \{([^}]*)\}/)?.[1];
+	assert.ok(shared, "input.css must keep the shared .input/.textarea/.select rule");
+	assert.match(shared, /padding: 0 [\d.]+rem;/, "shared field rule must zero block padding");
+	assert.doesNotMatch(shared, /padding-block|padding-top|padding-bottom/);
+	assert.match(read("components/button.css"), /\.btn \{[^}]*padding-inline:/s, ".btn must stay inline-padding only");
+	// The textarea is multi-line and still wants breathing room above the first line.
+	assert.match(css, /\.textarea \{[^}]*padding-block: [\d.]+rem;/s);
+});
+
 function luminance([r, g, b]) {
 	const lin = (c) => {
 		c /= 255;
@@ -549,11 +564,11 @@ test("toggle buttons: the pressed state differs by edge weight, not only hue", (
 	assert.ok(css.indexOf('.btn[aria-pressed="true"]') > css.indexOf(".btn-danger {"), "pressed rule must follow the variants");
 });
 
-test("VERSION is 3.7.0 and README documents the identity, the icon set, the file picker and toggle buttons", () => {
-	assert.equal(read("VERSION").trim(), "3.7.0");
+test("VERSION is 3.7.1 and README documents the identity, the icon set, the file picker and toggle buttons", () => {
+	assert.equal(read("VERSION").trim(), "3.7.1");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.7\.0 — /m, "CHANGELOG must carry the 3.7.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.7\.1 — /m, "CHANGELOG must carry the 3.7.1 entry");
 });
