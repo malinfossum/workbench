@@ -3,6 +3,20 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.7.1 — 2026-09-25
+
+Fields now match the 44px button height. Fix: one rule in `components/input.css`.
+
+- **`.input` and `.select` drop their block padding.** `0.75rem` above and below the
+  25.6px line box overshot `min-height: 2.75rem`, so a text input rendered 51.6px, a date
+  input 53.6px and a select 47px beside a 44px `.btn`. `min-height` alone now sizes a
+  single-line field; inline padding is unchanged. Measured in the sandbox: input, date
+  input, select, `.btn` and `.icon-btn` all 44px on one bottom edge, and all 88px at 200%
+  text size (the floor grows, nothing clips).
+- **`.textarea` keeps `padding-block: 0.75rem`**, now set on its own rule.
+- Consumers that pinned `block-size: 2.75rem` on fields to work around this (Hugin) can
+  drop the override after syncing.
+
 ## 3.7.0 — 2026-09-23
 
 Pressed state for toggle buttons. Additive: one rule in `components/button.css`.
