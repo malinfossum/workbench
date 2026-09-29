@@ -313,7 +313,9 @@ async function main(argv) {
     const owners = arg("--owner", "malinfossum").split(",").map((o) => o.trim()).filter(Boolean);
     const includeArchived = argv.includes("--include-archived");
     // My own account lists private repos too; an org lists what I can see.
-    const me = token ? await api("/user", token) : null;
+    // The Actions token is an installation token, and GitHub refuses it on /user
+    // with a 403. Without a login the audit falls back to the public repo lists.
+    const me = token ? await api("/user", token).catch(() => null) : null;
     const repos = [];
     for (const owner of owners) {
       const path =
