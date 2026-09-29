@@ -6,13 +6,13 @@ Current version: see `VERSION`.
 
 ## Local preview
 
-Serve the folder over HTTP — opening the files directly via `file://` (double-click) won't load the linked CSS/JS, so the page renders blank. From this folder:
+Serve the folder over HTTP. Opening the files directly via `file://` (double-click) won't load the linked CSS/JS, so the page renders blank. From this folder:
 
 ```powershell
 python -m http.server 8099
 ```
 
-Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch page.
+Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 
 ## Principles
 
@@ -26,24 +26,24 @@ Then open <http://localhost:8099/gallery/> — or `/sandbox/` for the scratch pa
 
 ## Structure
 
-- `tokens/` — colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes)
-- `base/` — `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
-- `primitives/` — layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
-- `components/` — `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon` (CSS) + `icons.js` (the SVG set)
-- `compositions/` — page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
-- `utilities/` — single-purpose helpers
-- `theme/` — `theme-toggle.js`, `palette-switch.js`, and `theme-init-snippet.html` (inline `<head>` snippet)
-- `assets/fonts/` — self-hosted fonts (Sora, Figtree, Fraunces, Instrument Serif, Schibsted Grotesk, Atkinson Hyperlegible Next, Space Grotesk, Bricolage Grotesque, Hanken Grotesk)
-- `gallery/` — panel-swap MVC reference (browse every component live)
-- `sandbox/` — scratch page for quick experiments
-- `docs/` — system spec and usage notes
+- `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes)
+- `base/`: `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
+- `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
+- `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon` (CSS) + `icons.js` (the SVG set)
+- `compositions/`: page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
+- `utilities/`: single-purpose helpers
+- `theme/`: `theme-toggle.js`, `palette-switch.js`, and `theme-init-snippet.html` (inline `<head>` snippet)
+- `assets/fonts/`: self-hosted fonts (Sora, Figtree, Fraunces, Instrument Serif, Schibsted Grotesk, Atkinson Hyperlegible Next, Space Grotesk, Bricolage Grotesque, Hanken Grotesk)
+- `gallery/`: panel-swap MVC reference (browse every component live)
+- `sandbox/`: scratch page for quick experiments
+- `docs/`: system spec and usage notes
 
 ## Icons
 
 `components/icons.js` is an ES module: `icon(name, { size = 20, strokeWidth })` returns an
 inline SVG string on a 24-unit grid with `stroke: currentColor`, so an icon takes the colour
 of the control it sits in and follows the theme. Every icon is decorative (`aria-hidden`,
-`focusable="false"`) — the control carries the name: visible text beside the icon, or an
+`focusable="false"`). The control carries the name: visible text beside the icon, or an
 `aria-label` on an icon-only `.btn.icon-btn`. Stroke thins from 1.75 to 1.25 at 40px and up,
 so a 48px empty-state icon keeps the weight of a 20px one. `ICON_NAMES` lists the set.
 
@@ -61,7 +61,7 @@ the real `<input type="file">` off screen without taking it out of the tab order
 `<label class="btn file-input-label">` pointed at it by `for` becomes the visible control.
 Clicking the label opens the picker, Tab lands on the input and the focus ring shows on
 the label, and a screen reader still announces the field by its label. Because the native
-filename text is gone with the control, reflect the choice yourself — write the name into
+filename text is gone with the control, reflect the choice yourself: write the name into
 the field's `.help`, or show a preview.
 
 ```html
@@ -93,15 +93,15 @@ The initial theme is set by an **inline `<head>` snippet** so there's no flash o
 
 Default is dark. User's saved choice (from `localStorage`) wins.
 
-**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent — and, for full brands, the surfaces and gradient — with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) renders the house amber-gold** — since 3.0.0 the default identity is a warm near-black ground with a `222 166 72` accent; Sora stays the display face, inherited from `:root` with no typography override. It was blended out of the Kenaz and Gold palettes as they stood in 3.0.0; `kenaz` has since moved to its Lantern brand colours, so the default is now its own identity rather than a mirror of a shipped palette. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it; `kenaz` (3.1.0) carries the same values as a living brand rather than a frozen pin. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
+**Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent (and, for full brands, the surfaces and gradient), with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) renders the house amber-gold**. Since 3.0.0 the default identity is a warm near-black ground with a `222 166 72` accent; Sora stays the display face, inherited from `:root` with no typography override. It was blended out of the Kenaz and Gold palettes as they stood in 3.0.0; `kenaz` has since moved to its Lantern brand colours, so the default is now its own identity rather than a mirror of a shipped palette. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it; `kenaz` (3.1.0) carries the same values as a living brand rather than a frozen pin. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
 
 ## Type skins
 
 The default identity (3.0.0+) is Sora display over a Figtree body, inherited straight from
-`:root` — the same pairing `gold`, `wend`, `tidsro` and `kenaz` resolve to, since none of them
+`:root`. It's the same pairing `gold`, `wend`, `tidsro` and `kenaz` resolve to, since none of them
 set their own `--font-display` either. Only `daily` carries its own type (Space Grotesk); it's
 a standalone opt-in palette, not the default's source. `data-palette="classic"` opts back into
-the pre-3.0 default wholesale — same type as today's default, different colour. Three opt-in
+the pre-3.0 default wholesale: same type as today's default, different colour. Three opt-in
 type skins swap the display face (and for nordic, the body) without touching color, and compose
 with any palette including the default:
 
@@ -112,14 +112,14 @@ with any palette including the default:
 | `nordic` | Schibsted Grotesk 700 | Atkinson Hyperlegible Next |
 
 Opt in with `<html data-typeskin="fraunces">`. Skins compose with color palettes
-(`data-palette`) — set both attributes to combine them.
+(`data-palette`). Set both attributes to combine them.
 
 ## Versioning
 
 Bump `VERSION` when the system changes in a way that would affect existing projects:
 
-- **MAJOR** — breaking change (renamed token, removed component)
-- **MINOR** — additive (new component, new utility)
-- **PATCH** — fix (bug, accessibility correction, doc update)
+- **MAJOR**: breaking change (renamed token, removed component)
+- **MINOR**: additive (new component, new utility)
+- **PATCH**: fix (bug, accessibility correction, doc update)
 
 When bumping, sync the lean parts (`tokens/`, `base/`, `primitives/`, `components/`, `compositions/`, `utilities/`, `theme/`, `assets/`) into each scaffold's bundled `design-system/`.

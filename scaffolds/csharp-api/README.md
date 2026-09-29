@@ -1,14 +1,14 @@
 # csharp-api
 
-C# starter for web APIs. Four projects — controllers, domain, data, tests — wired in the
+C# starter for web APIs. Four projects (controllers, domain, data, tests) wired in the
 layered API + repository shape: controller → service → repository → DbContext.
 
 ## Folder structure
 
-- `App.Core/` — entities, DTOs, service, repository interface. No packages, no IO, no EF.
-- `App.Data/` — EF Core + SQLite: `AppDbContext`, repository implementations, migrations.
-- `App.Api/` — controllers and `Program.cs` (DI wiring only). The only project that runs.
-- `App.Tests/` — xUnit. Unit tests fake the repository; integration tests boot the real
+- `App.Core/`: entities, DTOs, service, repository interface. No packages, no IO, no EF.
+- `App.Data/`: EF Core + SQLite: `AppDbContext`, repository implementations, migrations.
+- `App.Api/`: controllers and `Program.cs` (DI wiring only). The only project that runs.
+- `App.Tests/`: xUnit. Unit tests fake the repository; integration tests boot the real
   pipeline via `WebApplicationFactory` on in-memory SQLite.
 
 ## First 5 steps in a new project
@@ -25,18 +25,18 @@ layered API + repository shape: controller → service → repository → DbCont
 ## Where your data lives
 
 `app.db` is created next to the startup project (or wherever you launch from). It is
-gitignored (`*.db`) — a database with real data must never be committed. The SQLite
+gitignored (`*.db`). A database with real data must never be committed. The SQLite
 connection string is harmless in `appsettings.json`, but the day a real password arrives
 it goes in `dotnet user-secrets`, never in a tracked file.
 
 ## Working rules
 
-- Entities never leave the service layer — controllers speak DTOs only.
+- Entities never leave the service layer. Controllers speak DTOs only.
 - `App.Core` has zero package references. If it can't compile without one, something leaked.
 - The app never calls `EnsureCreated()`; schema changes are migrations
   (`dotnet ef migrations add <Name>` with the two flags above). Tests may use
   `EnsureCreated` because migration history doesn't matter there.
-- Timestamps come from the injected `TimeProvider` — never `DateTime.UtcNow` inline.
+- Timestamps come from the injected `TimeProvider`, never `DateTime.UtcNow` inline.
 - CORS: the `dev` policy allows any localhost origin, Development only. Production origins
   are an explicit decision, not a default.
 
