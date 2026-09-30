@@ -102,5 +102,20 @@ function createStoryboardView(root) {
         handler(el.dataset.goto);
       });
     },
+    // Mock toggles: pressing one option in a data-toggle group presses it and
+    // releases the rest. The aria-pressed change is what a screen reader
+    // announces, so a press always has an audible result. No model state — a
+    // storyboard mock has no settings to persist.
+    bindToggle() {
+      viewport.addEventListener("click", (e) => {
+        const el = e.target.closest("[data-toggle]");
+        if (!el) return;
+        const group = el.dataset.toggle;
+        viewport.querySelectorAll("[data-toggle]").forEach((option) => {
+          if (option.dataset.toggle !== group) return;
+          option.setAttribute("aria-pressed", option === el ? "true" : "false");
+        });
+      });
+    },
   };
 }

@@ -120,6 +120,11 @@ Storyboard.addScreen({
 - **Hotspots:** `data-goto="screen-id"` or `data-goto="screen-id@state"` on real interactive
   elements (**buttons or links only** — the authoring rule that keeps keyboard access free).
   The engine navigates by click delegation.
+- **Toggles** *(added 2026-09-30, storyboard 1.1.0)*: `data-toggle="group-name"` on
+  `<button aria-pressed>` options inside a `role="group"` labelled by the setting name. The
+  engine presses the clicked option and releases its siblings. A mock toggle that never
+  changes state gives a screen-reader user no confirmation at all, and an option labelled
+  only `On` or `Metric` does not say which setting it belongs to; the labelled group does.
 - **Mock data:** plain objects in `data.js`. All user-ish content is interpolated through the
   engine-shipped `escapeHtml` helper (same XSS discipline as Wend, applied even to mock data
   so the habit transfers).

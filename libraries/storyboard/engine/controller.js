@@ -45,6 +45,7 @@ function createStoryboardController(model, view, win, flows) {
     }
     model.setActive(next);
   });
+  view.bindToggle();
 
   view.renderChrome(model, flows);
   const requested = model.resolve(parseTarget(currentHash()));
