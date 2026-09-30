@@ -71,3 +71,31 @@ test("demo screens route all mock-data interpolation through escapeHtml", () => 
     }
   }
 });
+
+test("every data-toggle option carries aria-pressed, sits in a labelled group, and each group has exactly one pressed option", () => {
+  const sb = loadDemo();
+  let groups = 0;
+  for (const screen of sb.screens) {
+    for (const state of screen.states) {
+      const out = screen.render(state);
+      const pressedPerGroup = new Map();
+      for (const m of out.matchAll(/<button\b[^>]*\bdata-toggle="([^"]+)"[^>]*>/g)) {
+        const [tag, group] = m;
+        const pressed = /\baria-pressed="(true|false)"/.exec(tag);
+        assert.ok(pressed, `${screen.id}@${state}: data-toggle "${group}" option without aria-pressed`);
+        pressedPerGroup.set(group, (pressedPerGroup.get(group) ?? 0) + (pressed[1] === "true" ? 1 : 0));
+      }
+      for (const [group, count] of pressedPerGroup) {
+        assert.equal(count, 1, `${screen.id}@${state}: group "${group}" must have exactly one pressed option`);
+        // The option's nearest enclosing tag must be a labelled role="group".
+        const before = out.slice(0, out.indexOf(`data-toggle="${group}"`));
+        const open = before.lastIndexOf("<div");
+        const tag = before.slice(open, before.indexOf(">", open) + 1);
+        assert.ok(before.lastIndexOf("</div>") < open, `${screen.id}@${state}: group "${group}" is not inside a labelled role="group"`);
+        assert.ok(/ role="group"/.test(tag) && / aria-labelledby="[^"]+"/.test(tag), `${screen.id}@${state}: group "${group}" is not inside a labelled role="group"`);
+        groups += 1;
+      }
+    }
+  }
+  assert.ok(groups >= 1, "the demo must ship at least one data-toggle group (Settings)");
+});

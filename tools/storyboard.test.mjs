@@ -123,6 +123,7 @@ function fakeView() {
     bindState(fn) { this.handlers.state = fn; },
     bindFlow(fn) { this.handlers.flow = fn; },
     bindGoto(fn) { this.handlers.goto = fn; },
+    bindToggle() { this.calls.push("toggle"); },
   };
 }
 
