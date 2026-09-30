@@ -123,7 +123,7 @@ function fakeView() {
     bindState(fn) { this.handlers.state = fn; },
     bindFlow(fn) { this.handlers.flow = fn; },
     bindGoto(fn) { this.handlers.goto = fn; },
-    bindToggle() { this.calls.push("toggle"); },
+    bindToggle(fn) { this.handlers.toggle = fn; },
   };
 }
 
@@ -197,4 +197,10 @@ test("nav/state/flow/goto handlers navigate; unknown goto announces and stays", 
 test("screen changes are announced", () => {
   const { view } = freshController("");
   assert.ok(view.announced.some((t) => t === "Showing Plants, default state"));
+});
+
+test("a toggle press announces the setting and its new value", () => {
+  const { view } = freshController("");
+  view.handlers.toggle({ setting: "Reminders", value: "off" });
+  assert.ok(view.announced.includes("Reminders off"));
 });

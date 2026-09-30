@@ -45,7 +45,7 @@ function createStoryboardController(model, view, win, flows) {
     }
     model.setActive(next);
   });
-  view.bindToggle();
+  view.bindToggle(({ setting, value }) => view.announce(`${setting} ${value}`.trim()));
 
   view.renderChrome(model, flows);
   const requested = model.resolve(parseTarget(currentHash()));
