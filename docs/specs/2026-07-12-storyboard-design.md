@@ -167,9 +167,11 @@ MVC trio, gallery-style:
 ### Accessibility (chrome requirements)
 
 - `aria-current` on the active screen nav item and active state pill.
-- After every viewport swap, focus moves to the viewport container (`tabindex="-1"`) —
+- After every viewport swap, focus moves to the screen heading (`h1`, `tabindex="-1"`) —
   **except the initial render**: page load never steals focus; focus management starts with
-  the first user-initiated navigation.
+  the first user-initiated navigation. *(Amended 2026-09-30: was the viewport container.
+  NVDA reads a focused container's whole content at once; a focused heading is announced
+  alone, so the user moves through the screen one element at a time.)*
 - All chrome interactive targets (nav items, state pills) ≥ 24×24 px (the Wend Plan-8
   standard).
 - A `#status` aria-live region **outside the viewport** announces

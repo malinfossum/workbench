@@ -32,7 +32,7 @@ function createStoryboardView(root) {
         )
         .join("");
       head.innerHTML = `
-        <h1 class="sb-screen-title">${escapeHtml(screen.label)}</h1>
+        <h1 class="sb-screen-title" tabindex="-1">${escapeHtml(screen.label)}</h1>
         ${screen.note ? `<p class="text-muted sb-screen-note">${escapeHtml(screen.note)}</p>` : ""}
         <div class="cluster cluster-sm sb-states" role="group" aria-label="States">${pills}</div>`;
       try {
@@ -45,7 +45,10 @@ function createStoryboardView(root) {
           </div>`;
       }
       this.markActive(model);
-      if (focus) viewport.focus();
+      // Focus the heading, not the viewport: a focused container makes NVDA read
+      // its whole content at once; a heading is announced alone, then the user
+      // moves through the screen one element at a time.
+      if (focus) head.querySelector(".sb-screen-title").focus();
     },
 
     markActive(model) {
