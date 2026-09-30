@@ -162,12 +162,12 @@ test("boot with garbage hash falls back and replaces — Back is never trapped",
   assert.equal(win.location.hash, "#plants@default");
 });
 
-test("hashchange drives the model; user navigation focuses the viewport", () => {
+test("hashchange drives the model; user navigation focuses the screen heading", () => {
   const { model, win, view } = freshController("");
   win.location.hash = "#plants@empty";
   win.fire("hashchange");
   assert.deepEqual(plain(model.getCurrent()), { screenId: "plants", stateId: "empty" });
-  assert.ok(view.calls.includes("screen:true"), "post-boot renders focus the viewport");
+  assert.ok(view.calls.includes("screen:true"), "post-boot renders focus the screen heading");
 });
 
 test("hashchange to garbage restores the current hash and leaves the model alone", () => {
