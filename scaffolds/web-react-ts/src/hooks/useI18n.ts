@@ -24,7 +24,7 @@ export const I18nContext = createContext<I18n | null>(null)
 
 export function useLanguageState(): I18n {
 	const [lang, setLangState] = useState(() =>
-		i18n.resolveLang(localStorage.getItem(LANG_STORAGE_KEY), navigator.language)
+		i18n.resolveLang(localStorage.getItem(LANG_STORAGE_KEY), navigator.languages)
 	)
 
 	// Document-level, outside React's tree: screen readers pick their voice

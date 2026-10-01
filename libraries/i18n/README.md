@@ -22,12 +22,19 @@ is a compile error. Plain-JS projects ignore the file.
 ```js
 import { createTranslator } from "./i18n/index.js"
 
-const i18n = createTranslator({ en, nb }, { fallback: "en" })
+const i18n = createTranslator({ en, nb }, {
+  fallback: "en",
+  aliases: { no: "nb", nn: "nb" },              // the default; extend or override per project
+})
 
 i18n.t("nb", "app.title")                       // "Tidtaker"
 i18n.t("nb", "greeting", { name: "Malin" })     // "Hei, Malin"   ({vars} interpolated)
 i18n.plural("en", "items", 5)                   // "5 items"      (picks items.one / items.other)
-i18n.resolveLang(stored, navigator.language)    // first candidate with a bundle, else fallback
+i18n.resolveLang(stored, navigator.languages)   // first candidate with a bundle, else fallback
+i18n.displayName("nb")                          // "Norsk bokmål" (autonym, for picker rows)
+i18n.displayName("nb", "en")                    // "Norwegian Bokmål"
+i18n.money("nb", 949, "NOK")                    // "949,00 kr"
+i18n.money("en", 949, "NOK")                    // "NOK 949.00"
 i18n.languages                                  // ["en", "nb"]
 ```
 
@@ -36,6 +43,14 @@ i18n.languages                                  // ["en", "nb"]
 - `plural` uses `Intl.PluralRules`, so a bundle only needs the forms its language has:
   `one`/`other` for Norwegian and English, `one`/`few`/`many` for Ukrainian. `.other` is the
   catch-all. `{count}` is always available.
+- `resolveLang` takes strings or arrays in priority order, so the stored choice goes first and
+  `navigator.languages` second. Each candidate is lower-cased and the region stripped
+  (`nb-NO` → `nb`). An alias applies only when the plain tag has no bundle: `no` and `nn`
+  land on `nb` unless the project ships `nn`. Unknown tags are skipped, never guessed.
+- `displayName` and `money` come from `Intl.DisplayNames` and `Intl.NumberFormat`. No bundle
+  carries a language name or a price string. `money` uses `currencyDisplay: "symbol"`, never
+  `narrowSymbol`, which would collapse NOK, SEK and DKK to "kr". Intl separates amount and
+  symbol with a no-break space.
 - Bundles are project content (`src/locales/<lang>.json` in the web scaffold). Every
   bundle must carry the same keys. The scaffolds' `tests/locales.test.js` / `.ts` fail when they drift.
 
