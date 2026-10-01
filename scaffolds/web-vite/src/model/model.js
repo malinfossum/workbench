@@ -3,14 +3,57 @@
    State and data only. No DOM. No timers.
    Change state through methods here, then call notify() so the view
    re-renders.
+
+   The three preferences (lang, theme, currency) follow one rule:
+   value = chosen (if any) ?? system. "System" is the absence of a choice
+   (null here, no key in storage), never a stored "system" string. The
+   controller reads and writes storage; this model only holds the values.
    ====================================================================== */
 
-export function createModel({ lang }) {
+// What the project offers. A picker renders only when a list here has more
+// than one entry. `regions` maps the region of a navigator.languages entry
+// to a currency and lists only regions whose currency is in `currencies`.
+// `flags` names the design-system/assets/flags/<cc>.svg file per currency.
+export const config = Object.freeze({
+	currencies: ["NOK", "EUR", "USD"],
+	baseCurrency: "NOK",
+	regions: { NO: "NOK", FI: "EUR", DE: "EUR", FR: "EUR", ES: "EUR", NL: "EUR", US: "USD" },
+	flags: { NOK: "no", EUR: "eu", USD: "us" },
+})
+
+export const PREFERENCES = Object.freeze(["lang", "theme", "currency"])
+
+// The currency of the first navigator.languages entry whose region is in the
+// table; the base currency when no entry carries a mapped region.
+export function systemCurrency(languages, { regions, baseCurrency }) {
+	for (const tag of languages ?? []) {
+		const region = String(tag).split("-")[1]
+		const currency = region && regions[region.toUpperCase()]
+		if (currency) return currency
+	}
+	return baseCurrency
+}
+
+// `chosen`: the stored choice per preference or null (System).
+// `system`: what System resolves to right now, per preference.
+export function createModel({ chosen, system, languages }) {
 	const subscribers = []
 
 	const state = {
-		lang, // active UI language — a bundle key from src/locales
+		chosen: { lang: null, theme: null, currency: null, ...chosen },
+		system: { ...system },
+		languages, // bundle keys from src/locales, in picker order
+		config,
+		// Resolved values the view renders with. Kept in sync by resolve().
+		lang: null,
+		theme: null,
+		currency: null,
 		// project state goes here
+	}
+	resolve()
+
+	function resolve() {
+		for (const name of PREFERENCES) state[name] = state.chosen[name] ?? state.system[name]
 	}
 
 	function subscribe(fn) {
@@ -21,11 +64,23 @@ export function createModel({ lang }) {
 		for (const fn of subscribers) fn(state)
 	}
 
-	function setLang(next) {
-		if (next === state.lang) return
-		state.lang = next
+	// An explicit choice, or "" / null for the System row.
+	function setPreference(name, value) {
+		const next = value === "" || value === undefined ? null : value
+		if (next === state.chosen[name]) return
+		state.chosen[name] = next
+		resolve()
 		notify()
 	}
 
-	return { subscribe, notify, state, setLang }
+	// The live system value changed (the OS switched theme, another tab
+	// cleared the key). Only matters to the view while nothing is chosen.
+	function setSystem(name, value) {
+		if (value === state.system[name]) return
+		state.system[name] = value
+		resolve()
+		notify()
+	}
+
+	return { subscribe, notify, state, setPreference, setSystem }
 }

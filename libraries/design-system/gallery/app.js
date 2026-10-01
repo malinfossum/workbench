@@ -3,9 +3,15 @@
 // this file reads already exists — and every panel renders after this line, so
 // sections.js can call `icon()` as a global.
 import { ICON_NAMES, icon } from "../components/icons.js";
+import * as preferences from "../theme/preferences.js";
 
 window.icon = icon;
 window.ICON_NAMES = ICON_NAMES;
+window.preferences = preferences;
+
+// The gallery follows the same theme model as a consumer: the head snippet set
+// the first paint, this keeps following the OS and other tabs while no key is stored.
+preferences.initTheme();
 
 const galleryModel = createGalleryModel(GALLERY_SECTIONS);
 const galleryView = createGalleryView(document);
@@ -46,3 +52,27 @@ document.addEventListener("change", (e) => {
   const names = [...input.files].map((f) => f.name).join(", ");
   help.textContent = names ? `Chosen: ${names}` : "No file chosen.";
 });
+
+// Pickers demo: the header is re-rendered whole when a preference changes, and
+// focus lands on the trigger of the picker that was used (its new name is the
+// audible result of the press). Language and currency live in PICKER_DEMO;
+// theme rows carry data-theme-set and theme-toggle.js, registered earlier,
+// has already applied the choice when this handler runs.
+function renderPickers(focusPicker) {
+  const header = document.getElementById("picker-header");
+  if (!header) return;
+  header.innerHTML = renderPickerHeader();
+  if (focusPicker) header.querySelector(`[data-picker="${focusPicker}"] summary`)?.focus();
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-theme-toggle]")) return renderPickers();
+  const row = e.target.closest("#picker-header .picker-row");
+  if (!row) return;
+  if (row.dataset.action === "set-lang") PICKER_DEMO.lang = row.dataset.lang;
+  else if (row.dataset.action === "set-currency") PICKER_DEMO.currency = row.dataset.currency;
+  else if (!("themeSet" in row.dataset)) return;
+  renderPickers(row.closest("[data-picker]").dataset.picker);
+});
+// The OS or another tab changed the theme: the sun/moon trigger follows.
+preferences.watchSystemTheme(() => renderPickers());
+preferences.watchStorage(() => renderPickers());

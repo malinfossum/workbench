@@ -564,11 +564,119 @@ test("toggle buttons: the pressed state differs by edge weight, not only hue", (
 	assert.ok(css.indexOf('.btn[aria-pressed="true"]') > css.indexOf(".btn-danger {"), "pressed rule must follow the variants");
 });
 
-test("VERSION is 3.7.1 and README documents the identity, the icon set, the file picker and toggle buttons", () => {
-	assert.equal(read("VERSION").trim(), "3.7.1");
+// A flag is an <img> source, which already cannot run a script, but the test
+// pins the files themselves: nothing executable, nothing embedded, nothing
+// remote. Pure so the red case below can run it on a fixture string.
+export function flagIsSafe(svgText) {
+	return !/<script|<foreignObject|href="http|\son[a-z]+=/i.test(svgText);
+}
+
+test("flags: every bundled SVG is inert, and the check goes red on a script fixture", () => {
+	const dir = join(DS, "assets", "flags");
+	const files = readdirSync(dir).filter((f) => f.endsWith(".svg"));
+	assert.ok(files.length >= 8, `expected the eight default-currency flags, got ${files.length}`);
+	for (const file of files) {
+		assert.ok(flagIsSafe(read(join("assets", "flags", file))), `assets/flags/${file} carries a script, a foreignObject, a remote href or an on* handler`);
+	}
+	assert.ok(existsSync(join(dir, "LICENSE")), "assets/flags/LICENSE (circle-flags, MIT) must ship with the flags");
+	// The red case: a fixture with each forbidden pattern fails the check.
+	assert.equal(flagIsSafe('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'), false);
+	assert.equal(flagIsSafe('<svg><foreignObject><div>x</div></foreignObject></svg>'), false);
+	assert.equal(flagIsSafe('<svg><use href="http://evil.example/x.svg#a"/></svg>'), false);
+	assert.equal(flagIsSafe('<svg onload="alert(1)"><circle r="1"/></svg>'), false);
+	assert.equal(flagIsSafe('<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>'), true, "the xmlns URL alone is not a remote href");
+});
+
+test("picker: rows keep the 44px floor, the trigger gets a focus ring, and the list scrolls instead of clipping", () => {
+	const FLOOR_REM = 2.75;
+	const css = read("components/picker.css");
+	assert.match(read("components/index.css"), /@import url\("\.\/picker\.css"\);/, "picker.css must be imported by components/index.css");
+	const row = css.match(/\.picker-row \{([^}]*)\}/s)?.[1];
+	assert.ok(row, "picker.css must define .picker-row");
+	const minHeight = Number(row.match(/min-height:\s*([\d.]+)rem/)?.[1]);
+	assert.ok(minHeight >= FLOOR_REM, `.picker-row min-height is ${minHeight}rem, under the ${FLOOR_REM}rem floor`);
+	// Browsers do not all draw a ring on <summary>, so the DS restates its own.
+	assert.match(css, /summary:focus-visible \{[^}]*outline: 2px solid var\(--accent-strong\);/s);
+	// Safari still draws the disclosure triangle unless the pseudo-element is hidden.
+	assert.match(css, /summary::-webkit-details-marker \{[^}]*display: none;/s);
+	// A cap with scroll, never a fixed height: at 200% text size the rows grow.
+	const list = css.match(/\.picker-list \{([^}]*)\}/s)?.[1];
+	assert.match(list, /max-block-size:/);
+	assert.match(list, /overflow-y: auto;/);
+	assert.doesNotMatch(list, /(?:^|[^-])block-size:\s*[\d.]+(?:rem|px)/);
+	// Forced colors: the active row uses the same Highlight pattern as aria-pressed.
+	assert.match(css, /forced-colors: active[^}]*\{\s*\.picker-row\[aria-current\] \{[^}]*background: Highlight;/s);
+	// The script is a classic self-installing IIFE guarded against a double install.
+	const js = read("components/picker.js");
+	assert.doesNotMatch(js, /^\s*(?:import|export)\s/m, "picker.js must stay a classic script");
+	assert.match(js, /pickerWired/);
+	assert.match(js, /addEventListener\(\s*"toggle"[\s\S]*?true,?\s*\)/, "toggle does not bubble, so it must be caught in the capture phase");
+});
+
+test("icons: the pickers' triggers exist in the set", async () => {
+	const { ICON_NAMES } = await import(pathToFileURL(join(DS, "components", "icons.js")).href);
+	for (const name of ["globe", "sun", "moon", "check"]) {
+		assert.ok(ICON_NAMES.includes(name), `icons.js must export ${name}`);
+	}
+});
+
+test("preferences: invalid values are removed on read, System removes the key, storage failures do not propagate", async () => {
+	const { readPreference, writePreference, systemTheme } = await import(pathToFileURL(join(DS, "theme", "preferences.js")).href);
+	const THEMES = ["light", "dark"];
+	const store = new Map();
+	const calls = [];
+	globalThis.localStorage = {
+		getItem: (k) => (store.has(k) ? store.get(k) : null),
+		setItem: (k, v) => { calls.push(["set", k, v]); store.set(k, String(v)); },
+		removeItem: (k) => { calls.push(["remove", k]); store.delete(k); },
+	};
+	try {
+		// A valid value reads back; an invalid one is removed and reads as System.
+		store.set("theme", "dark");
+		assert.equal(readPreference("theme", THEMES), "dark");
+		store.set("theme", "system");
+		assert.equal(readPreference("theme", THEMES), null);
+		assert.equal(store.has("theme"), false, 'a stored "system" is removed on first read');
+		assert.equal(readPreference("theme", THEMES), null, "an absent key is System");
+		// The System row writes "" which removes the key; a choice stores it.
+		writePreference("theme", "light");
+		assert.equal(store.get("theme"), "light");
+		writePreference("theme", "");
+		assert.equal(store.has("theme"), false, "System removes the key rather than storing a string");
+		writePreference("lang", null);
+		assert.deepEqual(calls.at(-1), ["remove", "lang"]);
+		// Safari private mode: setItem throws. Nothing propagates.
+		globalThis.localStorage.setItem = () => { throw new Error("QuotaExceededError"); };
+		assert.doesNotThrow(() => writePreference("theme", "dark"));
+		globalThis.localStorage.getItem = () => { throw new Error("SecurityError"); };
+		assert.equal(readPreference("theme", THEMES), null);
+		// No matchMedia in Node: dark, the DS default.
+		assert.equal(systemTheme(), "dark");
+	} finally {
+		delete globalThis.localStorage;
+	}
+});
+
+test("theme: data-theme-set is the standard, data-theme-toggle is kept and deprecated, the snippet resolves System", () => {
+	const toggle = read("theme/theme-toggle.js");
+	assert.match(toggle, /\[data-theme-set\]/);
+	assert.match(toggle, /\[data-theme-toggle\]/, "the deprecated attribute must keep working until 4.0.0");
+	assert.match(toggle, /removed in DS 4\.0\.0/);
+	assert.match(toggle, /removeItem\("theme"\)/, "System must remove the key, not store a string");
+	assert.match(toggle, /prefers-color-scheme: light/);
+	assert.doesNotMatch(toggle, /^\s*(?:import|export)\s/m, "theme-toggle.js must stay a classic script");
+	const snippet = read("theme/theme-init-snippet.html");
+	assert.match(snippet, /<meta name="color-scheme" content="dark light" \/>/);
+	assert.match(snippet, /prefers-color-scheme: light/);
+	assert.match(snippet, /removeItem\("theme"\)/, "an invalid stored theme is removed on first read");
+	assert.doesNotMatch(snippet, /getItem\("theme"\) \|\| "dark"/, "dark is no longer the stored default");
+});
+
+test("VERSION is 3.8.0 and README documents the identity, the icon set, the file picker, toggle buttons and the pickers", () => {
+	assert.equal(read("VERSION").trim(), "3.8.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.7\.1 — /m, "CHANGELOG must carry the 3.7.1 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.8\.0 — /m, "CHANGELOG must carry the 3.8.0 entry");
 });

@@ -6,12 +6,30 @@
 		<meta name="description" content="Project description goes here." />
 		<title>Project</title>
 
-		<!-- No-flash theme init: must run BEFORE stylesheets -->
+		<!-- No-flash theme init (design-system/theme/theme-init-snippet.html):
+		     must run BEFORE stylesheets. Rule: stored key (if "light" or "dark")
+		     ?? prefers-color-scheme; an invalid stored value is removed. The
+		     color-scheme meta tells the browser both schemes are supported, so
+		     form controls and scrollbars take the user's scheme before any CSS. -->
+		<meta name="color-scheme" content="dark light" />
 		<script>
 			(() => {
 				var root = document.documentElement;
-				root.dataset.theme = localStorage.getItem("theme") || "dark";
-				root.dataset.palette = localStorage.getItem("palette") || "default";
+				var theme = null;
+				var palette = null;
+				try {
+					theme = localStorage.getItem("theme");
+					if (theme !== "light" && theme !== "dark") {
+						if (theme !== null) localStorage.removeItem("theme");
+						theme = null;
+					}
+					palette = localStorage.getItem("palette");
+				} catch {}
+				if (!theme) {
+					theme = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+				}
+				root.dataset.theme = theme;
+				root.dataset.palette = palette || "default";
 			})();
 		</script>
 
@@ -33,9 +51,11 @@
 		<!-- React renders everything inside #root (see src/main.tsx) -->
 		<div id="root"></div>
 
-		<!-- Theme behavior (click handler — init already done in head).
-		     type="module" so Vite bundles it into the production build. -->
-		<script type="module" src="/design-system/theme/theme-toggle.js"></script>
+		<!-- Picker behaviour (keyboard, focus, outside click) for every
+		     details[data-picker] the Header renders. Theme changes go through
+		     theme/preferences.js inside PreferencesProvider, so theme-toggle.js
+		     is not loaded. type="module" so Vite bundles it into the build. -->
+		<script type="module" src="/design-system/components/picker.js"></script>
 
 		<!-- Vite entry point -->
 		<script type="module" src="/src/main.tsx"></script>

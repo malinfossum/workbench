@@ -5,8 +5,8 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 ## What's included
 
 - Full design system (`design-system/`): tokens, primitives, components, compositions, utilities, theme
-- Translations (`i18n/` + `src/locales/`): `t()` from `useI18n()`, English + Norwegian bundles, typed keys, persisted choice, `<html lang>` and the tab title kept in sync
-- No-flash dark/light theme toggle (works on first load, persists in `localStorage`, plays fine with React)
+- Translations (`i18n/` + `src/locales/`): `t()`, `plural()` and `money()` from `useI18n()`, English + Norwegian bundles, typed keys, `<html lang>` and the tab title kept in sync
+- Language, theme and currency pickers in the header (`PreferencesProvider` + `Header`), System as the default, no-flash theme on first load
 - Component → hook → service layering with a small Counter example (delete it when you start)
 - Strict TypeScript (`tsc --noEmit` runs before every build)
 - Biome (formatter + linter with the React rules domain + import organizer)
@@ -45,10 +45,12 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/services/`: pure logic, no React/DOM. This is what unit tests target
 - `src/hooks/`: state + behavior wrapping the services
 - `src/components/`: rendering + event wiring, no business logic
+- `src/config/`: the project's options (currencies, base currency, region table)
 - `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.ts` fails when bundles drift
+- `src/types/`: ambient types for the design-system modules the app imports
 - `src/styles/main.css`: project-specific overrides
 - `tests/`: service tests (DOM-free, run in Node) and `tests/components/` component tests (run in Chromium)
-- `e2e/`: full-page axe scan of the built app
+- `e2e/`: full-page axe scan of the built app, the preference model and the keyboard walk against the built page
 - `design-system/`: read-only foundation, do not edit
 - `i18n/`: read-only translator (`t`, `plural`, `resolveLang`) with its type declarations, refresh with the extract tool
 - `biome.json`: formatter and linter config
@@ -56,20 +58,32 @@ npm run check          # format + lint + organize imports (write changes)
 - `vite.config.ts`: Vite config with the React plugin and the two Vitest projects
 - `playwright.config.ts`: builds, serves and scans the app for `test:e2e`
 
-## Translations
+## Preferences
 
-`LanguageProvider` wraps the app in `src/main.tsx`. It starts from the stored choice, then the browser language, then English, and it stores a language only when someone picks one. Components read everything through the hook:
+`PreferencesProvider` wraps the app in `src/main.tsx` and owns language, theme and currency:
+
+- One rule for each: the stored key if it is valid, else the system value. System is the absence of the key: choosing it removes the key, and nothing is stored until someone picks.
+- Keys: `lang`, `theme`, `currency` in `localStorage`, unprefixed.
+- Language: `navigator.languages` through the i18n library (`no` and `nn` map to `nb`), read once per page load.
+- Theme: `prefers-color-scheme`, live while no key is stored, and mirrored when another tab changes the key.
+- Currency: the region of the first language entry that `src/config/preferences.ts` maps, else the base currency.
+- Storage that refuses a write (Safari private mode) keeps the choice for the open page and shows no message.
+
+`Header` renders the three pickers, each only when the project has more than one option, and is the one place their names, icons and `aria-current` are rendered. `design-system/components/picker.js`, loaded in `index.html`, adds the keyboard and focus rules.
 
 ```tsx
-const { t, plural, lang, setLang } = useI18n()
+const { t, plural, money, lang } = useI18n()          // strings only, what most components need
+const { lang, theme, currency } = usePreferences()     // { value, stored, system, set } each
 
 t("app.title")                       // "Project" / "Prosjekt"
 plural("items", 3)                    // picks items.one / items.other by the language's rules
+money(949)                            // "949,00 kr" / "NOK 949.00": active language and currency
+theme.set("light"); theme.set("")     // store a choice; "" is the System row, it removes the key
 ```
 
-`t()` only accepts keys that every bundle has, so a typo or a key missing in one language is a type error. It returns plain text, which JSX escapes; never pass it to `dangerouslySetInnerHTML`. Component tests render inside the provider with `render(<Thing />, { wrapper: LanguageProvider })`, and both test browsers are pinned to `en-US` so snapshots read the same on every machine.
+`t()` only accepts keys that every bundle has, so a typo or a key missing in one language is a type error. It returns plain text, which JSX escapes; never pass it to `dangerouslySetInnerHTML`. Every bundle carries the picker keys (`picker.language`, `picker.theme`, `picker.currency`, `picker.system`, `theme.light`, `theme.dark`); language and currency names come from `Intl.DisplayNames`, prices are numbers rendered with `money()`, never strings in a bundle. Component tests render inside the provider with `render(<Thing />, { wrapper: PreferencesProvider })`, and both test browsers are pinned to `en-US` and a dark colour scheme so snapshots read the same on every machine.
 
-To add a language, copy `src/locales/en.json` to `<lang>.json`, translate every value, and register it in `src/locales/index.ts`.
+To add a language, copy `src/locales/en.json` to `<lang>.json`, translate every value, and register it in `src/locales/index.ts`. To add a currency, add it to `src/config/preferences.ts` with the regions that map to it and the flag file it uses from `design-system/assets/flags/`.
 
 ## Testing
 
@@ -77,7 +91,7 @@ Three layers, cheapest first:
 
 1. **Service tests** (`npm test`, `unit` project): pure logic in `src/services/`, run in Node. Most of your tests belong here.
 2. **Component tests** (`npm test`, `browser` project): `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`.
-3. **Full-page scan** (`npm run test:e2e`): Playwright builds the app, serves the preview and scans it with axe in dark and light theme and in Norwegian. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. Add a test per route as you build them.
+3. **Full-page scan** (`npm run test:e2e`): Playwright builds the app, serves the preview and scans it with axe in dark and light theme, in Norwegian, and with each picker open. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. `e2e/preferences.spec.ts` also proves the theme rule against a real colour scheme, the storage event between two pages, the keyboard walk and the header at 320 px. Add a test per route as you build them.
 
 `.github/workflows/ci.yml` runs all three on every pull request.
 

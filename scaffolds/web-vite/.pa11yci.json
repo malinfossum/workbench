@@ -9,5 +9,31 @@
 			"args": ["--no-sandbox", "--disable-setuid-sandbox"]
 		}
 	},
-	"urls": ["http://localhost:4173/"]
+	"urls": [
+		"http://localhost:4173/",
+		{
+			"url": "http://localhost:4173/#lang-open",
+			"actions": [
+				"wait for element #main h1 to be visible",
+				"click element details[data-picker=lang] > summary",
+				"wait for element details[data-picker=lang] .picker-list to be visible"
+			]
+		},
+		{
+			"url": "http://localhost:4173/#theme-open",
+			"actions": [
+				"wait for element #main h1 to be visible",
+				"click element details[data-picker=theme] > summary",
+				"wait for element details[data-picker=theme] .picker-list to be visible"
+			]
+		},
+		{
+			"url": "http://localhost:4173/#currency-open",
+			"actions": [
+				"wait for element #main h1 to be visible",
+				"click element details[data-picker=currency] > summary",
+				"wait for element details[data-picker=currency] .picker-list to be visible"
+			]
+		}
+	]
 }

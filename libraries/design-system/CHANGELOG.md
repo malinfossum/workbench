@@ -3,6 +3,42 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.8.0 — 2026-10-01
+
+Preference pickers and the theme model from the locale standard
+(`docs/specs/2026-10-01-locale-standard.md`). Additive, with one deprecation.
+
+- **New `components/picker.css` + `components/picker.js`**: a `<details class="picker"
+  data-picker="lang|theme|currency">` disclosure with the `.icon-btn` on its `<summary>`,
+  a content-sized `.picker-list` under the trigger anchored to its right edge (the script
+  shifts it right when it would run off the left of a 320px viewport), and `.picker-row`
+  rows (44px floor, full-width hit area, long names wrap). The active row carries
+  `aria-current` and the check icon; forced-colors paints it `Highlight`. The list caps with
+  `max-block-size` and scrolls, so 200% text size never clips. The script is one set of
+  delegated listeners on `document`, like `theme-toggle.js`: opening focuses the active row,
+  arrows wrap, Home and End jump, Escape closes and refocuses the trigger, a pointer-down
+  outside or focus leaving closes, choosing a row closes, one picker open at a time. Rows
+  may be `<button>` or `<a>`. `.picker-flag` and `.picker-code` build a currency row.
+- **New `theme/preferences.js`** (ES module): `readPreference(key, valid)` returns the stored
+  value only when valid and removes anything else on first read; `writePreference(key, value)`
+  stores, or removes the key for `""`/`null` (the System row); `systemTheme()`,
+  `applyTheme()`, `watchSystemTheme()`, `watchStorage()` and `initTheme()` keep the theme
+  following `prefers-color-scheme` and other tabs while no key is stored. Every helper
+  catches storage errors (Safari private mode) and behaves as System.
+- **`theme/theme-toggle.js` v2**: `[data-theme-set="light|dark|system"]` is the standard.
+  `system` removes the key and follows the OS. `[data-theme-toggle]` still cycles light and
+  dark for consumers that have not migrated: deprecated, removed in 4.0.0, logs nothing.
+- **`theme/theme-init-snippet.html` v2**: stored key `?? prefers-color-scheme`, no stored
+  dark default; an invalid stored value is removed on first read. The snippet now carries
+  `<meta name="color-scheme" content="dark light">`.
+- **`icons.js` gains `globe`** (the language trigger). Fourteen icons.
+- **New `assets/flags/`**: `no se dk eu us gb pl ua`.svg for the default currency set,
+  copied from circle-flags (HatScripts, MIT, licence confirmed 2026-10-01) with its notice in
+  `assets/flags/LICENSE`. Rendered as `<img alt="">`, never inline. A test fails if any
+  flag carries `<script`, `<foreignObject`, `href="http` or an `on*=` attribute.
+- Gallery: a **Pickers** panel with all three pickers in a demo header; its theme rows
+  drive the gallery's own theme.
+
 ## 3.7.1 — 2026-09-25
 
 Fields now match the 44px button height. Fix: one rule in `components/input.css`.

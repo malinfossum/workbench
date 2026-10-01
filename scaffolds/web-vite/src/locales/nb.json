@@ -1,7 +1,11 @@
 {
 	"app.title": "Prosjekt",
 	"app.tagline": "MVC-startpakke — rediger model/view/controller.",
-	"lang.label": "Språk",
-	"lang.en": "English",
-	"lang.nb": "Norsk"
+	"picker.language": "Språk",
+	"picker.theme": "Tema",
+	"picker.currency": "Valuta",
+	"picker.system": "System ({value})",
+	"theme.light": "Lyst",
+	"theme.dark": "Mørkt",
+	"price.example": "Eksempelpris"
 }

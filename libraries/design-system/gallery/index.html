@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
     <script>
       (function () {
         var root = document.documentElement;
-        root.dataset.theme = localStorage.getItem("theme") || "dark";
-        root.dataset.palette = localStorage.getItem("palette") || "default";
+        var theme = null;
+        var palette = null;
+        try {
+          theme = localStorage.getItem("theme");
+          if (theme !== "light" && theme !== "dark") {
+            if (theme !== null) localStorage.removeItem("theme");
+            theme = null;
+          }
+          palette = localStorage.getItem("palette");
+        } catch (e) {}
+        if (!theme) {
+          theme = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        root.dataset.theme = theme;
+        root.dataset.palette = palette || "default";
       })();
     </script>
     <title>Malin Design System — Gallery</title>
@@ -44,6 +58,7 @@
     </div>
     <script src="../theme/theme-toggle.js"></script>
     <script src="../theme/palette-switch.js"></script>
+    <script src="../components/picker.js"></script>
     <script src="./sections.js"></script>
     <script src="./model.js"></script>
     <script src="./view.js"></script>

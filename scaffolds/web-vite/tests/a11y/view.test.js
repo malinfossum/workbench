@@ -7,17 +7,27 @@
    The Pa11y scan (.pa11yci.json) catches contrast and document-level
    issues on the built page in a real browser. Neither layer checks
    keyboard order, focus handling or whether labels make sense — test
-   those by hand before shipping a view.
+   those by hand before shipping a view (tests/e2e covers the pickers).
    ====================================================================== */
 
 import assert from "node:assert/strict"
 import { afterEach, test } from "node:test"
 import { createTranslator } from "../../i18n/index.js"
 import { bundles, FALLBACK_LANG } from "../../src/locales/index.js"
+import { createModel } from "../../src/model/model.js"
 import { createView } from "../../src/view/view.js"
 import { axeComponent, createMount } from "./axe-helper.js"
 
 const i18n = createTranslator(bundles, { fallback: FALLBACK_LANG })
+
+// Synthetic state: the language under test is chosen, the rest is System.
+function stateFor(lang) {
+	return createModel({
+		chosen: { lang },
+		system: { lang: "nb", theme: "dark", currency: "NOK" },
+		languages: i18n.languages,
+	}).state
+}
 
 let dom
 afterEach(() => dom?.close())
@@ -25,8 +35,24 @@ afterEach(() => dom?.close())
 for (const lang of Object.keys(bundles)) {
 	test(`view renders without axe violations (${lang})`, async () => {
 		dom = createMount(lang)
-		createView(dom.mount, i18n).render({ lang })
-		assert.deepEqual(await axeComponent(dom.mount), [])
+		const view = createView({ header: dom.header, main: dom.mount }, i18n)
+		view.renderHeader(stateFor(lang))
+		view.render(stateFor(lang))
+		assert.deepEqual(await axeComponent(dom.body), [])
+	})
+}
+
+// The open list is part of the page: scan with each picker open in turn.
+for (const name of ["lang", "theme", "currency"]) {
+	test(`the ${name} picker open has no axe violations`, async () => {
+		dom = createMount("en")
+		const view = createView({ header: dom.header, main: dom.mount }, i18n)
+		view.renderHeader(stateFor("en"))
+		view.render(stateFor("en"))
+		const details = dom.header.querySelector(`details[data-picker="${name}"]`)
+		details.open = true
+		assert.ok(details.querySelectorAll(".picker-row").length > 1)
+		assert.deepEqual(await axeComponent(dom.body), [])
 	})
 }
 

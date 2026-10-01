@@ -9,6 +9,7 @@
 		"preview": "vite preview",
 		"test": "node --test",
 		"test:a11y": "node --test \"tests/a11y/*.test.js\"",
+		"test:e2e": "node --test \"tests/e2e/*.test.js\"",
 		"a11y:scan": "pa11y-ci --config .pa11yci.json",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
