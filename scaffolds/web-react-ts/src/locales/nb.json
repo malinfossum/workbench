@@ -1,9 +1,13 @@
 {
 	"app.title": "Prosjekt",
 	"app.tagline": "React + TS-startpakke — bytt ut Counter med appen din.",
-	"lang.label": "Språk",
-	"lang.en": "English",
-	"lang.nb": "Norsk",
+	"picker.language": "Språk",
+	"picker.theme": "Tema",
+	"picker.currency": "Valuta",
+	"picker.system": "System ({value})",
+	"theme.light": "Lys",
+	"theme.dark": "Mørk",
+	"price.example": "Eksempelpris: {price}",
 	"counter.label": "Antall:",
 	"counter.decrease": "Reduser antall",
 	"counter.increase": "Øk antall"
