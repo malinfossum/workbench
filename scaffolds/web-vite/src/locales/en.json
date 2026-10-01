@@ -1,7 +1,11 @@
 {
 	"app.title": "Project",
 	"app.tagline": "MVC starter — edit model/view/controller.",
-	"lang.label": "Language",
-	"lang.en": "English",
-	"lang.nb": "Norsk"
+	"picker.language": "Language",
+	"picker.theme": "Theme",
+	"picker.currency": "Currency",
+	"picker.system": "System ({value})",
+	"theme.light": "Light",
+	"theme.dark": "Dark",
+	"price.example": "Example price"
 }

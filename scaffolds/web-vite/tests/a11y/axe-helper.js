@@ -23,19 +23,23 @@ const PAGE_LEVEL_RULES = {
 	"color-contrast": { enabled: false },
 }
 
-// A fresh document per test. `mount` mirrors the app shell's <main id="main">,
-// so a view can be rendered exactly as it is in index.html.
+// A fresh document per test. `header` and `mount` mirror the app shell's
+// <header id="header"> and <main id="main">, so the view can be rendered
+// exactly as it is in index.html; `body` scans both at once.
 export function createMount(lang = "en") {
 	const dom = new JSDOM(
 		`<!doctype html><html lang="${lang}"><head><title>test</title></head>` +
-			`<body><main id="main"></main></body></html>`,
+			`<body><header id="header"></header><main id="main"></main></body></html>`,
 		{ runScripts: "outside-only" }
 	)
 	// axe must run inside the document's own window, so it is injected the
 	// same way Pa11y injects it into a browser page.
 	dom.window.eval(axe.source)
+	const { document } = dom.window
 	return {
-		mount: dom.window.document.getElementById("main"),
+		body: document.body,
+		header: document.getElementById("header"),
+		mount: document.getElementById("main"),
 		close: () => dom.window.close(),
 	}
 }

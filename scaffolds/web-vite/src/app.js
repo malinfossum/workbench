@@ -5,19 +5,21 @@
    ====================================================================== */
 
 import { createTranslator } from "../i18n/index.js"
-import { createController, initialLang } from "./controller/controller.js"
+import { createController, readPreferences } from "./controller/controller.js"
 import { bundles, FALLBACK_LANG } from "./locales/index.js"
-import { createModel } from "./model/model.js"
+import { config, createModel } from "./model/model.js"
 import { createView } from "./view/view.js"
 
 export function createApp() {
-	// If you rename the root element in index.html, update it here once.
-	const root = document.getElementById("main")
-	if (!root) throw new Error("Missing #main element in index.html")
+	// If you rename the root elements in index.html, update them here once.
+	const header = document.getElementById("header")
+	const main = document.getElementById("main")
+	if (!header || !main) throw new Error("Missing #header or #main element in index.html")
 
 	const i18n = createTranslator(bundles, { fallback: FALLBACK_LANG })
-	const model = createModel({ lang: initialLang(i18n) })
-	const view = createView(root, i18n)
+	const { chosen, system } = readPreferences({ i18n, config })
+	const model = createModel({ chosen, system, languages: i18n.languages })
+	const view = createView({ header, main }, i18n)
 	const controller = createController({ model, view, i18n })
 
 	controller.init()
