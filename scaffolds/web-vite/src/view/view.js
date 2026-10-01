@@ -60,12 +60,13 @@ export function createView({ header, main }, i18n) {
 		// build the rest of the UI from state here
 	}
 
-	// One row of a picker. The active row carries aria-current and the check
+	// One row of a picker. The label sits in one span so text around a <span lang>
+	// stays a single flex item. The active row carries aria-current and the check
 	// icon; `attrs` is what the controller reads, already HTML-safe.
 	function pickerRow({ attrs, active, lang, lead = "", label }) {
 		return `<li><button class="picker-row" type="button" ${attrs}${lang ? ` lang="${esc(lang)}"` : ""}${
 			active ? ' aria-current="true"' : ""
-		}>${lead}${label}${active ? icon("check") : ""}</button></li>`
+		}>${lead}<span>${label}</span>${active ? icon("check") : ""}</button></li>`
 	}
 
 	// One picker: an icon-only trigger that names itself in a .sr-only span,

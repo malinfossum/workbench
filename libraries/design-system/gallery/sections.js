@@ -99,7 +99,7 @@ function currencyName(code, inLang) {
 function pickerRow({ attrs, active, lang, lead = "", label }) {
   return `<li><button class="picker-row" type="button" ${attrs}${lang ? ` lang="${lang}"` : ""}${
     active ? ' aria-current="true"' : ""
-  }>${lead}${label}${active ? icon("check") : ""}</button></li>`;
+  }>${lead}<span>${label}</span>${active ? icon("check") : ""}</button></li>`;
 }
 // One picker: the icon-only trigger names itself in a .sr-only span.
 function picker({ name, triggerIcon, triggerName, listLabel, rows }) {
