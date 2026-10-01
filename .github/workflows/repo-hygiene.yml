@@ -1,33 +1,23 @@
-# Reusable: checks a repo's public face against its README. Call it from any
-# repo of mine with the caller in docs/repo-hygiene.md.
+# Forwarder, kept for one release: the checker moved to malinfossum/ward in
+# Ward 1.1.0. Callers still on this file keep working; point them at
+# malinfossum/ward/.github/workflows/repo-hygiene.yml@v1 directly (docs in
+# Ward's docs/repo-hygiene.md). Remove this file after the next workbench
+# release.
 name: Repo hygiene
 
 on:
   workflow_call:
     inputs:
       mode:
-        description: "warn (report only) or strict (fail the job on drift)"
+        description: warn (report only) or strict (fail the job on drift)
         type: string
         default: warn
 
+permissions:
+  contents: read
+
 jobs:
   hygiene:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fetch the checker
-        uses: actions/checkout@v4
-        with:
-          repository: malinfossum/workbench
-          path: .workbench
-          sparse-checkout: tools/repo-hygiene.mjs
-          sparse-checkout-cone-mode: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Check
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node .workbench/tools/repo-hygiene.mjs --repo ${{ github.repository }} --mode ${{ inputs.mode }}
+    uses: malinfossum/ward/.github/workflows/repo-hygiene.yml@v1
+    with:
+      mode: ${{ inputs.mode }}
