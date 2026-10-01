@@ -29,11 +29,12 @@ Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 - `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes)
 - `base/`: `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
 - `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
-- `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon` (CSS) + `icons.js` (the SVG set)
+- `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon`, `picker` (CSS) + `icons.js` (the SVG set) + `picker.js` (picker behaviour)
 - `compositions/`: page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
 - `utilities/`: single-purpose helpers
-- `theme/`: `theme-toggle.js`, `palette-switch.js`, and `theme-init-snippet.html` (inline `<head>` snippet)
+- `theme/`: `theme-toggle.js`, `palette-switch.js`, `preferences.js` (stored preferences and the theme model) and `theme-init-snippet.html` (inline `<head>` snippet)
 - `assets/fonts/`: self-hosted fonts (Sora, Figtree, Fraunces, Instrument Serif, Schibsted Grotesk, Atkinson Hyperlegible Next, Space Grotesk, Bricolage Grotesque, Hanken Grotesk)
+- `assets/flags/`: circle flags for the default currency set (NO, SE, DK, EU, US, GB, PL, UA), from circle-flags (MIT, notice in `assets/flags/LICENSE`)
 - `gallery/`: panel-swap MVC reference (browse every component live)
 - `sandbox/`: scratch page for quick experiments
 - `docs/`: system spec and usage notes
@@ -87,11 +88,46 @@ readers announce the state from `aria-pressed` itself, so keep the attribute in 
 </nav>
 ```
 
+## Pickers
+
+A preference picker is a `<details class="picker" data-picker="lang|theme|currency">`
+disclosure: the `.btn.icon-btn` on its `<summary>` is the trigger (one icon, the name in a
+`.sr-only` span), and a `.picker-list` of `.picker-row` buttons (or links on a per-URL site)
+opens under it, anchored to its right edge. The System row goes first and names what it
+resolves to right now. The active row carries `aria-current` and a check icon. Currency rows
+add a `.picker-flag` image and a `.picker-code` column. The markup works without JavaScript;
+`components/picker.js` (a classic script, loaded like `theme-toggle.js`) adds the keyboard
+and focus rules for every `details[data-picker]` on the page: open on the active row,
+arrows wrap, Home and End, Escape refocuses the trigger, outside pointer-down and Tab out
+close, one picker open at a time. Full anatomy and behaviour: the locale standard spec.
+
+```html
+<details class="picker" data-picker="theme">
+  <summary class="btn icon-btn">${icon("moon")}<span class="sr-only">Theme: Dark</span></summary>
+  <ul class="picker-list" aria-label="Theme">
+    <li><button class="picker-row" type="button" data-theme-set="system">System (Dark)</button></li>
+    <li><button class="picker-row" type="button" data-theme-set="light">Light</button></li>
+    <li><button class="picker-row" type="button" data-theme-set="dark" aria-current="true">Dark ${icon("check")}</button></li>
+  </ul>
+</details>
+```
+
 ## Theme behavior
 
-The initial theme is set by an **inline `<head>` snippet** so there's no flash on first paint. Copy `theme/theme-init-snippet.html` into every scaffold's `<head>`, before stylesheets. The click handler in `theme/theme-toggle.js` toggles between dark and light when any `[data-theme-toggle]` element is clicked.
+The rule for every preference is `stored key (if valid) ?? system value`, and System is the
+absence of the key. The initial theme is set by an **inline `<head>` snippet** so there's no
+flash on first paint. Copy `theme/theme-init-snippet.html` into every scaffold's `<head>`,
+before stylesheets; it also carries `<meta name="color-scheme" content="dark light">`. The
+click handler in `theme/theme-toggle.js` sets the theme from any `[data-theme-set="light"]`,
+`"dark"` or `"system"` element; `system` removes the key, and while no key is stored the page
+follows `prefers-color-scheme` and other tabs. `[data-theme-toggle]` (cycle light and dark)
+still works for consumers that have not migrated; it is deprecated and goes in 4.0.0.
 
-Default is dark. User's saved choice (from `localStorage`) wins.
+`theme/preferences.js` is the ES-module half for a controller: `readPreference(key, valid)`
+(an invalid stored value is removed on first read), `writePreference(key, value)` (`""` or
+`null` removes the key), `systemTheme()`, `applyTheme()`, `watchSystemTheme()`,
+`watchStorage()` and `initTheme()`. Every helper catches storage errors, so Safari private
+mode behaves as System and the model still holds the choice for the open page.
 
 **Brand palettes** use a separate `data-palette` axis. Set `data-palette="gold"`, `"wend"`, `"daily"`, `"ignite"`, `"kenaz"`, `"tidsro"`, `"hugin"` or `"classic"` on `<html>` to recolour the accent (and, for full brands, the surfaces and gradient), with every derived token following automatically. The OLED palettes (`daily`, `ignite`, `hugin`) go further and also carry **type**: switching one swaps fonts and heading treatment along with colour, so the whole feel changes. `palette-switch.js` sets it on `[data-palette-set]` clicks; the init snippet restores the saved palette. **No attribute (or `data-palette="default"`) renders the house amber-gold**. Since 3.0.0 the default identity is a warm near-black ground with a `222 166 72` accent; Sora stays the display face, inherited from `:root` with no typography override. It was blended out of the Kenaz and Gold palettes as they stood in 3.0.0; `kenaz` has since moved to its Lantern brand colours, so the default is now its own identity rather than a mirror of a shipped palette. See the "Default identity" comment block in `tokens/colors.css` for the exact mechanism. Daily (`data-palette="daily"`) is a standalone opt-in palette again, not the default's source. `classic` opts back into the pre-3.0.0 default byte-for-byte, for a consumer that wants to keep it; `kenaz` (3.1.0) carries the same values as a living brand rather than a frozen pin. Each palette ships dark + a contrast-tuned light variant. See `docs/oled-palettes.md`.
 

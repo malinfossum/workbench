@@ -41,6 +41,157 @@ function specimen({ title, note, classes, demo }) {
     </section>`;
 }
 
+// Pickers panel: demo state. Language and currency are gallery-only state kept
+// here; theme goes through localStorage via theme/preferences.js (put on window
+// by app.js), so the gallery's own theme follows the model consumers get.
+const PICKER_DEMO = {
+  lang: "",
+  currency: "",
+  langs: ["nb", "en", "sv", "da", "de", "fr", "es", "pl", "uk"],
+  currencies: ["NOK", "SEK", "DKK", "EUR", "USD", "GBP", "PLN", "UAH"],
+  flags: { NOK: "no", SEK: "se", DKK: "dk", EUR: "eu", USD: "us", GBP: "gb", PLN: "pl", UAH: "ua" },
+  regions: { NO: "NOK", SE: "SEK", DK: "DKK", FI: "EUR", DE: "EUR", FR: "EUR", ES: "EUR", US: "USD", GB: "GBP", PL: "PLN", UA: "UAH" },
+};
+
+// Intl strings are not user input, but the panel renders with innerHTML, so
+// the rule is the same as for every other string: never concatenate raw.
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+// System language: the first navigator.languages entry with a row, region
+// stripped, "no" and "nn" mapped to "nb". The i18n library owns this for real
+// apps; the gallery is a demo and repeats the four lines rather than import
+// across libraries.
+function systemLang() {
+  const aliases = { no: "nb", nn: "nb" };
+  for (const tag of navigator.languages || [navigator.language]) {
+    const short = String(tag).toLowerCase().split("-")[0];
+    if (PICKER_DEMO.langs.includes(short)) return short;
+    if (PICKER_DEMO.langs.includes(aliases[short])) return aliases[short];
+  }
+  return "en";
+}
+// System currency: the region of the first navigator.languages entry that
+// carries one, else the base currency.
+function systemCurrency() {
+  for (const tag of navigator.languages || [navigator.language]) {
+    const region = String(tag).split("-")[1];
+    const code = region && PICKER_DEMO.regions[region.toUpperCase()];
+    if (code) return code;
+  }
+  return "NOK";
+}
+// Autonym with an upper-cased first letter (CLDR gives "norsk bokmål"); the
+// code when Intl.DisplayNames is unavailable.
+function langName(code, inLang = code) {
+  if (typeof Intl.DisplayNames !== "function") return code;
+  const name = new Intl.DisplayNames([inLang], { type: "language" }).of(code) || code;
+  return name.charAt(0).toLocaleUpperCase(inLang) + name.slice(1);
+}
+function currencyName(code, inLang) {
+  if (typeof Intl.DisplayNames !== "function") return code;
+  return new Intl.DisplayNames([inLang], { type: "currency" }).of(code) || code;
+}
+
+// One row. `attrs` is the data-* the controller reads; the active row carries
+// aria-current and the check icon.
+function pickerRow({ attrs, active, lang, lead = "", label }) {
+  return `<li><button class="picker-row" type="button" ${attrs}${lang ? ` lang="${lang}"` : ""}${
+    active ? ' aria-current="true"' : ""
+  }>${lead}${label}${active ? icon("check") : ""}</button></li>`;
+}
+// One picker: the icon-only trigger names itself in a .sr-only span.
+function picker({ name, triggerIcon, triggerName, listLabel, rows }) {
+  return `
+    <details class="picker" data-picker="${name}">
+      <summary class="btn icon-btn">${triggerIcon}<span class="sr-only">${escapeHtml(triggerName)}</span></summary>
+      <ul class="picker-list" aria-label="${escapeHtml(listLabel)}">${rows.join("")}</ul>
+    </details>`;
+}
+function flag(currency) {
+  return `<img class="picker-flag" alt="" src="../assets/flags/${PICKER_DEMO.flags[currency]}.svg" />`;
+}
+
+// The demo header. Re-rendered whole when a preference changes (app.js), so
+// trigger names, icons and aria-current are updated in one place.
+function renderPickerHeader() {
+  const stored = preferences.readPreference("theme", preferences.THEMES);
+  const sysTheme = preferences.systemTheme();
+  const theme = stored ?? sysTheme;
+  const sysLang = systemLang();
+  const ui = PICKER_DEMO.lang || sysLang;
+  const sysCurrency = systemCurrency();
+  const currency = PICKER_DEMO.currency || sysCurrency;
+  const themeLabel = { light: "Light", dark: "Dark" };
+
+  const langRows = [
+    pickerRow({
+      attrs: 'data-action="set-lang" data-lang=""',
+      active: PICKER_DEMO.lang === "",
+      label: `System (<span lang="${sysLang}">${escapeHtml(langName(sysLang))}</span>)`,
+    }),
+    ...PICKER_DEMO.langs.map((code) =>
+      pickerRow({
+        attrs: `data-action="set-lang" data-lang="${code}"`,
+        lang: code,
+        active: PICKER_DEMO.lang === code,
+        label: escapeHtml(langName(code)),
+      }),
+    ),
+  ];
+  const themeRows = [
+    pickerRow({ attrs: 'data-theme-set="system"', active: stored === null, label: `System (${themeLabel[sysTheme]})` }),
+    pickerRow({ attrs: 'data-theme-set="light"', active: stored === "light", label: "Light" }),
+    pickerRow({ attrs: 'data-theme-set="dark"', active: stored === "dark", label: "Dark" }),
+  ];
+  const currencyRows = [
+    pickerRow({
+      attrs: 'data-action="set-currency" data-currency=""',
+      active: PICKER_DEMO.currency === "",
+      label: `System (${sysCurrency})`,
+    }),
+    ...PICKER_DEMO.currencies.map((code) =>
+      pickerRow({
+        attrs: `data-action="set-currency" data-currency="${code}"`,
+        active: PICKER_DEMO.currency === code,
+        lead: `${flag(code)}<span class="picker-code">${code}</span>`,
+        label: escapeHtml(currencyName(code, ui)),
+      }),
+    ),
+  ];
+
+  return `
+    <nav class="topbar">
+      <div class="cluster-between">
+        <span class="brand">Ignite</span>
+        <div class="cluster cluster-sm">
+          ${picker({
+            name: "lang",
+            triggerIcon: icon("globe"),
+            triggerName: `Language: ${PICKER_DEMO.lang ? langName(ui) : `System (${langName(sysLang)})`}`,
+            listLabel: "Language",
+            rows: langRows,
+          })}
+          ${picker({
+            name: "theme",
+            triggerIcon: icon(theme === "light" ? "sun" : "moon"),
+            triggerName: `Theme: ${stored ? themeLabel[stored] : `System (${themeLabel[sysTheme]})`}`,
+            listLabel: "Theme",
+            rows: themeRows,
+          })}
+          ${picker({
+            name: "currency",
+            triggerIcon: flag(currency),
+            triggerName: `Currency: ${PICKER_DEMO.currency ? currency : `System (${sysCurrency})`}`,
+            listLabel: "Currency",
+            rows: currencyRows,
+          })}
+        </div>
+      </div>
+    </nav>`;
+}
+
 const GALLERY_SECTIONS = [
   {
     id: "foundations",
@@ -411,6 +562,26 @@ const GALLERY_SECTIONS = [
               <div class="tab-panel" role="tabpanel" hidden>Activity — recent events.</div>
               <div class="tab-panel" role="tabpanel" hidden>Settings — configuration.</div>
             </div>`,
+        })
+      );
+    },
+  },
+  {
+    id: "pickers",
+    label: "Pickers",
+    render() {
+      return (
+        panelHeader(
+          "Component",
+          "Pickers",
+          "Language, theme and currency as &lt;details&gt; disclosures. The markup works without JavaScript; components/picker.js adds the keyboard and focus rules.",
+        ) +
+        specimen({
+          title: "Header with three pickers",
+          note:
+            "Tab to a trigger, Enter opens on the active row, arrows wrap, Home and End jump, Escape returns focus, Tab out closes. System is first and names what it resolves to right now. The theme rows are wired to data-theme-set, so the gallery's own theme follows them.",
+          classes: [".picker", ".picker-list", ".picker-row", ".picker-flag", ".picker-code", "[data-picker]", "[data-theme-set]"],
+          demo: `<div id="picker-header">${renderPickerHeader()}</div>`,
         })
       );
     },
