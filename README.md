@@ -12,7 +12,7 @@ One source-of-truth home for reusable libraries and copy-to-start scaffolds. Lib
 |---|---|
 | [`libraries/`](./libraries) | The source of truth. Versioned, reused as-is: `design-system/`, `storyboard/` and `i18n/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
-| [`tools/`](./tools) | `extract.mjs`, the [repo-hygiene checker](./docs/repo-hygiene.md), plus the test suite CI runs (extract, structure, scaffold drift, links) |
+| [`tools/`](./tools) | `extract.mjs` plus the test suite CI runs (extract, structure, scaffold drift, links). The repo-hygiene checker moved to [Ward](https://github.com/malinfossum/ward/blob/main/docs/repo-hygiene.md) |
 | [`guide/`](./guide) | Setup guide. The dashboard's scaffold cards link into it |
 | [`docs/`](./docs) | Specs, plans, and workbench notes |
 | [`reference/`](./reference) | Read-only reference material |
