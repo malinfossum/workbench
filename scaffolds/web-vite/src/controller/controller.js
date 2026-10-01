@@ -9,7 +9,7 @@ const LANG_STORAGE_KEY = "lang"
 // The stored choice wins; a first visit follows the browser; anything
 // unsupported lands on the fallback bundle.
 export function initialLang(i18n) {
-	return i18n.resolveLang(localStorage.getItem(LANG_STORAGE_KEY), navigator.language)
+	return i18n.resolveLang(localStorage.getItem(LANG_STORAGE_KEY), navigator.languages)
 }
 
 export function createController({ model, view, i18n }) {

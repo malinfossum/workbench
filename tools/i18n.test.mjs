@@ -61,6 +61,55 @@ test("resolveLang maps region tags and case, skips unknowns, ends at fallback", 
   assert.equal(i18n.resolveLang("de", undefined), "en");
 });
 
+test("resolveLang takes arrays in priority order, like navigator.languages", () => {
+  assert.equal(i18n.resolveLang(["en-GB", "nb"]), "en");
+  assert.equal(i18n.resolveLang(["xx", "nb-NO", "en"]), "nb");
+  assert.equal(i18n.resolveLang(null, ["de-AT"], "uk"), "uk");
+  assert.equal(i18n.resolveLang([]), "en");
+});
+
+test("resolveLang maps no and nn to nb by default", () => {
+  assert.equal(i18n.resolveLang("no"), "nb");
+  assert.equal(i18n.resolveLang("nn-NO"), "nb");
+  assert.equal(i18n.resolveLang(["nn", "en"]), "nb");
+});
+
+test("resolveLang skips an alias when the plain tag has its own bundle", () => {
+  const withNynorsk = createTranslator({ en: {}, nb: {}, nn: {} });
+  assert.equal(withNynorsk.resolveLang("nn"), "nn");
+  assert.equal(withNynorsk.resolveLang("no"), "nb");
+});
+
+test("resolveLang skips an alias whose target has no bundle", () => {
+  const englishOnly = createTranslator({ en: {} });
+  assert.equal(englishOnly.resolveLang("no", "en"), "en");
+});
+
+test("a project can extend or override the default aliases", () => {
+  const custom = createTranslator({ en: {}, nb: {}, sv: {} }, { aliases: { da: "sv", no: "en" } });
+  assert.equal(custom.resolveLang("da-DK"), "sv");
+  assert.equal(custom.resolveLang("no"), "en");
+  assert.equal(custom.resolveLang("nn"), "nb"); // the default survives an extension
+});
+
+test("displayName returns the autonym with an upper-cased first letter", () => {
+  assert.equal(i18n.displayName("nb"), "Norsk bokmål");
+  assert.equal(i18n.displayName("en"), "English");
+  assert.equal(i18n.displayName("uk"), "Українська");
+});
+
+test("displayName can name a language in another language", () => {
+  assert.equal(i18n.displayName("nb", "en"), "Norwegian Bokmål");
+});
+
+// Intl separates the amount and the symbol with a no-break space (U+00A0),
+// so the spec's "949,00 kr" is this string, not one with a plain space.
+test("money formats by the language's rules with the full symbol, never narrowSymbol", () => {
+  assert.equal(i18n.money("nb", 949, "NOK"), "949,00 kr");
+  assert.equal(i18n.money("en", 949, "NOK"), "NOK 949.00");
+  assert.equal(i18n.money("nb", 949, "SEK"), "949,00 SEK");
+});
+
 test("languages lists every bundle; a fallback without a bundle throws", () => {
   assert.deepEqual(i18n.languages, ["en", "nb", "uk"]);
   assert.throws(() => createTranslator({ nb: {} }, { fallback: "en" }), /no bundle/);
