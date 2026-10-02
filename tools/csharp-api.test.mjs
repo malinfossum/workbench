@@ -18,6 +18,9 @@ test("scaffold ships every load-bearing file", () => {
     "App.Core/Interfaces/INoteRepository.cs", "App.Core/Services/NoteService.cs",
     "App.Data/AppDbContext.cs", "App.Data/Repositories/NoteRepository.cs",
     "App.Tests/Unit/NoteServiceTests.cs", "App.Tests/Integration/NotesApiTests.cs",
+    "App.Api/Localization/JsonStringLocalizer.cs", "App.Api/Localization/AliasRequestCultureProvider.cs",
+    "App.Api/Locales/en.json", "App.Api/Locales/nb.json",
+    "App.Tests/Unit/JsonStringLocalizerTests.cs", "App.Tests/Integration/LocalizationTests.cs",
   ]) assert.ok(existsSync(join(SCAFFOLD, p)), `missing ${p}`);
 });
 

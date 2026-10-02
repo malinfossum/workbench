@@ -28,8 +28,8 @@ App content (screens, flows, data) never lives here. It lives in the project you
 | [`scaffolds/web-react-ts/`](./scaffolds/web-react-ts) | Web projects: React + TypeScript, Vite + Biome + Vitest | `npm install` |
 | [`scaffolds/csharp-console/`](./scaffolds/csharp-console) | Single-project console app. `init.sh` injects editor configs | `dotnet build` |
 | [`scaffolds/csharp-layered/`](./scaffolds/csharp-layered) | Solution with class library, console front-end, NUnit | `dotnet build` |
-| [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop: CommunityToolkit.Mvvm, tokens.xaml, xUnit | `dotnet build` |
-| [`scaffolds/csharp-api/`](./scaffolds/csharp-api) | ASP.NET Core Web API: layered API + repository, EF Core + SQLite, xUnit | `dotnet build` |
+| [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop: CommunityToolkit.Mvvm, tokens.xaml, JSON localizer + language picker, xUnit | `dotnet build` |
+| [`scaffolds/csharp-api/`](./scaffolds/csharp-api) | ASP.NET Core Web API: layered API + repository, EF Core + SQLite, JSON `IStringLocalizer`, xUnit | `dotnet build` |
 
 Both web scaffolds ship a bundled copy of the design system, a no-flash dark/light toggle, a mobile-first responsive baseline, and accessibility defaults. Both also ship the i18n library with English and Norwegian bundles: `web-vite` wires it through its MVC layers, `web-react-ts` through a `LanguageProvider` and a `useI18n()` hook with typed keys. Each has an accessibility harness gated in CI on pull requests: `web-vite` runs axe-core component tests and a Pa11y scan, `web-react-ts` runs Vitest component tests in Chromium and a Playwright axe scan. Each scaffold's `README.md` has the first setup steps.
 

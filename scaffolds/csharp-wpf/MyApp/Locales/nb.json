@@ -1,0 +1,8 @@
+{
+	"app.title": "App",
+	"status.ready": "MVVM koblet: rediger ViewModels/MainViewModel.cs.",
+	"status.confirmed": "Kommandoen kjørte: bindingskjeden virker.",
+	"action.confirm": "Bekreft koblingen",
+	"picker.language": "Språk",
+	"picker.system": "System ({value})"
+}
