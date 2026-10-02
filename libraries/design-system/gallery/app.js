@@ -53,26 +53,31 @@ document.addEventListener("change", (e) => {
   help.textContent = names ? `Chosen: ${names}` : "No file chosen.";
 });
 
-// Pickers demo: the header is re-rendered whole when a preference changes, and
-// focus lands on the trigger of the picker that was used (its new name is the
-// audible result of the press). Language and currency live in PICKER_DEMO;
-// theme rows carry data-theme-set and theme-toggle.js, registered earlier,
-// has already applied the choice when this handler runs.
-function renderPickers(focusPicker) {
+// Theme: the sidebar group and the Pickers demo both carry data-theme-set rows.
+// theme-toggle.js, registered earlier, has already applied the choice when this
+// handler runs; this keeps the sidebar's aria-pressed and the demo header in step.
+// The header is re-rendered whole when a preference changes, and focus lands on
+// the trigger of the picker that was used (its new name is the audible result of
+// the press). Language and currency live in PICKER_DEMO.
+function syncTheme(focusPicker) {
+  const stored = preferences.readPreference("theme", preferences.THEMES);
+  for (const button of document.querySelectorAll(".gallery-themes [data-theme-set]")) {
+    const pressed = stored === null ? button.dataset.themeSet === "system" : button.dataset.themeSet === stored;
+    button.setAttribute("aria-pressed", String(pressed));
+  }
   const header = document.getElementById("picker-header");
   if (!header) return;
   header.innerHTML = renderPickerHeader();
   if (focusPicker) header.querySelector(`[data-picker="${focusPicker}"] summary`)?.focus();
 }
+syncTheme();
 document.addEventListener("click", (e) => {
-  if (e.target.closest("[data-theme-toggle]")) return renderPickers();
-  const row = e.target.closest("#picker-header .picker-row");
+  const row = e.target.closest("[data-theme-set], #picker-header .picker-row");
   if (!row) return;
   if (row.dataset.action === "set-lang") PICKER_DEMO.lang = row.dataset.lang;
   else if (row.dataset.action === "set-currency") PICKER_DEMO.currency = row.dataset.currency;
-  else if (!("themeSet" in row.dataset)) return;
-  renderPickers(row.closest("[data-picker]").dataset.picker);
+  syncTheme(row.closest("[data-picker]")?.dataset.picker);
 });
-// The OS or another tab changed the theme: the sun/moon trigger follows.
-preferences.watchSystemTheme(() => renderPickers());
-preferences.watchStorage(() => renderPickers());
+// The OS or another tab changed the theme: the sidebar and the sun/moon trigger follow.
+preferences.watchSystemTheme(() => syncTheme());
+preferences.watchStorage(() => syncTheme());

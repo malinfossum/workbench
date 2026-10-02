@@ -36,18 +36,23 @@
 	flex-direction: column;
 	gap: var(--space-2);
 }
-.gallery-controls [data-theme-toggle] {
-	width: 100%;
-}
 /* Auto-fitting columns: any button count wraps into as many tracks as fit,
-   so new palettes never overflow the sidebar. min-width: 0 lets a button
-   shrink below its padded text width instead of overlapping its neighbour. */
-.gallery-palettes {
+   so new palettes never overflow the sidebar. The theme group shares the grid
+   so both rows of controls line up; its pressed state is the DS toggle style.
+   min-width: 0 lets a button shrink below its padded text width instead of
+   overlapping its neighbour. */
+.gallery-palettes,
+.gallery-themes {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr));
 	gap: var(--space-1);
 }
-.gallery-palettes .btn {
+/* Always three options: one row reads as one control. */
+.gallery-themes {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.gallery-palettes .btn,
+.gallery-themes .btn {
 	width: 100%;
 	min-width: 0;
 	padding-inline: var(--space-2);

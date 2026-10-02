@@ -672,6 +672,18 @@ test("theme: data-theme-set is the standard, data-theme-toggle is kept and depre
 	assert.doesNotMatch(snippet, /getItem\("theme"\) \|\| "dark"/, "dark is no longer the stored default");
 });
 
+test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, nothing in the gallery uses the deprecated data-theme-toggle", () => {
+	const index = read("gallery/index.html");
+	for (const value of ["system", "light", "dark"]) {
+		assert.match(index, new RegExp(`<button class="btn btn-ghost" data-theme-set="${value}" aria-pressed="false" type="button">`), `sidebar needs a ${value} button`);
+	}
+	assert.match(index, /class="gallery-themes" role="group" aria-label="Theme"/, "the three buttons are one labelled group");
+	for (const file of ["gallery/index.html", "gallery/app.js", "gallery/gallery.css", "gallery/sections.js"]) {
+		assert.doesNotMatch(read(file), /data-theme-toggle/, `${file} must not use the deprecated attribute`);
+	}
+	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
+});
+
 test("VERSION is 3.8.0 and README documents the identity, the icon set, the file picker, toggle buttons and the pickers", () => {
 	assert.equal(read("VERSION").trim(), "3.8.0");
 	const readme = read("README.md");
