@@ -43,7 +43,7 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/main.js`: boots the app
 - `src/app.js`: wires `createModel` / `createView` / `createController`
 - `src/model/`, `src/view/`, `src/controller/`: MVC layers
-- `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.js` fails when bundles drift
+- `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.js` fails when bundles drift, a value hard-codes a price, or a picker key is missing
 - `src/styles/main.css`: project-specific overrides
 - `tests/`: model and controller tests (DOM-free), view tests (jsdom), `tests/a11y/` component a11y tests (jsdom + axe-core), `tests/e2e/` browser tests (Puppeteer), node's built-in runner
 - `design-system/`: read-only foundation, do not edit

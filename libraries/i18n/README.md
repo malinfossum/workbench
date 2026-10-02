@@ -52,7 +52,8 @@ i18n.languages                                  // ["en", "nb"]
   `narrowSymbol`, which would collapse NOK, SEK and DKK to "kr". Intl separates amount and
   symbol with a no-break space.
 - Bundles are project content (`src/locales/<lang>.json` in the web scaffold). Every
-  bundle must carry the same keys. The scaffolds' `tests/locales.test.js` / `.ts` fail when they drift.
+  bundle must carry the same keys, the reserved picker keys among them, and no value may
+  hard-code a price. The scaffolds' `tests/locales.test.js` / `.ts` fail when they drift.
 
 ## Rules
 
@@ -68,3 +69,7 @@ i18n.languages                                  // ["en", "nb"]
 1. Copy `src/locales/en.json` to `src/locales/<lang>.json` and translate every value.
 2. Register it in `src/locales/index.js` (`index.ts` in the React scaffold).
 3. Run `npm test`. The key-drift test passes when the bundle is complete.
+4. From a workbench checkout, run `node tools/translate.mjs <project-dir> --stamp` to record
+   which English values the translations were written against. Later edits to `en.json` then
+   show up in `node tools/translate.mjs <project-dir>`, which exits 1 while anything is missing
+   or stale, so CI can run it. `nb.json` is exempt: it is written alongside `en.json`.

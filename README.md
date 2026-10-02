@@ -12,7 +12,7 @@ One source-of-truth home for reusable libraries and copy-to-start scaffolds. Lib
 |---|---|
 | [`libraries/`](./libraries) | The source of truth. Versioned, reused as-is: `design-system/`, `storyboard/` and `i18n/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
-| [`tools/`](./tools) | `extract.mjs` plus the test suite CI runs (extract, structure, scaffold drift, links). The repo-hygiene checker moved to [Ward](https://github.com/malinfossum/ward/blob/main/docs/repo-hygiene.md) |
+| [`tools/`](./tools) | `extract.mjs`, `translate.mjs` plus the test suite CI runs (extract, translate, structure, scaffold drift, links). The repo-hygiene checker moved to [Ward](https://github.com/malinfossum/ward/blob/main/docs/repo-hygiene.md) |
 | [`guide/`](./guide) | Setup guide. The dashboard's scaffold cards link into it |
 | [`docs/`](./docs) | Specs, plans, and workbench notes |
 | [`reference/`](./reference) | Read-only reference material |
@@ -48,6 +48,18 @@ node tools/extract.mjs i18n ../my-app                     # translator → ../my
 The tool copies only the lean parts, records the version, and refuses to overwrite files you've edited locally (pass `--force` to override). Edit a library **in the workbench**, never in a consuming project, then re-run extract.
 
 One rule for consumers: exclude copied libraries from your formatter, so format hooks don't count as local edits. For Biome that is `"!design-system"` and `"!i18n"` in `files.includes`. The web scaffold already ships this.
+
+## Keep translations current
+
+`tools/translate.mjs` reads a project's `src/locales/en.json` as the source and every other bundle as a target. A hidden `src/locales/.translated.json` records, per language, a hash of the English value each translation was written against, so an edit to the English sentence surfaces as a stale translation instead of shipping unnoticed.
+
+```bash
+node tools/translate.mjs ../my-app                          # status: missing, changed, never stamped; exit 1 if any
+node tools/translate.mjs ../my-app --worklist work.json     # the same as JSON, English values included
+node tools/translate.mjs ../my-app --stamp                  # record hashes after writing translations
+```
+
+A value that equals the English one is printed as a warning with exit 0: "OK" is "OK" in Swedish, but an untranslated placeholder looks the same, and the warning is where you tell them apart. `nb.json` is exempt from staleness tracking because it is written alongside `en.json` and the scaffolds' key-drift test already proves it complete.
 
 ## Design system
 
