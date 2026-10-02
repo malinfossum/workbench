@@ -1,4 +1,4 @@
-/* workbench-lib: i18n v2.0.0 — extracted; edit in the workbench, not here */
+/* workbench-lib: i18n v2.1.0 — extracted; edit in the workbench, not here */
 /* ======================================================================
    i18n — translate UI strings from flat key → string bundles.
 
@@ -86,8 +86,12 @@ export function createTranslator(bundles, { fallback = "en", aliases = {} } = {}
 	// The language chooses separators and symbol placement, the currency the
 	// symbol. "symbol" gives "kr" at home and "NOK" abroad; narrowSymbol would
 	// collapse NOK, SEK and DKK to "kr" the moment two of them meet.
-	function money(lang, amount, currency) {
-		return new Intl.NumberFormat(lang, { style: "currency", currency, currencyDisplay: "symbol" }).format(amount)
+	// stripWhole drops ",00" from a whole amount ("949 kr") and keeps a real
+	// fraction ("949,50 kr"). Nothing is rounded.
+	function money(lang, amount, currency, { stripWhole = false } = {}) {
+		const options = { style: "currency", currency, currencyDisplay: "symbol" }
+		if (stripWhole) options.trailingZeroDisplay = "stripIfInteger"
+		return new Intl.NumberFormat(lang, options).format(amount)
 	}
 
 	return { t, plural, resolveLang, displayName, money, languages, fallback }

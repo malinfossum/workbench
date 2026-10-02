@@ -252,6 +252,7 @@ i18n.displayName("nb")               // "Norsk bokmål" (Intl.DisplayNames auton
 i18n.displayName("nb", "en")         // "Norwegian Bokmål" (named in another language, for admin screens)
 i18n.money("nb", 949, "NOK")         // "949,00 kr"
 i18n.money("en", 949, "NOK")         // "NOK 949.00"   (currencyDisplay: "symbol", never narrowSymbol)
+i18n.money("nb", 949, "NOK", { stripWhole: true }) // "949 kr" (2.1.0)
 i18n.t / i18n.plural / i18n.languages / i18n.fallback   // unchanged
 ```
 

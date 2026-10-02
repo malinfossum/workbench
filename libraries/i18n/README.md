@@ -35,6 +35,7 @@ i18n.displayName("nb")                          // "Norsk bokmål" (autonym, for
 i18n.displayName("nb", "en")                    // "Norwegian Bokmål"
 i18n.money("nb", 949, "NOK")                    // "949,00 kr"
 i18n.money("en", 949, "NOK")                    // "NOK 949.00"
+i18n.money("nb", 949, "NOK", { stripWhole: true }) // "949 kr" (949.5 stays "949,50 kr")
 i18n.languages                                  // ["en", "nb"]
 ```
 
@@ -51,6 +52,9 @@ i18n.languages                                  // ["en", "nb"]
   carries a language name or a price string. `money` uses `currencyDisplay: "symbol"`, never
   `narrowSymbol`, which would collapse NOK, SEK and DKK to "kr". Intl separates amount and
   symbol with a no-break space.
+- `money(lang, amount, currency, { stripWhole: true })` drops the fraction digits from a whole
+  amount and keeps a real fraction. Nothing is rounded. It needs Chrome 106, Firefox 116 or
+  Safari 15.4.
 - Bundles are project content (`src/locales/<lang>.json` in the web scaffold). Every
   bundle must carry the same keys, the reserved picker keys among them, and no value may
   hard-code a price. The scaffolds' `tests/locales.test.js` / `.ts` fail when they drift.
