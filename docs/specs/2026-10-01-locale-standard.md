@@ -233,7 +233,7 @@ fit at 320 px: three 44 px triggers, gaps and the wordmark, with no horizontal s
 
 ## 7. Language
 
-### 7.1 The i18n library, v2.0.0
+### 7.1 The i18n library, v2.1.0
 
 `libraries/i18n/index.js` stays one DOM-free file. Changes:
 
@@ -369,7 +369,7 @@ libraries/i18n/
 ├── index.js                   # v2: resolveLang arrays + aliases, displayName, money
 ├── index.d.ts                 # types for the two new functions
 ├── README.md                  # the preference model in six lines, the API, the rules
-└── VERSION                    # 2.0.0
+└── VERSION                    # 2.1.0
 
 libraries/design-system/
 ├── components/picker.css      # .picker, .picker-list, .picker-row, currency column
@@ -413,6 +413,10 @@ Each phase ships on its own PR and is done when its checks pass:
   alias skipped when the plain tag has a bundle, `displayName` autonym with upper-cased
   first letter, `money` producing `"949,00 kr"` for `nb` and `"NOK 949.00"` for `en`.
 - `index.d.ts` compiles against the React scaffold's bundles with the two new functions typed.
+
+**i18n 2.1.0**
+- `money(lang, amount, currency, { stripWhole: true })` gives `"949 kr"` and keeps a real
+  fraction (`"949,50 kr"`); without the option the 2.0.0 output is unchanged.
 
 **DS 3.8.0**
 - Gallery Pickers panel: all three pickers, both themes, measured in the browser: trigger
