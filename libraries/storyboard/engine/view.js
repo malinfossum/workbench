@@ -102,19 +102,22 @@ function createStoryboardView(root) {
         handler(el.dataset.goto);
       });
     },
-    // Mock toggles: pressing one option in a data-toggle group presses it and
-    // releases the rest. The aria-pressed change is what a screen reader
-    // announces, so a press always has an audible result. No model state — a
-    // storyboard mock has no settings to persist.
-    bindToggle() {
+    // Mock toggles: one button per setting shows the current value and lists
+    // both values as data-toggle="On|Off" (first = pressed). A press flips the
+    // text and aria-pressed, then reports the setting name and new value so
+    // the controller can write the status line. No model state — a storyboard
+    // mock has no settings to persist.
+    bindToggle(handler) {
       viewport.addEventListener("click", (e) => {
         const el = e.target.closest("[data-toggle]");
         if (!el) return;
-        const group = el.dataset.toggle;
-        viewport.querySelectorAll("[data-toggle]").forEach((option) => {
-          if (option.dataset.toggle !== group) return;
-          option.setAttribute("aria-pressed", option === el ? "true" : "false");
-        });
+        const [on, off] = el.dataset.toggle.split("|");
+        const pressed = el.getAttribute("aria-pressed") !== "true";
+        el.setAttribute("aria-pressed", String(pressed));
+        el.textContent = pressed ? on : off;
+        const group = el.closest("[aria-labelledby]");
+        const label = group && document.getElementById(group.getAttribute("aria-labelledby"));
+        handler({ setting: label ? label.textContent.trim() : "", value: el.textContent.toLowerCase() });
       });
     },
   };

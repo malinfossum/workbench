@@ -120,11 +120,14 @@ Storyboard.addScreen({
 - **Hotspots:** `data-goto="screen-id"` or `data-goto="screen-id@state"` on real interactive
   elements (**buttons or links only** — the authoring rule that keeps keyboard access free).
   The engine navigates by click delegation.
-- **Toggles** *(added 2026-09-30, storyboard 1.1.0)*: `data-toggle="group-name"` on
-  `<button aria-pressed>` options inside a `role="group"` labelled by the setting name. The
-  engine presses the clicked option and releases its siblings. A mock toggle that never
-  changes state gives a screen-reader user no confirmation at all, and an option labelled
-  only `On` or `Metric` does not say which setting it belongs to; the labelled group does.
+- **Toggles** *(added 2026-09-30, storyboard 1.1.0; reshaped in 1.2.0 after an NVDA pass)*:
+  one `<button aria-pressed>` per setting shows the current value and lists both values as
+  `data-toggle="On|Off"` (first = pressed). It sits in a `role="group"` labelled by the
+  setting name, so a screen reader hears which setting it is on entry, and `aria-describedby`
+  points at the setting text, so the description follows the control. A press flips the
+  text and `aria-pressed` and writes one status line to the live region ("Reminders off").
+  The 1.1.0 On|Off option pair was dropped: two buttons for one setting read as two
+  controls, and a press left the description unread.
 - **Mock data:** plain objects in `data.js`. All user-ish content is interpolated through the
   engine-shipped `escapeHtml` helper (same XSS discipline as Wend, applied even to mock data
   so the habit transfers).
