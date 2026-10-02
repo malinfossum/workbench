@@ -46,7 +46,7 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/hooks/`: state + behavior wrapping the services
 - `src/components/`: rendering + event wiring, no business logic
 - `src/config/`: the project's options (currencies, base currency, region table)
-- `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.ts` fails when bundles drift
+- `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.ts` fails when bundles drift, a value hard-codes a price, or a picker key is missing
 - `src/types/`: ambient types for the design-system modules the app imports
 - `src/styles/main.css`: project-specific overrides
 - `tests/`: service tests (DOM-free, run in Node) and `tests/components/` component tests (run in Chromium)
@@ -83,7 +83,7 @@ theme.set("light"); theme.set("")     // store a choice; "" is the System row, i
 
 `t()` only accepts keys that every bundle has, so a typo or a key missing in one language is a type error. It returns plain text, which JSX escapes; never pass it to `dangerouslySetInnerHTML`. Every bundle carries the picker keys (`picker.language`, `picker.theme`, `picker.currency`, `picker.system`, `theme.light`, `theme.dark`); language and currency names come from `Intl.DisplayNames`, prices are numbers rendered with `money()`, never strings in a bundle. Component tests render inside the provider with `render(<Thing />, { wrapper: PreferencesProvider })`, and both test browsers are pinned to `en-US` and a dark colour scheme so snapshots read the same on every machine.
 
-To add a language, copy `src/locales/en.json` to `<lang>.json`, translate every value, and register it in `src/locales/index.ts`. To add a currency, add it to `src/config/preferences.ts` with the regions that map to it and the flag file it uses from `design-system/assets/flags/`.
+To add a language, copy `src/locales/en.json` to `<lang>.json`, translate every value, register it in `src/locales/index.ts`, and run the workbench's `tools/translate.mjs` with `--stamp` so later edits to the English text show up as stale translations. To add a currency, add it to `src/config/preferences.ts` with the regions that map to it and the flag file it uses from `design-system/assets/flags/`.
 
 ## Testing
 
