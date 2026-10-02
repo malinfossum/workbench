@@ -12,6 +12,11 @@ export type Bundle = Record<string, string>
 
 export type Vars = Record<string, string | number>
 
+export interface MoneyOptions {
+	/** Drop the fraction digits from a whole amount: "949 kr", while 949.5 stays "949,50 kr". Chrome 106, Firefox 116, Safari 15.4. */
+	stripWhole?: boolean
+}
+
 export interface Translator<Lang extends string = string, Key extends string = string> {
 	/** The string for `key` in `lang`, then in the fallback, then the key itself. `{vars}` are interpolated, never escaped. */
 	t(lang: Lang, key: Key, vars?: Vars): string
@@ -25,8 +30,8 @@ export interface Translator<Lang extends string = string, Key extends string = s
 	resolveLang(...candidates: unknown[]): Lang
 	/** The language's own name with an upper-cased first letter ("Norsk bokmål"), or its name in `inLang`. */
 	displayName(lang: Lang, inLang?: string): string
-	/** `amount` in `currency` (ISO 4217) by `lang`'s rules, full symbol: "949,00 kr" for nb, "NOK 949.00" for en. */
-	money(lang: Lang, amount: number, currency: string): string
+	/** `amount` in `currency` (ISO 4217) by `lang`'s rules, full symbol: "949,00 kr" for nb, "NOK 949.00" for en. `{ stripWhole: true }` gives "949 kr". */
+	money(lang: Lang, amount: number, currency: string, options?: MoneyOptions): string
 	readonly languages: Lang[]
 	readonly fallback: Lang
 }

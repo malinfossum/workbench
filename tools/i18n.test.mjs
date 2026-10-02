@@ -114,3 +114,13 @@ test("languages lists every bundle; a fallback without a bundle throws", () => {
   assert.deepEqual(i18n.languages, ["en", "nb", "uk"]);
   assert.throws(() => createTranslator({ nb: {} }, { fallback: "en" }), /no bundle/);
 });
+
+test("money drops .00 from a whole amount with stripWhole, and keeps a real fraction", () => {
+  assert.equal(i18n.money("nb", 949, "NOK", { stripWhole: true }), "949 kr");
+  assert.equal(i18n.money("nb", 949.5, "NOK", { stripWhole: true }), "949,50 kr");
+  assert.equal(i18n.money("en", 949, "NOK", { stripWhole: true }), "NOK 949");
+});
+
+test("money without options still shows the fraction digits", () => {
+  assert.equal(i18n.money("nb", 949, "NOK", {}), "949,00 kr");
+});
