@@ -39,7 +39,11 @@
       <aside class="gallery-sidebar">
         <span class="gallery-brand">Design System <span class="gallery-brand-by">by Malin</span></span>
         <div class="gallery-controls">
-          <button class="btn btn-ghost" data-theme-toggle type="button">Theme</button>
+          <div class="gallery-themes" role="group" aria-label="Theme">
+            <button class="btn btn-ghost" data-theme-set="system" aria-pressed="false" type="button">System</button>
+            <button class="btn btn-ghost" data-theme-set="light" aria-pressed="false" type="button">Light</button>
+            <button class="btn btn-ghost" data-theme-set="dark" aria-pressed="false" type="button">Dark</button>
+          </div>
           <div class="gallery-palettes" role="group" aria-label="Palette">
             <button class="btn btn-ghost" data-palette-set="default" type="button">Default</button>
             <button class="btn btn-ghost" data-palette-set="gold" type="button">Gold</button>
