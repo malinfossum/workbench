@@ -33,6 +33,11 @@ alias new-csharp='bash ~/Documents/Development/workbench/scaffolds/csharp-consol
 
 Then the full workflow becomes: `dotnet new console -n MyProject -o my-project && cd my-project && new-csharp`.
 
+## Localization
+
+Not included: a single console project has no UI strings worth a bundle. The JSON readers
+live in [`scaffolds/csharp-api/`](../csharp-api) and [`scaffolds/csharp-wpf/`](../csharp-wpf).
+
 ## If you don't have bash
 
 Copy `.vscode/` and `Properties/` into your new project manually, then find-replace

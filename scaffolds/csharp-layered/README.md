@@ -33,3 +33,4 @@ EF Core + SQLite, and xUnit already wired.
 - No DI container. Add `Microsoft.Extensions.DependencyInjection` when the project earns it.
 - No API project. See "Adding an API project later".
 - No async, no JSON serialization. They're added per project.
+- No localization. Console output has no UI strings worth a bundle; when a project grows a UI or a response body, take the JSON reader from [`scaffolds/csharp-api/`](../csharp-api) (`App.Api/Localization/`) or [`scaffolds/csharp-wpf/`](../csharp-wpf) (`Services/Localizer.cs`).

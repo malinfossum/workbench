@@ -240,6 +240,10 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 					controllers → service (<code>App.Core</code>, no IO) → repository →
 					EF Core + SQLite. xUnit tests cover the service with a hand-rolled fake
 					and the full HTTP pipeline via <code>WebApplicationFactory</code>.
+					Responses are localized from <code>Locales/&lt;tag&gt;.json</code> (the web
+					i18n bundle format) through a JSON <code>IStringLocalizer</code>, resolved
+					from <code>Accept-Language</code> with <code>no</code> and <code>nn</code>
+					mapped to <code>nb</code>.
 				</p>
 				<ol>
 					<li>Copy <code>scaffolds/csharp-api/</code> to wherever the project lives.</li>
@@ -258,7 +262,10 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 					WPF/MVVM starter proven in <a href="https://github.com/malinfossum/tidsro">Tidsro</a>:
 					CommunityToolkit.Mvvm, Services as the only I/O boundary, xUnit, and
 					<code>tokens.xaml</code> mirroring the design-system palette and scales —
-					dark-first with keyboard-only focus visuals.
+					dark-first with keyboard-only focus visuals. Strings come from embedded
+					<code>Locales/*.json</code> through <code>Services/Localizer.cs</code>; a
+					language picker stores the choice and the window's <code>Language</code>
+					follows it, so screen readers switch voice.
 				</p>
 				<ol>
 					<li>Copy <code>scaffolds/csharp-wpf/</code> to wherever the project lives.</li>

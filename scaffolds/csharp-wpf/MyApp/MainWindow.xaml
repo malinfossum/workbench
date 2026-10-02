@@ -1,13 +1,16 @@
 <Window x:Class="MyApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="App"
+        Title="{Binding Title}"
+        Language="{Binding Language.Current, ConverterCulture=en}"
         MinWidth="400" MinHeight="280"
         Width="560" Height="360"
         FontFamily="{StaticResource FontSans}"
         Background="{StaticResource PageBg}">
 
-  <!-- Resize-tolerant layout: star-sized rows, no fixed pixels for content. -->
+  <!-- Resize-tolerant layout: star-sized rows, no fixed pixels for content.
+       Language="{Binding ...}" follows the picker, so Narrator and NVDA switch
+       voice the way <html lang> does on the web. -->
   <Grid Margin="24">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
@@ -15,12 +18,35 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
 
-    <TextBlock Grid.Row="0"
-               Text="App"
-               FontFamily="{StaticResource FontDisplay}"
-               FontWeight="{StaticResource HeadingWeight}"
-               FontSize="{StaticResource Text2xl}"
-               Foreground="{StaticResource Text}"/>
+    <!-- Header row: title left, language picker right. -->
+    <Grid Grid.Row="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+
+      <TextBlock Grid.Column="0"
+                 Text="{Binding Title}"
+                 FontFamily="{StaticResource FontDisplay}"
+                 FontWeight="{StaticResource HeadingWeight}"
+                 FontSize="{StaticResource Text2xl}"
+                 Foreground="{StaticResource Text}"
+                 VerticalAlignment="Center"/>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal">
+        <TextBlock x:Name="LanguageLabel"
+                   Text="{Binding Language.Title}"
+                   FontSize="{StaticResource TextSm}"
+                   Foreground="{StaticResource TextMuted}"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0"/>
+        <ComboBox ItemsSource="{Binding Language.Options}"
+                  SelectedItem="{Binding Language.Selected}"
+                  DisplayMemberPath="Label"
+                  AutomationProperties.LabeledBy="{Binding ElementName=LanguageLabel}"
+                  MinWidth="180"/>
+      </StackPanel>
+    </Grid>
 
     <TextBlock Grid.Row="1"
                Text="{Binding Status}"
@@ -30,7 +56,7 @@
                TextWrapping="Wrap"/>
 
     <Button Grid.Row="2"
-            Content="Confirm wiring"
+            Content="{Binding ConfirmLabel}"
             Style="{StaticResource PrimaryAction}"
             Command="{Binding ConfirmWiringCommand}"
             HorizontalAlignment="Left"/>

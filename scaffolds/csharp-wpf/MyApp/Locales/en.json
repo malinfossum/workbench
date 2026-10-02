@@ -1,0 +1,8 @@
+{
+	"app.title": "App",
+	"status.ready": "MVVM wired: edit ViewModels/MainViewModel.cs.",
+	"status.confirmed": "Command executed: the binding chain works.",
+	"action.confirm": "Confirm wiring",
+	"picker.language": "Language",
+	"picker.system": "System ({value})"
+}

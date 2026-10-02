@@ -8,6 +8,8 @@ layered API + repository shape: controller → service → repository → DbCont
 - `App.Core/`: entities, DTOs, service, repository interface. No packages, no IO, no EF.
 - `App.Data/`: EF Core + SQLite: `AppDbContext`, repository implementations, migrations.
 - `App.Api/`: controllers and `Program.cs` (DI wiring only). The only project that runs.
+  `Localization/` reads `Locales/<tag>.json` (same flat keys as the web i18n library)
+  and resolves the request language from `Accept-Language`.
 - `App.Tests/`: xUnit. Unit tests fake the repository; integration tests boot the real
   pipeline via `WebApplicationFactory` on in-memory SQLite.
 
@@ -39,6 +41,22 @@ it goes in `dotnet user-secrets`, never in a tracked file.
 - Timestamps come from the injected `TimeProvider`, never `DateTime.UtcNow` inline.
 - CORS: the `dev` policy allows any localhost origin, Development only. Production origins
   are an explicit decision, not a default.
+
+## Localization
+
+Same bundles, same keys, same fallback rule as the web library (locale standard,
+`docs/specs/2026-10-01-locale-standard.md` § 10). `Locales/en.json` and `nb.json` ship;
+add a language by adding a file. `JsonStringLocalizer` loads them once at startup and
+is registered as `IStringLocalizer`.
+
+- `Accept-Language` is the only source. No cookie, no query string. `no` and `nn` map
+  to `nb`; `nb-NO` strips to `nb`; anything unknown is English. The response carries
+  `Content-Language` with the culture that won.
+- Lookup is per key: the resolved language, then `en`, then the key itself. A missing
+  key renders as the key, visible and greppable.
+- Placeholders are named: `localizer["greeting", ("name", user.Name)]` fills `{name}`.
+- ProblemDetails titles are the first consumer (`problem.400`, `problem.500`). Add keys
+  as the API grows; the header is never logged and never becomes a file path.
 
 ## Request lifecycle (one POST, end to end)
 
