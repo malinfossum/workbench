@@ -18,9 +18,12 @@ One file per screen in `screens/`, registered on the `Storyboard` global:
   URL hash.
 - Hotspots: `data-goto="screen-id"` or `data-goto="screen-id@state"` on a `<button>`
   or `<a>` only.
-- Toggles: `data-toggle="group-name"` on `<button aria-pressed>` options inside a
-  `role="group"` labelled by the setting name. The engine presses the clicked option and
-  releases the rest of the group; the `aria-pressed` change is what a screen reader hears.
+- Toggles: one `<button aria-pressed="true">` per setting, showing the current value and
+  listing both values as `data-toggle="On|Off"` (first = initial). The shown value is
+  always the selected one, so `aria-pressed` stays `true`. Put it in a `role="group"`
+  whose `aria-labelledby` lists the setting name and then the setting text, so a screen
+  reader hears both on entry. A press flips the text only and writes one status line
+  ("Reminders off").
 - Flows: `Storyboard.addFlow({ id, label, start: "screen@state", note? })`, a named
   entry point listed in the sidebar.
 - Interpolate ALL data through `escapeHtml(...)` (shipped by the engine).

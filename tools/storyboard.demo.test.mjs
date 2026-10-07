@@ -72,30 +72,35 @@ test("demo screens route all mock-data interpolation through escapeHtml", () => 
   }
 });
 
-test("every data-toggle option carries aria-pressed, sits in a labelled group, and each group has exactly one pressed option", () => {
+test("every data-toggle is one button: two values, always pressed, showing the first value, inside a group labelled by title then description", () => {
   const sb = loadDemo();
-  let groups = 0;
+  let toggles = 0;
   for (const screen of sb.screens) {
     for (const state of screen.states) {
       const out = screen.render(state);
-      const pressedPerGroup = new Map();
-      for (const m of out.matchAll(/<button\b[^>]*\bdata-toggle="([^"]+)"[^>]*>/g)) {
-        const [tag, group] = m;
-        const pressed = /\baria-pressed="(true|false)"/.exec(tag);
-        assert.ok(pressed, `${screen.id}@${state}: data-toggle "${group}" option without aria-pressed`);
-        pressedPerGroup.set(group, (pressedPerGroup.get(group) ?? 0) + (pressed[1] === "true" ? 1 : 0));
-      }
-      for (const [group, count] of pressedPerGroup) {
-        assert.equal(count, 1, `${screen.id}@${state}: group "${group}" must have exactly one pressed option`);
-        // The option's nearest enclosing tag must be a labelled role="group".
-        const before = out.slice(0, out.indexOf(`data-toggle="${group}"`));
+      for (const m of out.matchAll(/<button\b[^>]*\bdata-toggle="([^"]*)"[^>]*>([^<]*)<\/button>/g)) {
+        const [tag, values, text] = m;
+        const where = `${screen.id}@${state}: data-toggle "${values}"`;
+        const [on, off, extra] = values.split("|");
+        assert.ok(on && off && extra === undefined, `${where}: must list exactly two values as "On|Off"`);
+        // The shown value is always the selected one: aria-pressed is a constant "true",
+        // never "false" (NVDA would read "not pressed" for the second value).
+        assert.ok(tag.includes('aria-pressed="true"'), `${where}: aria-pressed must be the constant "true"`);
+        assert.equal(text.trim(), on, `${where}: button text must start on the first value`);
+        assert.ok(!tag.includes("aria-describedby"), `${where}: the description belongs in the group's aria-labelledby, not on the button`);
+        // The button's nearest enclosing tag must be a role="group" labelled by the setting
+        // name and then its description, so NVDA reads both on entry, before the button.
+        const before = out.slice(0, m.index);
         const open = before.lastIndexOf("<div");
-        const tag = before.slice(open, before.indexOf(">", open) + 1);
-        assert.ok(before.lastIndexOf("</div>") < open, `${screen.id}@${state}: group "${group}" is not inside a labelled role="group"`);
-        assert.ok(/ role="group"/.test(tag) && / aria-labelledby="[^"]+"/.test(tag), `${screen.id}@${state}: group "${group}" is not inside a labelled role="group"`);
-        groups += 1;
+        const groupTag = before.slice(open, before.indexOf(">", open) + 1);
+        const label = /\baria-labelledby="([^"]+)"/.exec(groupTag);
+        assert.ok(before.lastIndexOf("</div>") < open && / role="group"/.test(groupTag) && label, `${where}: not inside a labelled role="group"`);
+        const ids = label[1].trim().split(/\s+/);
+        assert.equal(ids.length, 2, `${where}: aria-labelledby must list the title id then the description id`);
+        for (const id of ids) assert.ok(out.includes(`id="${id}"`), `${where}: labelledby id "${id}" not in the screen`);
+        toggles += 1;
       }
     }
   }
-  assert.ok(groups >= 1, "the demo must ship at least one data-toggle group (Settings)");
+  assert.ok(toggles >= 1, "the demo must ship at least one data-toggle (Settings)");
 });
