@@ -88,6 +88,27 @@ readers announce the state from `aria-pressed` itself, so keep the attribute in 
 </nav>
 ```
 
+### Setting toggles
+
+A setting with two values (On/Off, Metric/Imperial) is not an option pair: two buttons read
+as two controls. Use one full-width button that shows the current value and keep
+`aria-pressed="true"` on it. The shown value is always the selected one, and flipping the
+attribute to `false` makes NVDA say "not pressed" for the second value. Put the button in a
+`role="group"` whose `aria-labelledby` lists the title id and then the description id, so a
+screen reader hears both on entry, before the button (`aria-describedby` on the button reads
+the description last). A press swaps the text and writes one status line that names the
+setting and the new value ("Reminders off"). Verified with NVDA, 2026-10-07.
+
+```html
+<div class="card stack stack-sm">
+  <strong id="reminders-label">Reminders</strong>
+  <p class="text-muted" id="reminders-desc">Notify me when a plant is thirsty.</p>
+  <div role="group" aria-labelledby="reminders-label reminders-desc">
+    <button class="btn btn-secondary btn-full" type="button" aria-pressed="true">On</button>
+  </div>
+</div>
+```
+
 ## Pickers
 
 A preference picker is a `<details class="picker" data-picker="lang|theme|currency">`
