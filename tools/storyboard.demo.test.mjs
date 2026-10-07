@@ -72,7 +72,7 @@ test("demo screens route all mock-data interpolation through escapeHtml", () => 
   }
 });
 
-test("every data-toggle is one button: two values, text matches aria-pressed, described by the setting text, inside a labelled group", () => {
+test("every data-toggle is one button: two values, always pressed, showing the first value, inside a group labelled by title then description", () => {
   const sb = loadDemo();
   let toggles = 0;
   for (const screen of sb.screens) {
@@ -83,18 +83,21 @@ test("every data-toggle is one button: two values, text matches aria-pressed, de
         const where = `${screen.id}@${state}: data-toggle "${values}"`;
         const [on, off, extra] = values.split("|");
         assert.ok(on && off && extra === undefined, `${where}: must list exactly two values as "On|Off"`);
-        const pressed = /\baria-pressed="(true|false)"/.exec(tag);
-        assert.ok(pressed, `${where}: missing aria-pressed`);
-        assert.equal(text.trim(), pressed[1] === "true" ? on : off, `${where}: button text must show the value aria-pressed points to`);
-        const desc = /\baria-describedby="([^"]+)"/.exec(tag);
-        assert.ok(desc && out.includes(`id="${desc[1]}"`), `${where}: aria-describedby must point at the setting text`);
-        // The button's nearest enclosing tag must be a role="group" labelled by the setting name.
+        // The shown value is always the selected one: aria-pressed is a constant "true",
+        // never "false" (NVDA would read "not pressed" for the second value).
+        assert.ok(tag.includes('aria-pressed="true"'), `${where}: aria-pressed must be the constant "true"`);
+        assert.equal(text.trim(), on, `${where}: button text must start on the first value`);
+        assert.ok(!tag.includes("aria-describedby"), `${where}: the description belongs in the group's aria-labelledby, not on the button`);
+        // The button's nearest enclosing tag must be a role="group" labelled by the setting
+        // name and then its description, so NVDA reads both on entry, before the button.
         const before = out.slice(0, m.index);
         const open = before.lastIndexOf("<div");
         const groupTag = before.slice(open, before.indexOf(">", open) + 1);
         const label = /\baria-labelledby="([^"]+)"/.exec(groupTag);
         assert.ok(before.lastIndexOf("</div>") < open && / role="group"/.test(groupTag) && label, `${where}: not inside a labelled role="group"`);
-        assert.ok(out.includes(`id="${label[1]}"`), `${where}: group label id "${label[1]}" not in the screen`);
+        const ids = label[1].trim().split(/\s+/);
+        assert.equal(ids.length, 2, `${where}: aria-labelledby must list the title id then the description id`);
+        for (const id of ids) assert.ok(out.includes(`id="${id}"`), `${where}: labelledby id "${id}" not in the screen`);
         toggles += 1;
       }
     }

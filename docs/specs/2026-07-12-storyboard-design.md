@@ -121,11 +121,14 @@ Storyboard.addScreen({
   elements (**buttons or links only** — the authoring rule that keeps keyboard access free).
   The engine navigates by click delegation.
 - **Toggles** *(added 2026-09-30, storyboard 1.1.0; reshaped in 1.2.0 after an NVDA pass)*:
-  one `<button aria-pressed>` per setting shows the current value and lists both values as
-  `data-toggle="On|Off"` (first = pressed). It sits in a `role="group"` labelled by the
-  setting name, so a screen reader hears which setting it is on entry, and `aria-describedby`
-  points at the setting text, so the description follows the control. A press flips the
-  text and `aria-pressed` and writes one status line to the live region ("Reminders off").
+  one `<button aria-pressed="true">` per setting shows the current value and lists both
+  values as `data-toggle="On|Off"` (first = initial). The shown value is always the
+  selected one, so `aria-pressed` is a constant `true`: flipping it to `false` made NVDA
+  read "not pressed" for the second value (second NVDA pass, 2026-10-07). It sits in a
+  `role="group"` whose `aria-labelledby` lists the setting name and then the setting text,
+  so a screen reader hears the title and the description on entry, before the button
+  (`aria-describedby` on the button read the description last; same pass). A press flips
+  the text only and writes one status line to the live region ("Reminders off").
   The 1.1.0 On|Off option pair was dropped: two buttons for one setting read as two
   controls, and a press left the description unread.
 - **Mock data:** plain objects in `data.js`. All user-ish content is interpolated through the
