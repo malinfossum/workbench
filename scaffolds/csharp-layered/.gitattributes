@@ -15,3 +15,6 @@
 *.gif binary
 *.ico binary
 *.pdf binary
+
+# C# sources keep CRLF on every OS: .editorconfig says crlf and Ward runs dotnet format on Linux
+*.cs text eol=crlf

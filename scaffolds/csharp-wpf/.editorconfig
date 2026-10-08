@@ -25,3 +25,12 @@ csharp_new_line_before_finally = true
 
 dotnet_style_require_accessibility_modifiers = always:warning
 dotnet_sort_system_directives_first = true
+
+# EF Core writes these, with a BOM and block-scoped namespaces. Marking them
+# as generated keeps the format check on the code I write.
+[**/Migrations/*.cs]
+generated_code = true
+
+# Test names read as sentences, so the underscore rule stays off in test projects.
+[*Tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

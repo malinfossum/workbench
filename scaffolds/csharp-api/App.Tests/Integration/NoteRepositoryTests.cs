@@ -27,8 +27,10 @@ public sealed class NoteRepositoryTests : IDisposable
 
     private static Note Sample(string title = "First") => new()
     {
-        Title = title, Body = "hello",
-        CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow,
+        Title = title,
+        Body = "hello",
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
     };
 
     [Fact]

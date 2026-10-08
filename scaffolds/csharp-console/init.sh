@@ -20,6 +20,8 @@ TEMPLATE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Copy template files into the new project
 cp -r "$TEMPLATE_DIR/.vscode" .
+cp -r "$TEMPLATE_DIR/.github" .
+cp "$TEMPLATE_DIR/.editorconfig" "$TEMPLATE_DIR/.gitattributes" "$TEMPLATE_DIR/Directory.Build.props" .
 mkdir -p Properties
 cp "$TEMPLATE_DIR/Properties/launchSettings.json" Properties/
 

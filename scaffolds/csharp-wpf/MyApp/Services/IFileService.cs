@@ -9,7 +9,7 @@ namespace MyApp.Services;
 /// </summary>
 public interface IFileService
 {
-    string? ReadText(string path);
+    public string? ReadText(string path);
 
-    void WriteText(string path, string contents);
+    public void WriteText(string path, string contents);
 }

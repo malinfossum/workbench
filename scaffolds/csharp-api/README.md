@@ -22,6 +22,7 @@ layered API + repository shape: controller → service → repository → DbCont
 4. Create the database:
    `dotnet ef migrations add Init --project <YourName>.Data --startup-project <YourName>.Api`
    `dotnet ef database update    --project <YourName>.Data --startup-project <YourName>.Api`
+   Commit that first migration: the Ward caller in `.github/workflows/ward.yml` runs the EF pending-model check, which is red until one exists.
 5. `dotnet run --project <YourName>.Api` and send the requests in `<YourName>.Api.http`.
 
 ## Where your data lives

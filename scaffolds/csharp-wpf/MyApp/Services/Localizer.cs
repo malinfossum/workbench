@@ -118,7 +118,7 @@ public sealed partial class Localizer
     }
 
     /// <summary>"Norsk bokmål", "English": the autonym from the OS, first letter upper-cased.</summary>
-    public string DisplayName(string tag)
+    public static string DisplayName(string tag)
     {
         var culture = CultureInfo.GetCultureInfo(tag);
         var name = culture.NativeName;
