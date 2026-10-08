@@ -10,5 +10,22 @@
 	"price.example": "Example price: {price}",
 	"counter.label": "Count:",
 	"counter.decrease": "Decrease count",
-	"counter.increase": "Increase count"
+	"counter.increase": "Increase count",
+	"counter.reset": "Reset",
+	"dialog.close": "Close",
+	"combobox.clear": "Clear",
+	"combobox.toggle": "Show options",
+	"combobox.empty": "No results",
+	"reset.title": "Reset the count?",
+	"reset.description": "The count goes back to zero. This cannot be undone.",
+	"reset.cancel": "Cancel",
+	"reset.confirm": "Reset",
+	"examples.title": "shadcn examples",
+	"menu.label": "Sort",
+	"menu.name": "Name",
+	"menu.date": "Date",
+	"menu.size": "Size",
+	"example.currency": "Pick a currency",
+	"status.sorted": "Sorted by {value}",
+	"status.currency": "Currency: {value}"
 }

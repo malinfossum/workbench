@@ -3,6 +3,15 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.9.1 — 2026-10-08
+
+- **Every `@import url("x.css")` in the shipped CSS is now `@import "x.css"`.** Browsers treat
+  the two the same. Tailwind v4's bundler does not: it inlines the quoted form and leaves the
+  `url()` form where it stands, which puts an `@import` after other rules, so the browser drops
+  it and the whole design system silently fails to load behind the bridge. Found wiring the
+  React scaffold (phase 2 of the shadcn spec). A DS test now fails on any `url()` import in
+  `tokens/`, `base/`, `primitives/`, `components/`, `compositions/`, `utilities/` or `theme/`.
+
 ## 3.9.0 — 2026-10-08
 
 The Tailwind bridge from the shadcn spec (`docs/specs/2026-10-08-shadcn-web-react-ts.md`).

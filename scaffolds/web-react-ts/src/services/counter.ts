@@ -12,3 +12,7 @@ export function decrement(count: number): number {
 	// Example domain rule: this counter never goes below zero.
 	return Math.max(0, count - 1)
 }
+
+export function reset(): number {
+	return 0
+}

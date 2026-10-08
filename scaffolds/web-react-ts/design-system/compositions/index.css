@@ -1,5 +1,5 @@
-@import url("./hero.css");
-@import url("./dashboard.css");
-@import url("./settings.css");
-@import url("./empty-state.css");
-@import url("./app-shell.css");
+@import "./hero.css";
+@import "./dashboard.css";
+@import "./settings.css";
+@import "./empty-state.css";
+@import "./app-shell.css";

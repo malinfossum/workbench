@@ -33,17 +33,9 @@
 			})();
 		</script>
 
-		<!-- Design system foundation -->
-		<link rel="stylesheet" href="/design-system/tokens/index.css" />
-		<link rel="stylesheet" href="/design-system/base/reset.css" />
-		<link rel="stylesheet" href="/design-system/base/base.css" />
-		<link rel="stylesheet" href="/design-system/primitives/index.css" />
-		<link rel="stylesheet" href="/design-system/components/index.css" />
-		<link rel="stylesheet" href="/design-system/compositions/index.css" />
-		<link rel="stylesheet" href="/design-system/utilities/index.css" />
-
-		<!-- Project-specific styles -->
-		<link rel="stylesheet" href="/src/styles/main.css" />
+		<!-- No stylesheet links here: src/main.tsx imports src/styles/index.css
+		     (Tailwind + the design system in cascade layers) and then
+		     src/styles/main.css. The build emits one <link> for both. -->
 	</head>
 	<body>
 		<a class="skip-link" href="#main">Skip to content</a>

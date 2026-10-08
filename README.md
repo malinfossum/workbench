@@ -25,7 +25,7 @@ App content (screens, flows, data) never lives here. It lives in the project you
 | Scaffold | Use it for | Build step |
 |---|---|---|
 | [`scaffolds/web-vite/`](./scaffolds/web-vite) | Web projects: vanilla-JS MVC, Vite + Biome, accessibility tests + CI gate | `npm install` |
-| [`scaffolds/web-react-ts/`](./scaffolds/web-react-ts) | Web projects: React + TypeScript, Vite + Biome + Vitest | `npm install` |
+| [`scaffolds/web-react-ts/`](./scaffolds/web-react-ts) | Web projects: React + TypeScript, Vite + Biome + Vitest, shadcn/ui on Base UI painted by the design system | `npm install` |
 | [`scaffolds/csharp-console/`](./scaffolds/csharp-console) | Single-project console app. `init.sh` injects editor configs | `dotnet build` |
 | [`scaffolds/csharp-layered/`](./scaffolds/csharp-layered) | Solution with class library, console front-end, NUnit | `dotnet build` |
 | [`scaffolds/csharp-wpf/`](./scaffolds/csharp-wpf) | WPF/MVVM desktop: CommunityToolkit.Mvvm, tokens.xaml, JSON localizer + language picker, xUnit | `dotnet build` |

@@ -530,7 +530,7 @@ test("icons: every icon is a decorative currentColor inline SVG on the 24 grid",
 });
 
 test("icons: the .icon rule is bundled and buttons space an icon from their label", () => {
-	assert.match(read("components/index.css"), /@import url\("\.\/icon\.css"\);/, "icon.css must be imported by components/index.css");
+	assert.match(read("components/index.css"), /@import "\.\/icon\.css";/, "icon.css must be imported by components/index.css");
 	// Block, not inline: an inline SVG sits on the text baseline and a line-height can
 	// push it off the control's centre. No shrink: the icon keeps its box when the label wraps.
 	assert.match(read("components/icon.css"), /\.icon \{[^}]*display: block;[^}]*flex-shrink: 0;/s);
@@ -590,7 +590,7 @@ test("flags: every bundled SVG is inert, and the check goes red on a script fixt
 test("picker: rows keep the 44px floor, the trigger gets a focus ring, and the list scrolls instead of clipping", () => {
 	const FLOOR_REM = 2.75;
 	const css = read("components/picker.css");
-	assert.match(read("components/index.css"), /@import url\("\.\/picker\.css"\);/, "picker.css must be imported by components/index.css");
+	assert.match(read("components/index.css"), /@import "\.\/picker\.css";/, "picker.css must be imported by components/index.css");
 	const row = css.match(/\.picker-row \{([^}]*)\}/s)?.[1];
 	assert.ok(row, "picker.css must define .picker-row");
 	const minHeight = Number(row.match(/min-height:\s*([\d.]+)rem/)?.[1]);
@@ -684,13 +684,13 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
 });
 
-test("VERSION is 3.9.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers and the Tailwind bridge", () => {
-	assert.equal(read("VERSION").trim(), "3.9.0");
+test("VERSION is 3.9.1 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers and the Tailwind bridge", () => {
+	assert.equal(read("VERSION").trim(), "3.9.1");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.9\.0 — /m, "CHANGELOG must carry the 3.9.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.9\.1 — /m, "CHANGELOG must carry the 3.9.1 entry");
 });
 
 test("tailwind bridge: every var() resolves to a DS token, index.css leaves it out, the dark variant keys on data-theme", () => {
@@ -724,4 +724,18 @@ test("tailwind bridge: every var() resolves to a DS token, index.css leaves it o
 		assert.ok(bridge.includes(`${tw}: var(${ds});`), `${tw} must map to ${ds}`);
 	}
 	assert.ok(!read("tokens/index.css").includes("tailwind"), "tokens/index.css must not import the bridge; the scaffold entry does");
+});
+
+test("shipped CSS never uses @import url(): Tailwind's bundler leaves that form in place and the browser drops it", () => {
+	const shipped = ["tokens", "base", "primitives", "components", "compositions", "utilities", "theme"];
+	const offenders = [];
+	const walk = (dir) => {
+		for (const entry of readdirSync(join(DS, dir), { withFileTypes: true })) {
+			const rel = `${dir}/${entry.name}`;
+			if (entry.isDirectory()) walk(rel);
+			else if (rel.endsWith(".css") && /@import\s+url\(/.test(read(rel))) offenders.push(rel);
+		}
+	};
+	for (const dir of shipped) walk(dir);
+	assert.deepEqual(offenders, []);
 });

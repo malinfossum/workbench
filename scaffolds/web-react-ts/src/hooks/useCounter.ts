@@ -6,7 +6,7 @@
    ====================================================================== */
 
 import { useState } from "react"
-import { decrement, increment } from "../services/counter.ts"
+import { decrement, increment, reset } from "../services/counter.ts"
 
 export function useCounter(initial = 0) {
 	const [count, setCount] = useState(initial)
@@ -15,5 +15,6 @@ export function useCounter(initial = 0) {
 		count,
 		increment: () => setCount(increment),
 		decrement: () => setCount(decrement),
+		reset: () => setCount(reset),
 	}
 }

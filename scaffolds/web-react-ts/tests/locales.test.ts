@@ -22,6 +22,10 @@ const PICKER_KEYS = [
 	"theme.dark",
 ]
 
+// Read by the house-edited shadcn components in src/components/ui/: the
+// dialog's close button and the combobox's clear, toggle and empty state.
+const SHADCN_KEYS = ["dialog.close", "combobox.clear", "combobox.toggle", "combobox.empty"]
+
 // A digit next to a currency symbol or ISO code. Add the code when a project adds a currency.
 const CURRENCY = "(?:kr|€|\\$|£|zł|₴|NOK|SEK|DKK|EUR|USD|GBP|PLN|UAH|CHF|ISK)"
 const PRICE_PATTERN = new RegExp(`\\d\\s?${CURRENCY}(?!\\p{L})|${CURRENCY}\\s?\\d`, "iu")
@@ -54,6 +58,11 @@ for (const [lang, bundle] of Object.entries(bundles)) {
 
 	test(`locales/${lang}.json carries the reserved picker keys`, () => {
 		const absent = PICKER_KEYS.filter((key) => !(key in bundle))
+		expect(absent).toEqual([])
+	})
+
+	test(`locales/${lang}.json carries the keys the shadcn components read`, () => {
+		const absent = SHADCN_KEYS.filter((key) => !(key in bundle))
 		expect(absent).toEqual([])
 	})
 }
