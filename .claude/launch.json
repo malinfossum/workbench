@@ -1,0 +1,11 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "web-react-ts-preview",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": ["--prefix", "scaffolds/web-react-ts", "run", "preview", "--", "--strictPort"],
+			"port": 4173
+		}
+	]
+}
