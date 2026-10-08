@@ -61,7 +61,9 @@ Three layers catch accessibility issues:
 
 1. **axe DevTools** browser extension: manual checks while you build.
 2. **Component tests** (`npm test`): `tests/a11y/` renders each view into jsdom and asserts axe-core finds no violations. Copy `tests/a11y/view.test.js` for every new view.
-3. **Pa11y CI** (`.github/workflows/ci.yml`): scans the built page in a real browser on every pull request; catches colour contrast and document-level issues the component tests can't. `.pa11yci.json` waits for a rendered element, so a blank page fails instead of passing, and scans the page once more with each picker open. Add every route to `urls` as you build them.
+3. **Pa11y scan** (`npm run build`, `npm run preview`, then `npm run a11y:scan`): scans the built page in a real browser; catches colour contrast and document-level issues the component tests can't. `.pa11yci.json` waits for a rendered element, so a blank page fails instead of passing, and scans the page once more with each picker open. Add every route to `urls` as you build them. Run it before a pull request; it returns to CI when Ward's accessibility module turns on.
+
+`.github/workflows/ward.yml` calls [Ward](https://github.com/malinfossum/ward), which runs the linter, `npm test` and `npm run test:e2e` on every pull request.
 
 `tests/e2e/` drives the real page with Puppeteer: the theme rules (fresh profile, stored key, System, another tab), the keyboard walk of a picker and the 320 px header measurements. Automated checks still catch only a third to a half of WCAG issues. They never catch whether labels make sense. Before shipping a view, check it with a keyboard (tab order, arrow and Escape on menus, focus return on close) and a screen reader.
 

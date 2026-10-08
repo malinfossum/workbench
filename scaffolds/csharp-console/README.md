@@ -22,6 +22,8 @@ code .   # then press F5
 - `Properties/launchSettings.json`: launch profile (args, env, working dir); used by `dotnet run` and the VS Code debugger
 - `.vscode/launch.json`: F5 debug config for VS Code
 - `.vscode/tasks.json`: `dotnet build` task for VS Code
+- `.github/`: the Ward caller (`ward.yml`, dotnet module off until the repo has a solution and a test project), the Dependabot baseline and the repo-hygiene check
+- `.editorconfig`, `.gitattributes`, `Directory.Build.props`: the C# baseline (CRLF sources, analyzers on, warnings fail the build)
 
 ## Optional alias
 

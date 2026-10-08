@@ -7,7 +7,7 @@ namespace MyApp.Services;
 /// </summary>
 public interface IPreferencesService
 {
-    Preferences Load();
+    public Preferences Load();
 
-    void Save(Preferences preferences);
+    public void Save(Preferences preferences);
 }

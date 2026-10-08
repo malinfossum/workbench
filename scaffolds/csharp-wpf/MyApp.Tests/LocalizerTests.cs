@@ -108,8 +108,8 @@ public class LocalizerTests
     {
         var localizer = Make();
 
-        Assert.Equal("Norsk bokmål", localizer.DisplayName("nb"));
-        Assert.Equal("English", localizer.DisplayName("en"));
+        Assert.Equal("Norsk bokmål", Localizer.DisplayName("nb"));
+        Assert.Equal("English", Localizer.DisplayName("en"));
     }
 
     [Fact]

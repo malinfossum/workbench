@@ -93,7 +93,7 @@ Three layers, cheapest first:
 2. **Component tests** (`npm test`, `browser` project): `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`.
 3. **Full-page scan** (`npm run test:e2e`): Playwright builds the app, serves the preview and scans it with axe in dark and light theme, in Norwegian, and with each picker open. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. `e2e/preferences.spec.ts` also proves the theme rule against a real colour scheme, the storage event between two pages, the keyboard walk and the header at 320 px. Add a test per route as you build them.
 
-`.github/workflows/ci.yml` runs all three on every pull request.
+`.github/workflows/ward.yml` calls [Ward](https://github.com/malinfossum/ward), which runs the linter, the type check and all three layers on every pull request.
 
 Automated checks catch only a third to a half of WCAG issues, and never keyboard order, focus traps, focus return, or whether labels make sense. Before shipping a component, check it with a keyboard (tab order, arrow and Escape on menus, focus return on close) and a screen reader.
 

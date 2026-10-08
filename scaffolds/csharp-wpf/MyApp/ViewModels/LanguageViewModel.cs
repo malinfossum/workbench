@@ -86,8 +86,8 @@ public sealed class LanguageViewModel : ObservableObject
     {
         Options =
         [
-            new LanguageOption(null, _localizer.T("picker.system", ("value", _localizer.DisplayName(_systemLanguage)))),
-            .. _localizer.Languages.Select(tag => new LanguageOption(tag, _localizer.DisplayName(tag))),
+            new LanguageOption(null, _localizer.T("picker.system", ("value", Localizer.DisplayName(_systemLanguage)))),
+            .. _localizer.Languages.Select(tag => new LanguageOption(tag, Localizer.DisplayName(tag))),
         ];
         _selected = Options.First(o => o.Tag == _storedLanguage);
         OnPropertyChanged(nameof(Selected)); // records compare by value, so always raise
