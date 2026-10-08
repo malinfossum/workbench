@@ -71,7 +71,7 @@ get Tailwind.
 | Icons inside generated components | `lucide-react` stays, for the generated files only | The components import it internally; replacing those imports is a house edit on every file for no user-visible gain. Project code keeps the DS `Icon`. |
 | Biome and Tailwind | `css.parser.tailwindDirectives: true`; `useSortedClasses` **off** until Biome 2.6 | The parser flag is required or the entry CSS fails to format. The sorter is nursery, uses the Tailwind 3.4 order and skips `md:`; its v4 order ships in 2.6. |
 | Path alias | `@/*` → `src/*` in `tsconfig.json` and `vite.config.ts` | What the CLI and every doc assume. Vitest inherits it from Vite. |
-| Component install discipline | `npx shadcn@<pinned> add <name>`, diff reviewed, `npm run check`, house edits applied, tests written, then commit. Re-adding a component is a diff review, never `--overwrite` | The CLI writes files from a remote registry into the repo. Every one of those files is my code after the commit. |
+| Component install discipline | `npx shadcn@<pinned> add <name>`, diff reviewed, `npm run check`, house edits applied, tests written, then commit. Re-adding a component is a diff review, never `--overwrite`. An `add` that writes outside `src/components/ui/`, `src/lib/`, `package.json` and the lockfile, or adds a dependency § 10 does not list, is reverted and looked at before anything else | The CLI writes files from a remote registry into the repo, and the registry content behind a pinned CLI version can still change. Every one of those files is my code after the commit, so the diff is the control. |
 | Components shipped | `button`, `dialog`, `dropdown-menu`, `popover`, `combobox` | The four gaps plus the button the others compose with. Everything else is per project. |
 
 ## 5. The token bridge
@@ -153,6 +153,15 @@ DS above both, so its tokens and component rules win; Tailwind utilities on top,
 utility on a DS element wins. An element is either a DS component or a shadcn component;
 the only utilities on a DS element are layout (`mt-4`, `flex`), never colour.
 
+Two ordering rules the file must keep: the bridge is imported unlayered, because `@theme`
+and `@custom-variant` are top-level at-rules and Tailwind rejects them inside a layer; and
+it is imported after `theme.css`, because `--color-*: initial` only resets a namespace that
+is already declared. The DS reduced-motion rule in `base/base.css` is `!important`, and an
+important declaration in an earlier layer beats every later layer, so it still silences the
+`tw-animate-css` keyframes on shadcn components. The DS forced-colors focus rule is not
+important and loses to the utilities, which is fine as long as generated files keep
+`outline-hidden` (a transparent outline that forced colours paint) and never `outline-none`.
+
 ## 7. Theme and palettes
 
 Nothing new. `html[data-theme]` flips every DS token, the bridge references the tokens, the
@@ -182,6 +191,14 @@ Known accessibility gaps (2026-10-08) and what the scaffold does about each:
 - **Combobox icon buttons have no accessible name** (shadcn issue 11589, open). House edit:
   the clear and toggle buttons get `aria-label` from the locale bundle. The axe test fails
   without it.
+- **A combobox with no visible label** names its list after nothing. The example renders a
+  visible `<label htmlFor>` for the input; placeholder text is never the label. The ARIA
+  snapshot pins the input's name.
+- **"No results" is silent.** Base UI renders the empty element inline, and a screen reader
+  hears nothing when a filter matches nothing. House edit: the empty element carries
+  `role="status"`, exists in the DOM from the moment the list opens, and shows
+  `combobox.empty` in the active language. Proof: NVDA pass, and the snapshot shows the
+  status node.
 - **A dialog without a description** carried a dangling `aria-describedby` under Radix. Base
   UI is not affected, and the scaffold's rule is simpler anyway: every `Dialog` renders a
   `DialogDescription`. The ARIA snapshot test pins it.
@@ -192,27 +209,44 @@ Known accessibility gaps (2026-10-08) and what the scaffold does about each:
 
 Generated into `src/components/ui/`, one file each, formatted by Biome on add. Each then gets
 the edits below, recorded as a comment block at the top of the file so a later diff against
-the registry shows what is mine.
+the registry shows what is mine. The block opens with the source (`shadcn/ui`, the registry
+item URL, MIT) and lists each house edit on its own line; that is both the MIT notice the
+copied code needs and the checklist for a re-add.
+
+Edits that apply to every generated file:
+
+- every `focus-visible:ring-*` group becomes `focus-visible:shadow-ring`, keeping the
+  `outline-hidden` that comes with it (never `outline-none`);
+- every control and every row that can be clicked is at least 44 px tall on the element the
+  pointer hits.
 
 | Component | House edits |
 |---|---|
-| `button` | Sizes: `default` is `h-11 px-4` (44 px), `sm` is `h-11 px-3` (height never drops), `lg` is `h-12`, `icon` is `size-11`. Focus: `focus-visible:shadow-ring` replaces the ring utilities. `destructive` variant uses `bg-destructive text-destructive-foreground` |
-| `dialog` | `DialogContent` always renders `DialogDescription`; the close button carries `aria-label` from the bundle (`dialog.close`). Overlay uses `bg-black/60`, content `bg-popover` with `shadow-md` |
-| `dropdown-menu` | `DropdownMenuItem`, `CheckboxItem`, `RadioItem`: `min-h-11 px-3` so every row is a target. Content `bg-popover` |
+| `button` | Sizes: `default` is `h-11 px-4` (44 px), `sm` is `h-11 px-3` (height never drops), `lg` is `h-12`, `icon` is `size-11`. `secondary` gains `border border-input`: its fill is about 1.2:1 against the page, so the edge is what identifies it as a control (SC 1.4.11, the same rule `.btn` follows). `destructive` uses `bg-destructive text-destructive-foreground` |
+| `dialog` | `DialogContent` always renders `DialogDescription`; the close button is `size-11` and carries `aria-label` from the bundle (`dialog.close`). Overlay `bg-black/60`, content `bg-popover` with `shadow-md` |
+| `dropdown-menu` | `DropdownMenuItem`, `CheckboxItem`, `RadioItem`: `min-h-11 px-3`. Content `bg-popover` |
 | `popover` | `PopoverContent` `bg-popover`; nothing else |
-| `combobox` | Input `h-11`; rows `min-h-11`; clear and toggle buttons get `aria-label` (`combobox.clear`, `combobox.toggle`); the list is named by the input's label |
+| `combobox` | Input `h-11`; rows `min-h-11`; clear and toggle buttons `size-11` with `aria-label` (`combobox.clear`, `combobox.toggle`); empty element is `role="status"` showing `combobox.empty`; the list is named by the input's visible label |
 
 A DS test already measures `.btn` at 44 px; the component tests do the same for every
 shadcn control through `getBoundingClientRect()`.
 
 Three examples go into the scaffold's demo page next to the Counter, each small enough to
-delete in a minute: a dialog that confirms the Counter reset, a dropdown menu with three
-items, and a combobox over the currency list. They prove the three interaction models
-(modal, menu, listbox) and give the e2e scan something to open.
+delete in a minute: a dialog that confirms a new Counter reset (the hook and service gain
+`reset`), a dropdown menu with three items, and a combobox over the currency list. They
+prove the three interaction models (modal, menu, listbox) and give the e2e scan something to
+open.
+
+Every example press has an audible result. The reset changes the count, which the
+Counter's existing live paragraph announces. The three menu items and a combobox choice
+each write one line to a `role="status"` region that `App.tsx` renders from load, outside
+the examples, as the one status region the page has ("Sorted by name", "Currency: EUR").
+Projects keep that region and write their own results to it. Proof: the ARIA snapshot shows
+the region before and after a press, and the NVDA pass hears each line once.
 
 Locale bundle keys added to `en.json` and `nb.json`: `dialog.close`, `combobox.clear`,
-`combobox.toggle`, `combobox.empty`, plus the strings the three examples show.
-`tests/locales.test.ts` keeps them in step.
+`combobox.toggle`, `combobox.empty`, plus the strings the three examples show and the
+status lines they write. `tests/locales.test.ts` keeps them in step.
 
 ## 10. Tooling
 
@@ -255,8 +289,12 @@ not imported by `tokens/index.css`; the dark variant line targets `data-theme`; 
 turn, in both themes, in Norwegian, and at 320 px. Document-level rules, focus trap inside
 the dialog, scroll lock, and that the header pickers still work with a popover open.
 
-**Guards (`tests/`):** a test greps `src/` for Tailwind palette classes (`-(red|blue|…)-\d+`)
-and for `.dark` and fails on a hit; another asserts `index.html` has no stylesheet `<link>`.
+**Guards (`tests/guards.test.ts`):** one file, reading `src/` and `index.html`, that fails
+on any of: a Tailwind palette class (`-(red|blue|…)-\d+`); the string `.dark`;
+`outline-none`; `focus-visible:ring`; `dangerouslySetInnerHTML` anywhere under
+`src/components/ui/`; a stylesheet `<link>` in `index.html`. Each pattern also runs against
+an inline fixture that must trip it, so a guard that stops matching fails the suite rather
+than passing quietly.
 
 ## 12. Structure
 
@@ -339,6 +377,14 @@ Each phase is its own PR off `main` and is done when its checks pass.
 - **No Tailwind preflight means a generated component may assume a reset the DS does not
   do.** The component tests render with the DS stylesheet and would show it; the fix is a
   utility on the element, never a global rule.
+- **A brief unstyled flash in `npm run dev`.** With the stylesheets imported from
+  `main.tsx`, the dev server injects them after the module loads. The production build
+  emits a `<link>` in the HTML, so users never see it. The theme-init snippet still runs
+  first in both.
+- **Phase 3 makes my Pages site a code source for other projects.** Whatever serves
+  `docs/r/` is a supply chain into every consumer. Its own spec says how the items are
+  built (from committed source, in CI) and how a consumer pins them; nothing is published
+  before that spec exists.
 
 ## 16. Open questions
 
@@ -351,3 +397,26 @@ Each phase is its own PR off `main` and is done when its checks pass.
 - **`--destructive-foreground`.** Absent from shadcn's default theme, still referenced by
   some generated files. The bridge defines it; if no shipped component uses it after phase
   2, drop it.
+
+## 17. Considered and rejected (stress test, 2026-10-08)
+
+- **Honouring the legacy `body.light` selector in the dark variant.** The DS still matches
+  it for consumers that predate `data-theme`, but the scaffold's init snippet always writes
+  `data-theme`, and `body.light` never appears in a React project. One selector is enough.
+- **Replacing lucide icons inside generated files with the DS `Icon`.** Every file would
+  carry one more house edit for an icon nobody can tell apart at 16 px. The DS set stays the
+  project-code rule; the generated files keep their own.
+- **Pinning registry items by content hash.** The CLI offers nothing of the kind, and a
+  hand-kept hash table would rot. The reviewed diff plus the write-scope rule in § 4 is the
+  control until phase 3 moves the source into my own registry.
+- **Shipping `select` to prove the trigger-naming trap.** It would add a sixth component
+  and a fourth example for a rule one README sentence covers. Projects add it when they
+  need it, with the sentence in hand.
+- **A global `prefers-reduced-motion` rule in the entry CSS for `tw-animate-css`.** Not
+  needed: the DS rule in `base/base.css` is `!important`, and importance in an earlier layer
+  wins. A second rule would be a copy that drifts.
+- **Enabling Biome's `useSortedClasses` now and living with the Tailwind 3 order.** Sorted
+  by a stale table is worse than unsorted: a reader would trust an order that is wrong for
+  v4 variants. Off until 2.6.
+
+> Stress-tested 2026-10-08 (skill a06dd56) — 10 applied, 2 adapted, 0 decided by me.
