@@ -1,15 +1,18 @@
 /* ======================================================================
    src/components/Counter.tsx — EXAMPLE COMPONENT
    Rendering and event wiring only — state comes from the hook, logic from
-   the service. Uses design-system classes (btn, cluster). Delete this
-   file (plus the hook and service) when you start your real app.
+   the service. Uses design-system classes (btn, cluster); the reset goes
+   through a shadcn Dialog (ResetDialog) so the two systems sit side by
+   side once. Delete this file (plus the hook, the service and ResetDialog)
+   when you start your real app.
    ====================================================================== */
 
 import { useCounter } from "../hooks/useCounter.ts"
 import { useI18n } from "../hooks/useI18n.ts"
+import { ResetDialog } from "./ResetDialog.tsx"
 
 export function Counter() {
-	const { count, increment, decrement } = useCounter()
+	const { count, increment, decrement, reset } = useCounter()
 	const { t } = useI18n()
 
 	return (
@@ -34,6 +37,7 @@ export function Counter() {
 				>
 					+
 				</button>
+				<ResetDialog onConfirm={reset} />
 			</div>
 		</div>
 	)

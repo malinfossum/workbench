@@ -10,8 +10,13 @@ import type { Page } from "@playwright/test"
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]
 
-export async function scan(page: Page) {
-	const { violations } = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze()
+// `disableRules` is for one documented case (see shadcn.spec.ts); every
+// other scan runs the full rule set.
+export async function scan(page: Page, disableRules: string[] = []) {
+	const { violations } = await new AxeBuilder({ page })
+		.withTags(WCAG_TAGS)
+		.disableRules(disableRules)
+		.analyze()
 	return violations.map(({ id, help, nodes }) => ({ id, help, count: nodes.length }))
 }
 

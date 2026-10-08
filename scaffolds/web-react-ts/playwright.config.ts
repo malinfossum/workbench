@@ -13,6 +13,9 @@ export default defineConfig({
 	use: {
 		baseURL: "http://localhost:4173",
 		locale: "en-US",
+		// The DS reduced-motion rule silences popup animations, so a scan
+		// with a dialog or menu open reads the settled state.
+		reducedMotion: "reduce",
 	},
 	projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 	webServer: {

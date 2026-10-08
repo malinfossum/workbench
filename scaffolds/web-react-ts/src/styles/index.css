@@ -1,0 +1,47 @@
+/* ======================================================================
+   src/styles/index.css: THE CSS ENTRY (imported once from main.tsx)
+   Cascade layers, lowest first: Tailwind's theme defaults, shadcn's base
+   rule, the design system, Tailwind utilities. DS tokens beat Tailwind's
+   defaults (rounded-md reads the DS radius, font-sans is Figtree), and
+   utilities beat DS component rules (className="btn mt-4" works).
+   Tailwind's preflight is not imported: the DS reset is the reset.
+
+   Two ordering rules. The bridge (design-system/tokens/tailwind.css) and
+   the ejected shadcn CSS are unlayered because @theme, @custom-variant
+   and @utility must be top level. The bridge comes after theme.css
+   because its --color-*: initial only resets a namespace that is already
+   declared. main.css (project styles) is imported after this file from
+   main.tsx and stays unlayered, so it still wins over everything here.
+   ====================================================================== */
+
+@layer theme, base, design-system, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "../../design-system/tokens/tailwind.css";
+@import "./shadcn.css";
+@import "tw-animate-css";
+
+@import "../../design-system/tokens/index.css" layer(design-system);
+@import "../../design-system/base/reset.css" layer(design-system);
+@import "../../design-system/base/base.css" layer(design-system);
+@import "../../design-system/primitives/index.css" layer(design-system);
+@import "../../design-system/components/index.css" layer(design-system);
+@import "../../design-system/compositions/index.css" layer(design-system);
+@import "../../design-system/utilities/index.css" layer(design-system);
+
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Design-system class names Tailwind would otherwise generate too: the DS
+   .text-muted is a text colour, Tailwind's text-muted is the quiet fill,
+   and the utilities layer would win. These names stay the DS's.
+   tests/guards.test.ts recomputes the list against the DS and fails when
+   a name is missing here. */
+@source not inline("container grid sr-only table text-muted mt-6 mb-6");
+
+/* shadcn's one base rule: every element's default border and outline
+   colour. Sits under the design system, which sets its own. */
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+}

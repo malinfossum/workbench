@@ -420,3 +420,48 @@ Each phase is its own PR off `main` and is done when its checks pass.
   v4 variants. Off until 2.6.
 
 > Stress-tested 2026-10-08 (skill a06dd56) — 10 applied, 2 adapted, 0 decided by me.
+
+## 18. Phase 2 findings (2026-10-08)
+
+What the build taught me, recorded here so the spec stays the source of truth.
+
+- **`shadcn eject` does not block a later `add`** (§ 16 answered). Ejected right after `init`;
+  `add button dialog dropdown-menu popover combobox` then wrote eight files. The ejected CSS
+  lives in `src/styles/shadcn.css`, imported unlayered from `index.css`, so the entry file
+  stays readable. Removing `shadcn` from `dependencies` also removed 7 high audit findings it
+  carried through `ts-morph` and `fast-glob`.
+- **`@tailwindcss/vite` runs inside Vitest browser mode** (§ 16 answered): every component test
+  renders through the real cascade.
+- **`--destructive-foreground` stays** (§ 16 answered): the solid `destructive` Button variant
+  uses it.
+- **Telemetry grep:** zero hits for telemetry, analytics, posthog or sentry in the shadcn
+  4.21.4 tarball, and no install scripts.
+- **The DS had to change (3.9.1).** Tailwind's bundler inlines `@import "x.css"` but leaves
+  `@import url("x.css")` where it stands, which the browser then drops as a misplaced import.
+  Every DS index file used the `url()` form, so nothing from the DS loaded behind the bridge.
+  Patch: quoted imports everywhere in the shipped CSS, with a DS test that fails on `url()`.
+- **DS class names collide with Tailwind utilities.** Tailwind generates `.text-muted`,
+  `.container`, `.grid`, `.table`, `.sr-only`, `.mt-6` and `.mb-6` the moment the DS class of
+  the same name appears in a component, and the utilities layer wins, so DS `text-muted` turned
+  into the quiet-fill colour. `src/styles/index.css` lists them in `@source not inline(...)`;
+  `tests/tailwind-collisions.test.ts` compiles the entry with every DS class name as a
+  candidate and fails when any is generated, so the list cannot rot.
+- **`combobox` pulls in `input`, `textarea` and `input-group`** as registry dependencies, all
+  inside `src/components/ui/`. They carry the same house edits (44 px, DS focus ring).
+- **Base UI's combobox is modal while open:** with the input outside the popup, the focus
+  manager marks everything else `aria-hidden` and traps focus. Two consequences in the house
+  edits: the toggle and clear buttons are `tabIndex={-1}` (the ARIA combobox pattern anyway),
+  and the input takes `aria-labelledby` as well as the label's `htmlFor` so its name survives
+  the hidden label. On the full page, the header pickers are hidden focusables for that
+  moment, which axe's `aria-hidden-focus` reports although the trap makes them unreachable; the
+  e2e scan disables that one rule for the combobox-open state only, with the reason next to it.
+- **Base UI's menu is modal by default**, so "pickers still work with a menu open" (§ 14) is
+  really "a press on a picker closes the menu, and the picker then works". The e2e test says
+  that.
+- **Biome rejected the generated `role="group"` divs** and the addon's click-to-focus handler
+  (`useSemanticElements`, `useKeyWithClickEvents`). Both removed in `input-group.tsx`: the input
+  is named by its label, and a 44 px button fills the addon anyway.
+- **TypeScript 7 has removed `baseUrl`**; `paths` alone resolves `@/*`.
+- **The nova preset installs `@fontsource-variable/geist`**; removed, the DS fonts are the fonts.
+- **Popup animations and tests.** Both test contexts run with `reducedMotion: "reduce"`, so the
+  DS rule silences `tw-animate-css` and axe reads a settled element instead of a 95 % zoom frame.

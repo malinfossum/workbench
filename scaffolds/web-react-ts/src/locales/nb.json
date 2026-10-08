@@ -10,5 +10,22 @@
 	"price.example": "Eksempelpris: {price}",
 	"counter.label": "Antall:",
 	"counter.decrease": "Reduser antall",
-	"counter.increase": "Øk antall"
+	"counter.increase": "Øk antall",
+	"counter.reset": "Nullstill",
+	"dialog.close": "Lukk",
+	"combobox.clear": "Tøm",
+	"combobox.toggle": "Vis alternativer",
+	"combobox.empty": "Ingen treff",
+	"reset.title": "Nullstille antallet?",
+	"reset.description": "Antallet går tilbake til null. Dette kan ikke angres.",
+	"reset.cancel": "Avbryt",
+	"reset.confirm": "Nullstill",
+	"examples.title": "shadcn-eksempler",
+	"menu.label": "Sorter",
+	"menu.name": "Navn",
+	"menu.date": "Dato",
+	"menu.size": "Størrelse",
+	"example.currency": "Velg en valuta",
+	"status.sorted": "Sortert etter {value}",
+	"status.currency": "Valuta: {value}"
 }

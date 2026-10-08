@@ -8,12 +8,18 @@
    navigator.languages and prefers-color-scheme.
    ====================================================================== */
 
+import { fileURLToPath } from "node:url"
+import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), tailwindcss()],
+	// "@/": src/. What the shadcn CLI and its docs assume; mirrored in tsconfig.json.
+	resolve: {
+		alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+	},
 	// If you deploy to GitHub Pages under a repo name, set:
 	// base: '/your-repo-name/',
 	test: {
@@ -35,7 +41,12 @@ export default defineConfig({
 					browser: {
 						enabled: true,
 						headless: true,
-						provider: playwright({ contextOptions: { locale: "en-US", colorScheme: "dark" } }),
+						// reducedMotion: the DS reduced-motion rule then silences every
+						// popup animation, so axe and the geometry checks read a settled
+						// element instead of a frame of a 100 ms fade-in.
+						provider: playwright({
+							contextOptions: { locale: "en-US", colorScheme: "dark", reducedMotion: "reduce" },
+						}),
 						instances: [{ browser: "chromium" }],
 					},
 				},
