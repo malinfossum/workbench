@@ -46,7 +46,7 @@ npm run check          # format + lint + organize imports (write changes)
 - `src/locales/`: UI strings, one JSON bundle per language; `tests/locales.test.js` fails when bundles drift, a value hard-codes a price, or a picker key is missing
 - `src/styles/main.css`: project-specific overrides
 - `tests/`: model and controller tests (DOM-free), view tests (jsdom), `tests/a11y/` component a11y tests (jsdom + axe-core), `tests/e2e/` browser tests (Puppeteer), node's built-in runner
-- `design-system/`: read-only foundation, do not edit
+- `design-system/`: read-only foundation, do not edit. `tokens/tailwind.css` rides along from extract and is never imported here; it only does something under Tailwind, which this scaffold does not use
 - `i18n/`: read-only translator (`t`, `plural`, `resolveLang`, `displayName`, `money`), refresh with the extract tool
 
 ## Preferences: language, theme, currency

@@ -3,6 +3,26 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.9.0 — 2026-10-08
+
+The Tailwind bridge from the shadcn spec (`docs/specs/2026-10-08-shadcn-web-react-ts.md`).
+Additive; nothing existing changes.
+
+- **New `tokens/tailwind.css`**: one `@theme inline` block that maps Tailwind's `--color-*`
+  names onto DS tokens (`--color-background: var(--page-bg)`, `--color-primary:
+  var(--accent-solid)`, `--color-input: var(--control-border)`, the semantic and chart
+  colours, the sidebar set), plus `--font-heading` and `--shadow-ring` (the DS focus ring as
+  a Tailwind shadow). It resets Tailwind's default palette first, so a stray `bg-red-500`
+  renders nothing, and declares the `dark` variant on `html[data-theme="dark"]`. shadcn's bare
+  names (`--background`, `--primary`, `--radius`) are never defined: they collide with DS
+  names. Radius, font families, text sizes and small shadows are not mapped on purpose;
+  the DS declares the same names in a later cascade layer and wins.
+- `tokens/index.css` does **not** import it. The React scaffold's CSS entry imports it
+  unlayered after `tailwindcss/theme.css`; web-vite receives it through extract and ignores
+  it. Browsers ignore `@theme`, so the file is inert without Tailwind.
+- A test checks that every `var()` in the bridge exists in `tokens/`, that `index.css` leaves
+  it out, and that the dark variant targets `data-theme`.
+
 ## 3.8.0 — 2026-10-01
 
 Preference pickers and the theme model from the locale standard

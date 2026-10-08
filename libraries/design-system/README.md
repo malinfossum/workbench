@@ -26,7 +26,7 @@ Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 
 ## Structure
 
-- `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes)
+- `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes) and `tailwind.css` (the Tailwind bridge, not part of `index.css`)
 - `base/`: `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
 - `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
 - `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon`, `picker` (CSS) + `icons.js` (the SVG set) + `picker.js` (picker behaviour)
@@ -170,6 +170,28 @@ with any palette including the default:
 
 Opt in with `<html data-typeskin="fraunces">`. Skins compose with color palettes
 (`data-palette`). Set both attributes to combine them.
+
+## Tailwind and shadcn
+
+`tokens/tailwind.css` (3.9.0) maps Tailwind's theme namespace onto the DS tokens so shadcn/ui
+components paint with the DS colours, fonts and focus ring in both themes and every palette.
+It is one `@theme inline` block: `--color-background` is `var(--page-bg)`, `--color-primary`
+and `--color-primary-foreground` are the solid-button pair, `--color-input` is the SC 1.4.11
+control boundary, `--color-ring` is `--accent-strong`, and `--shadow-ring` is `--shadow-focus`
+so `focus-visible:shadow-ring` draws the DS focus ring on a shadcn control. shadcn's own
+"secondary" and "accent" are quiet fills, so they map to `--interactive-bg` and
+`--accent-ghost`; the DS brand hue is exposed as `--color-brand-secondary`. The file resets
+Tailwind's default palette first (a stray `bg-red-500` renders nothing) and declares the
+`dark` variant on `html[data-theme="dark"]`, so no `.dark` class ever exists.
+
+Three things are deliberate. shadcn's bare names (`--background`, `--primary`, `--radius`)
+are never defined: `--accent`, `--secondary` and `--radius-*` already mean something else
+here. Radius, font families, text sizes and the small shadows are not mapped: the DS declares
+the same names in a later cascade layer, so `rounded-md` and `font-sans` read DS values
+anyway. And `tokens/index.css` does not import the file: the React scaffold's CSS entry imports
+it unlayered, after `tailwindcss/theme.css`. Browsers ignore `@theme`, so the file is inert
+wherever Tailwind is not installed; `web-vite` ships it unused. The cascade order, the house
+edits and the components live in `docs/specs/2026-10-08-shadcn-web-react-ts.md`.
 
 ## Versioning
 

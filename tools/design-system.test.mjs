@@ -684,11 +684,44 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
 });
 
-test("VERSION is 3.8.0 and README documents the identity, the icon set, the file picker, toggle buttons and the pickers", () => {
-	assert.equal(read("VERSION").trim(), "3.8.0");
+test("VERSION is 3.9.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers and the Tailwind bridge", () => {
+	assert.equal(read("VERSION").trim(), "3.9.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.8\.0 — /m, "CHANGELOG must carry the 3.8.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.9\.0 — /m, "CHANGELOG must carry the 3.9.0 entry");
+});
+
+test("tailwind bridge: every var() resolves to a DS token, index.css leaves it out, the dark variant keys on data-theme", () => {
+	const bridge = read("tokens/tailwind.css");
+	const declared = new Set();
+	for (const file of readdirSync(join(DS, "tokens")).filter((f) => f.endsWith(".css") && f !== "tailwind.css")) {
+		for (const [, name] of read(`tokens/${file}`).matchAll(/(--[a-z0-9-]+):/g)) declared.add(name);
+	}
+	const used = [...bridge.matchAll(/var\((--[a-z0-9-]+)\)/g)].map((m) => m[1]);
+	assert.ok(used.length >= 40, `expected the full mapping, got ${used.length} var() references`);
+	for (const name of used) assert.ok(declared.has(name), `${name} is referenced by tailwind.css but declared in no tokens/*.css`);
+
+	assert.match(bridge, /^@theme inline \{/m, "the mapping must be one @theme inline block");
+	assert.match(bridge, /--color-\*: initial;/, "Tailwind's default palette must be reset before the mapping");
+	assert.match(bridge, /^@custom-variant dark \(&:where\(\[data-theme="dark"\], \[data-theme="dark"\] \*\)\);$/m, "dark variant must key on html[data-theme], not .dark");
+	assert.ok(!bridge.includes(".dark"), "no .dark class anywhere in the bridge");
+	for (const bare of ["--background:", "--primary:", "--radius:", "--radius-sm:", "--font-sans:", "--shadow-focus:"]) {
+		assert.ok(!bridge.includes(bare), `${bare} must not be declared by the bridge (collides or self-references)`);
+	}
+	for (const [tw, ds] of [
+		["--color-background", "--page-bg"],
+		["--color-primary", "--accent-solid"],
+		["--color-primary-foreground", "--on-accent"],
+		["--color-input", "--control-border"],
+		["--color-ring", "--accent-strong"],
+		["--color-accent", "--accent-ghost"],
+		["--color-brand-secondary", "--secondary"],
+		["--font-heading", "--font-display"],
+		["--shadow-ring", "--shadow-focus"],
+	]) {
+		assert.ok(bridge.includes(`${tw}: var(${ds});`), `${tw} must map to ${ds}`);
+	}
+	assert.ok(!read("tokens/index.css").includes("tailwind"), "tokens/index.css must not import the bridge; the scaffold entry does");
 });
