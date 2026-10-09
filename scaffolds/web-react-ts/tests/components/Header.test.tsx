@@ -57,10 +57,10 @@ test("rows carry the markup the spec asks for", async () => {
 	// Language rows: lang on every row, the System row's autonym in its own span.
 	const langRows = root.querySelectorAll<HTMLElement>('[data-picker="lang"] .picker-row')
 	expect([...langRows].map((row) => row.getAttribute("lang"))).toEqual([null, "en", "nb"])
-	expect(langRows[0].querySelector("span[lang='en']")?.textContent).toBe("English")
-	expect(langRows[0].getAttribute("aria-current")).toBe("true")
-	expect(langRows[0].querySelector("svg.icon")).not.toBeNull()
-	expect(langRows[1].querySelector("svg.icon")).toBeNull()
+	expect(langRows[0]?.querySelector("span[lang='en']")?.textContent).toBe("English")
+	expect(langRows[0]?.getAttribute("aria-current")).toBe("true")
+	expect(langRows[0]?.querySelector("svg.icon")).toBeTruthy()
+	expect(langRows[1]?.querySelector("svg.icon")).toBeNull()
 
 	// Currency rows: decorative flag, code column, Intl name; the trigger shows
 	// the active flag. In dev the URL keeps its ?no-inline query; the build
