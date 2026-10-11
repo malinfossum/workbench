@@ -11,7 +11,7 @@ const screenFiles = readdirSync(resolve(LIB, "screens")).filter((f) => f.endsWit
 test("index.html loads every screen file, in the documented order", () => {
   // Storyboard-local scripts only — the design-system theme-toggle tag
   // (../design-system/…) loads first and is not part of the documented order.
-  const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)]
+  const srcs = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)]
     .map((m) => m[1])
     .filter((s) => !s.startsWith("../"));
   for (const f of screenFiles) {
