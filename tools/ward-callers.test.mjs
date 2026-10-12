@@ -6,6 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const WORKBENCH = resolve(import.meta.dirname, "..");
 const WARD = resolve(WORKBENCH, "..", "ward");
@@ -61,6 +62,43 @@ test("C# scaffolds keep .cs files CRLF and mark EF migrations as generated", () 
       read(scaffold(s, ".editorconfig")),
       /^\[\*\*\/Migrations\/\*\.cs\]\ngenerated_code = true$/m,
       `scaffolds/${s}/.editorconfig`,
+    );
+  }
+});
+
+// The caller is what Ward's skill writes for the scaffold's inputs: every input
+// the template knows, in its order, with its comment in the template's column.
+// A scaffold may add comment-only note lines inside the with: block.
+const INPUT = /^\s+([\w-]+):\s*("([^"]*)"|[^\s#]*)\s*(#.*)?$/;
+const callerLines = (s) => read(scaffold(s, ".github", "workflows", "ward.yml")).split("\n");
+const withRange = (lines) => {
+  const start = lines.indexOf("    with:");
+  const end = lines.findIndex((l, i) => i > start && l.trim() === "");
+  return [start, end];
+};
+const inputsOf = (lines) => {
+  const [start, end] = withRange(lines);
+  const inputs = {};
+  for (const line of lines.slice(start + 1, end)) {
+    const m = line.match(INPUT);
+    if (m) inputs[m[1]] = m[3] ?? m[2];
+  }
+  return inputs;
+};
+const withoutNotes = (lines) => {
+  const [start, end] = withRange(lines);
+  return lines.filter((l, i) => !(i > start && i < end && /^\s*#/.test(l)));
+};
+
+test("scaffold callers are Ward's template rendered with the scaffold's inputs", { skip: noWard }, async () => {
+  const { renderCaller } = await import(pathToFileURL(join(WARD, "tools", "apply.mjs")));
+  const template = read(wardTemplate);
+  for (const s of SCAFFOLDS) {
+    const lines = callerLines(s);
+    assert.equal(
+      withoutNotes(lines).join("\n"),
+      renderCaller(template, inputsOf(lines)),
+      `scaffolds/${s}/.github/workflows/ward.yml drifted from Ward's template`,
     );
   }
 });
