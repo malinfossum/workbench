@@ -19,10 +19,11 @@ layered API + repository shape: controller → service → repository → DbCont
 2. Rename `App.slnx`, each `App.*` project + folder, and `App.Api.http` to `<YourName>.*`
    (find/replace `App.` across files).
 3. `dotnet tool restore && dotnet restore && dotnet build && dotnet test`
-4. Create the database:
-   `dotnet ef migrations add Init --project <YourName>.Data --startup-project <YourName>.Api`
-   `dotnet ef database update    --project <YourName>.Data --startup-project <YourName>.Api`
-   Commit that first migration: the Ward caller in `.github/workflows/ward.yml` runs the EF pending-model check, which is red until one exists.
+4. Create the database from the `Init` migration the scaffold ships:
+   `dotnet ef database update --project <YourName>.Data --startup-project <YourName>.Api`
+   Every model change after that needs `dotnet ef migrations add <Name>` with the same two flags,
+   committed together with the change: the Ward caller in `.github/workflows/ward.yml` runs the
+   EF pending-model check and is red until the migration exists.
 5. `dotnet run --project <YourName>.Api` and send the requests in `<YourName>.Api.http`.
 
 ## Where your data lives

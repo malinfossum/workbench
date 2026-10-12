@@ -28,8 +28,9 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 npm run dev            # start dev server
 npm run build          # typecheck, then build for production
 npm run preview        # preview the build
-npm test               # service + component tests (vitest)
-npm run test:e2e       # build, serve and scan the page with axe (playwright)
+npm test               # service tests in Node (vitest)
+npm run test:browser   # component tests in real Chromium (vitest)
+npm run test:e2e       # component tests, then build, serve and scan the page with axe (playwright)
 npm run typecheck      # tsc --noEmit only
 
 npm run format         # format files in place
@@ -135,7 +136,7 @@ and do not add a second one.
 Three layers, cheapest first:
 
 1. **Service tests** (`npm test`, `unit` project): pure logic in `src/services/`, run in Node. Most of your tests belong here.
-2. **Component tests** (`npm test`, `browser` project): `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`.
+2. **Component tests** (`npm run test:browser`, `browser` project): `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`. `npm run test:e2e` runs these first, so Ward covers them in CI: it installs Chromium before `test:e2e`, not before `test`.
 3. **Full-page scan** (`npm run test:e2e`): Playwright builds the app, serves the preview and scans it with axe in dark and light theme, in Norwegian, and with each picker open. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. `e2e/preferences.spec.ts` also proves the theme rule against a real colour scheme, the storage event between two pages, the keyboard walk and the header at 320 px. Add a test per route as you build them.
 
 `.github/workflows/ward.yml` calls [Ward](https://github.com/malinfossum/ward), which runs the linter, the type check and all three layers on every pull request.
