@@ -10,6 +10,7 @@ Module-based MVC starter, Vite + Biome. Use this for personal projects and anyth
 - Mobile-first responsive baseline
 - Accessibility defaults (focus rings, reduced-motion, forced-colors, skip link)
 - Biome (formatter + linter + import organizer)
+- VS Code setup (`.vscode/`): recommends Biome and EditorConfig, formats, fixes and sorts imports on save
 - Tests via node's built-in runner (`tests/`): model, controller and view tests, locale key-drift check, axe-core component a11y tests, Puppeteer e2e tests for the pickers
 
 ## First 5 steps

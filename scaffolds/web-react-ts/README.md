@@ -11,6 +11,7 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 - Component → hook → service layering with a small Counter example (delete it when you start)
 - Strict TypeScript (`tsc --noEmit` runs before every build)
 - Biome (formatter + linter with the React rules domain + import organizer)
+- VS Code setup (`.vscode/`): recommends Biome, Tailwind CSS IntelliSense and EditorConfig, formats, fixes and sorts imports on save
 - Tests via Vitest (`tests/`): service tests in Node, component tests in real Chromium (axe-core, ARIA snapshots, keyboard)
 - Full-page accessibility scan via Playwright + axe (`e2e/`), both themes, gated in CI
 
