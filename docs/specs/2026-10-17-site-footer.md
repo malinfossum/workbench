@@ -11,9 +11,9 @@
 
 ## 1. Why
 
-My reference for web chrome is the Sanity.io footer: a small muted label over a row of plain
-brand icons, short small uppercase text, and a theme switcher as three icons in a pill. It is
-clean because it spends words only where an icon cannot carry the meaning. Every project I ship
+The footer I want is a small muted label over a row of plain brand icons, short small
+uppercase text, and a theme switcher as three icons in a pill. It is clean because it spends
+words only where an icon cannot carry the meaning. Inspired by the footer on sanity.io. Every project I ship
 needs a footer, and today each one invents its own. This spec gives them one.
 
 ## 2. The rule
@@ -74,7 +74,7 @@ Markup, in reading order (the same at every width):
   never in the middle.
 - **Label and note** share one text style: `0.75rem`, `line-height: 1rem`, uppercase through
   `text-transform`, `letter-spacing: 0.14em`, `var(--text-muted)`. The note is two short lines
-  (each `span` is `display: block`), like Sanity's small text.
+  (each `span` is `display: block`).
 - **Icon links** at the start of the bar get `margin-inline-start: -0.75rem` below 1024 px, so
   the 20 px glyph lines up with the text above while the 44 px target stays whole.
 - The bar is a `.control-row` (3.10.0), so every control in it shares one height and one bottom
