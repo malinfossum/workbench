@@ -4,7 +4,7 @@
 
 One source-of-truth home for reusable libraries and copy-to-start scaffolds. Libraries are edited here and extracted into projects; scaffolds are copied once and owned by the project.
 
-**Front door:** [`index.html`](./index.html), the dashboard GitHub Pages serves. It links every tier.
+**Live:** [malinfossum.github.io/workbench](https://malinfossum.github.io/workbench/), served by GitHub Pages from [`index.html`](./index.html). It links every tier.
 
 ## Structure
 
