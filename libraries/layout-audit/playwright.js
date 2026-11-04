@@ -3,7 +3,7 @@
    violation and attaches a screenshot with each violator outlined in red. */
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
-import { cellName, cells, knownFor, TEXT_SPACING_CSS, textSizeCss, VIEWPORT_HEIGHT, validateKnown, verdict } from "./shared.js";
+import { cellName, cells, knownFor, TEXT_SPACING_CSS, textSizeCss, unreachableKnown, VIEWPORT_HEIGHT, validateKnown, verdict } from "./shared.js";
 
 const AUDIT = fileURLToPath(new URL("./audit.js", import.meta.url));
 
@@ -33,6 +33,11 @@ export async function checkLayout(page, cell, { locale, known = [], checkLang = 
 
 export function layoutSuite({ paths, locales = ["en-US"], known = [], checkLang = true }) {
 	validateKnown(known);
+	const unreachable = unreachableKnown(known, paths, locales);
+	if (unreachable.length > 0) {
+		const scope = (k) => ["paths", "widths", "textSizes", "locales", "spacing"].filter((f) => k[f] !== undefined).map((f) => `${f}: ${JSON.stringify(k[f])}`).join(", ");
+		throw new Error(unreachable.map((k) => `known entry matches no cell: ${k.contract} ${k.selector} (${scope(k)})`).join("\n"));
+	}
 	for (const locale of locales) {
 		test.describe(`layout, ${locale}`, () => {
 			test.use({ locale, reducedMotion: "reduce", bypassCSP: true });

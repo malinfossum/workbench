@@ -1,5 +1,11 @@
 import type { Page } from "@playwright/test"
 
+export const CONTRACTS: Contract[]
+
+export function validateKnown(known: KnownViolation[]): void
+
+export function unreachableKnown(known: KnownViolation[], paths: LayoutPath[], locales: string[]): KnownViolation[]
+
 export type Contract =
 	| "control-row"
 	| "switcher"

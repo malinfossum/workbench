@@ -23,10 +23,25 @@ export function cells(paths) {
 
 export const cellName = (cell) => `${cell.path} at ${cell.width} px, text ${cell.textSize} %${cell.spacing ? ", WCAG 1.4.12 spacing" : ""}`;
 
+export const CONTRACTS = [
+	"control-row",
+	"switcher",
+	"row-list",
+	"card-grid",
+	"label",
+	"control-floor",
+	"clipped-text",
+	"no-sideways-scroll",
+	"data-align",
+];
+
 export function validateKnown(known) {
 	for (const entry of known) {
 		if (!entry.contract || !entry.selector || !entry.reason?.trim()) {
 			throw new Error(`a known violation needs contract, selector and a one-line reason: ${JSON.stringify(entry)}`);
+		}
+		if (!CONTRACTS.includes(entry.contract)) {
+			throw new Error(`unknown contract "${entry.contract}" in known entry ${entry.selector}; use one of: ${CONTRACTS.join(", ")}`);
 		}
 	}
 }
@@ -56,4 +71,10 @@ export function verdict(report, { cell, locale, lang, status }) {
 	for (const v of report.violations) if (!v.known) errors.push(`${v.message} (${v.selector})`);
 	for (const k of report.stale) errors.push(`known entry no longer reproduces, remove it: ${k.contract} ${k.selector} (${k.reason})`);
 	return errors;
+}
+
+// Entries whose scope matches no cell of the matrix: they would never be checked, so a typo would pass green forever.
+export function unreachableKnown(known, paths, locales) {
+	const all = cells(paths);
+	return known.filter((k) => !all.some((c) => locales.some((l) => knownFor([k], c, l).length > 0)));
 }

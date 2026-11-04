@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { checkLayout } from "../playwright.js";
+import { checkLayout, layoutSuite } from "../playwright.js";
 import { cells, knownFor, validateKnown } from "../shared.js";
 
 const GOOD = "/libraries/layout-audit/fixtures/good.html";
@@ -65,4 +65,13 @@ test("the matrix has six widths at two text sizes plus two spacing cells per pat
 	expect(all).toHaveLength(28);
 	expect(all.filter((c) => c.spacing).map((c) => c.width)).toEqual([320, 1280, 320, 1280]);
 	expect(all.filter((c) => c.path === "/b").every((c) => c.expectPrimitives === 0)).toBe(true);
+});
+
+test("a known entry that no matrix cell can reach makes the suite throw", () => {
+	const known = [{ contract: "control-row", selector: "#x", reason: "typo in scope", widths: [999] }];
+	expect(() => layoutSuite({ paths: [GOOD], known })).toThrow(/known entry matches no cell: control-row #x \(widths: \[999\]\)/);
+});
+
+test("a known entry with an unknown contract name is refused", () => {
+	expect(() => validateKnown([{ contract: "control-rows", selector: "#x", reason: "typo" }])).toThrow(/unknown contract "control-rows".*#x/);
 });
