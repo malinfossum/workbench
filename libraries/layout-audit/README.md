@@ -16,7 +16,7 @@ Checks that UI built from my design system primitives lines up, in a real browse
 | `no-sideways-scroll` | the page | The page is never wider than the viewport |
 | `data-align` | `data-align` | The value is one of `row`, `switch`, `rows`, `slots`, `label` |
 
-Hidden elements are skipped with `checkVisibility()`, and so are 1 px visually hidden boxes. A primitive that holds items in a zero-width box is reported.
+Hidden elements are skipped with `checkVisibility()`, and so are 1 px visually hidden boxes. A primitive that holds items in a collapsed or overflowing box is reported: a zero-size box, or a query container whose content is wider than the container (the message names the width the content needs).
 
 ## Use it
 
@@ -57,7 +57,7 @@ A cell fails when:
     	known: [{ contract: "row-list", selector: ".helplines", reason: "fix after the adoption preview", widths: [320, 375] }],
     })
 
-`selector` matches the violator or any ancestor; a selector that matches `html`, `body` or `main` is refused, since it would silence the whole page. `reason` is required. `paths`, `widths`, `textSizes`, `locales` and `spacing` scope an entry to the cells it names.
+`selector` matches the violator or any ancestor; a selector that matches `html`, `body` or `main`, or a wrapper that contains `main` (`#root`, `body > *`), is refused, since it would silence the whole page. `reason` is required. `paths`, `widths`, `textSizes`, `locales` and `spacing` scope an entry to the cells it names.
 
 ## Before Claude shows me UI
 

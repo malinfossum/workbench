@@ -104,8 +104,10 @@ test("interactive controls are 44px, the touch-target floor", () => {
 	// asks for 24x24, so 42px was never a conformance failure — but 44x44 is the house standard
 	// from 2.5.5 Enhanced, and it is the number consumers write their own a11y checks against.
 	// Wend synced 1.2.0 -> 2.0.1, its 44px rule met a 42px bundle, and this assertion was
-	// happily green the whole time. Asserting an inequality rather than an exact string is the
-	// difference: a future shape pass may raise these, and only a DROP should fail.
+	// happily green the whole time. Since 3.10.0 every control reads its floor from the
+	// --control-height token as min-block-size: this test checks each control file uses the
+	// token, the token is at least 2.75rem (raising it passes, dropping it fails) and
+	// .icon-btn takes the token as its inline size.
 	const FLOOR_REM = 2.75;
 	for (const file of ["components/button.css", "components/input.css", "components/tabs.css"]) {
 		assert.match(read(file), /min-block-size: var\(--control-height\);/, `${file}: the control lost its floor`);

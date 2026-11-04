@@ -65,3 +65,28 @@ test("mark: true outlines each violator without moving anything", async ({ page 
 	await expect(page.locator("#bad-row")).toHaveAttribute("data-layout-violation", "control-row");
 	await expect(page.locator("#layout-audit-outline")).toHaveCount(1);
 });
+
+test("a collapsed or overflowing container names its size and what the content needs", async ({ page }) => {
+	const { violations } = await audit(page, "bad.html", 320);
+	const box = violations.find((v) => v.contract === "row-list" && v.selector === "#bad-collapsed");
+	expect(box?.message).toMatch(/collapsed/);
+	expect(box?.message).toMatch(/^row-list: \d+ items? in a collapsed or overflowing [\d.]+ x [\d.]+ px box/);
+});
+
+test("a known entry on a wrapper that contains main is refused", async ({ page }) => {
+	await audit(page, "bad.html", 320);
+	const error = await page.evaluate(() => {
+		const main = document.querySelector("main");
+		const wrapper = document.createElement("div");
+		wrapper.className = "app-shell";
+		main.before(wrapper);
+		wrapper.append(main);
+		try {
+			globalThis.auditLayout(document, { known: [{ contract: "control-row", selector: ".app-shell", reason: "silence everything" }] });
+			return null;
+		} catch (e) {
+			return e.message;
+		}
+	});
+	expect(error).toMatch(/^known entry selector covers the whole page: \.app-shell/);
+});

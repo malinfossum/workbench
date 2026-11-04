@@ -352,7 +352,7 @@ const GALLERY_SECTIONS = [
           demo: `
             <div class="card-grid">
               <article class="card"><h3>Legevakt</h3><p class="cluster cluster-sm"><span class="badge">Døgnåpen</span></p><p>Akutt hjelp når fastlegen er stengt.</p><div class="control-row"><a class="btn" href="#">Ring 116 117</a></div></article>
-              <article class="card"><h3>Barnevernsvakten i Oslo og omegn</h3><div></div><p>Svarer hele døgnet.</p><div class="control-row"><a class="btn" href="#">Ring 116 111</a></div></article>
+              <article class="card"><h3>Barnevern, akuttvakt for Oslo og omegn</h3><div></div><p>Svarer hele døgnet.</p><div class="control-row"><a class="btn" href="#">Ring 116 111</a></div></article>
             </div>`,
         }) +
         specimen({

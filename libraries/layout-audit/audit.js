@@ -203,14 +203,16 @@
 		return found;
 	}
 
-	// A known entry names one component. One that matches the root, body or main
-	// would silence the whole page, so it is refused.
+	// A known entry names one component. One that matches the root, body or main,
+	// or a wrapper that contains main (#root, body > *, .app-shell), would silence
+	// the whole page, so it is refused.
 	function matchKnown(doc, found, known) {
 		const page = [doc.documentElement, doc.body, doc.querySelector("main")].filter(Boolean);
+		const root = doc.querySelector("main") ?? doc.body;
 		return known.filter((entry) => {
 			let whole;
 			try {
-				whole = page.some((el) => el.matches(entry.selector));
+				whole = page.some((el) => el.matches(entry.selector)) || root?.closest(entry.selector) != null;
 			} catch {
 				throw new Error(`known entry has an invalid selector: ${entry.selector}`);
 			}
@@ -268,8 +270,11 @@
 			const squeezed = contained && container.scrollWidth > container.clientWidth + TOLERANCE;
 			if (box.width <= TOLERANCE || box.height <= TOLERANCE || squeezed) {
 				// An empty primitive is fine; one that holds items in a zero box is a bug.
+				const count = `${items.length} ${items.length === 1 ? "item" : "items"}`;
+				const size = `${Math.round(box.width * 10) / 10} x ${px(box.height)}`;
+				const needs = squeezed ? ` (content needs ${px(container.scrollWidth)})` : "";
 				for (const contract of contracts) {
-					if (items.length > 0) add(contract, container, `${items.length} items in a collapsed ${px(box.width)} x ${px(box.height)} box`);
+					if (items.length > 0) add(contract, container, `${count} in a collapsed or overflowing ${size} box${needs}`);
 				}
 				if (items.length > 0) primitives += contracts.size;
 				continue;

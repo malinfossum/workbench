@@ -2,7 +2,9 @@
    drops a column when the container cannot fit one more. No viewport media query,
    so the same grid works in a sidebar and at 200 % text.
    .grid-2 and .grid-3 cap the count with max(): the minimum column is at least a
-   half (a third) of the row, so auto-fit never makes more columns than the name. */
+   half (a third) of the row, so auto-fit never makes more columns than the name.
+   Change a grid's gap with --grid-gap, never with gap: the column cap reads
+   --grid-gap, so a plain gap override drops a column. */
 .grid {
 	--grid-gap: var(--space-5);
 	display: grid;
