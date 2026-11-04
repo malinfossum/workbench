@@ -134,13 +134,15 @@ and do not add a second one.
 
 ## Testing
 
-Three layers, cheapest first:
+Four layers, cheapest first:
 
 1. **Service tests** (`npm test`, `unit` project): pure logic in `src/services/`, run in Node. Most of your tests belong here.
 2. **Component tests** (`npm run test:browser`, `browser` project): `tests/components/` renders each component in real Chromium with the design-system CSS loaded, then checks axe finds no violations (colour contrast included), the accessibility tree matches its ARIA snapshot, and it works from the keyboard. Copy `tests/components/Counter.test.tsx` for every new component. After an intended markup change, update snapshots with `npx vitest -u`. `npm run test:e2e` runs these first, so Ward covers them in CI: it installs Chromium before `test:e2e`, not before `test`.
 3. **Full-page scan** (`npm run test:e2e`): Playwright builds the app, serves the preview and scans it with axe in dark and light theme, in Norwegian, and with each picker open. This is where document-level rules (lang, title, landmarks, one `h1`) are checked. `e2e/preferences.spec.ts` also proves the theme rule against a real colour scheme, the storage event between two pages, the keyboard walk and the header at 320 px. Add a test per route as you build them.
 
-`.github/workflows/ward.yml` calls [Ward](https://github.com/malinfossum/ward), which runs the linter, the type check and all three layers on every pull request.
+4. **Layout audit** (`e2e/layout.spec.ts`, part of `npm run test:e2e`). Every route at 320 to 1920 px, at 100 and 200 % text, in every locale, plus WCAG 1.4.12 text spacing. It fails with the element and the measured numbers when a primitive's contract breaks, and attaches a screenshot with the violators outlined. Build rows of controls, switchers, row lists and card grids from `src/components/layout.tsx`; a row hand-rolled with Tailwind utilities is a review finding. `e2e/layout-audit/` is extracted from the workbench and never ships: `tests/bundle.test.ts` fails if it reaches the build.
+
+`.github/workflows/ward.yml` calls [Ward](https://github.com/malinfossum/ward), which runs the linter, the type check and all four layers on every pull request.
 
 Automated checks catch only a third to a half of WCAG issues, and never keyboard order, focus traps, focus return, or whether labels make sense. Before shipping a component, check it with a keyboard (tab order, arrow and Escape on menus, focus return on close) and a screen reader.
 

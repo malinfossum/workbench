@@ -16,7 +16,8 @@
 			"!node_modules",
 			"!**/*.min.js",
 			"!design-system",
-			"!i18n"
+			"!i18n",
+			"!e2e/layout-audit"
 		]
 	},
 	"formatter": {
