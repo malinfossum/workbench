@@ -25,6 +25,8 @@ function shippedCss() {
 }
 
 test("--control-height is declared once, at least 2.75rem (44 px)", () => {
+	const declarations = shippedCss().flatMap(([file, css]) => [...css.matchAll(/--control-height:/g)].map(() => file));
+	assert.equal(declarations.length, 1, `--control-height must be declared exactly once, found in: ${declarations.join(", ")}`);
 	const value = read("tokens/spacing.css").match(/--control-height:\s*([\d.]+)rem;/)?.[1];
 	assert.ok(value, "tokens/spacing.css must declare --control-height in rem");
 	assert.ok(Number(value) >= 2.75, `--control-height is ${value}rem, under the 2.75rem (44 px) floor`);
@@ -72,7 +74,10 @@ test(".row-list: one shared grid, one container query decides beside or below fo
 test(".card-grid: auto-fit columns that never overflow, cards take --card-slots rows as a subgrid", () => {
 	const css = read("primitives/card-grid.css");
 	assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, var\(--card-min\)\), 1fr\)\);/);
-	assert.match(css, /\.card-grid > \.card \{[^}]*--card-slots: 4;[^}]*display: grid;[^}]*grid-row: span var\(--card-slots\);[^}]*grid-template-rows: subgrid;/s);
+	// The default sits on the grid, so cards inherit it and a class on one card wins.
+	assert.match(css, /\.card-grid \{[^}]*--card-slots: 4;/s);
+	assert.match(css, /\.card-grid > \.card \{[^}]*display: grid;[^}]*grid-row: span var\(--card-slots\);[^}]*grid-template-rows: subgrid;/s);
+	assert.doesNotMatch(css, /\.card-grid > \.card \{[^}]*--card-slots:/s, "the default belongs on .card-grid, where a class on a card can override it");
 	assert.match(css, /\.card-grid > \.card > \* \{[^}]*min-inline-size: 0;[^}]*overflow-wrap: anywhere;/s);
 	assert.doesNotMatch(read("components/card.css"), /subgrid/, "a standalone .card keeps its own layout; only .card-grid > .card is a subgrid");
 });

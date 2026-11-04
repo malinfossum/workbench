@@ -206,6 +206,8 @@ Layout is decided per group, never per item. Each of these primitives makes the 
 | `.card-grid` + `.card` | Auto-fit columns of at least `--card-min`; each card spans `--card-slots` rows as a subgrid | Slot k on one row shares one top edge |
 | `dt` / `dd`, `[data-align="label"]` | Label in `--text` at `--weight-label`, value muted | Label and value differ |
 
+Change a grid's gap with `--grid-gap`, never with `gap`: the `.grid-2`/`.grid-3` column cap reads `--grid-gap`, so a plain `gap` override drops a column. Set `--card-slots` on `.card-grid` for every card, or on one card to change only that card.
+
 For custom markup, `data-align="row|switch|rows|slots|label"` applies the matching contract. No primitive uses `order` or a reverse direction, so visual order is DOM order. Grids, `.split` and `.sidebar-layout` collapse by their own size (auto-fit, flex wrap), never by a `max-width` media query, and every fluid `clamp()` has a rem term so it follows text zoom.
 
 In React, use the scaffold's thin components (`<ControlRow>`, `<Switcher>`, `<RowList>`, `<CardGrid>`, `<Card>`). A row of controls hand-rolled with Tailwind utilities when a primitive fits is a review finding.

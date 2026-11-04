@@ -2,8 +2,9 @@
    column with one left edge. The list is the container: one container query
    decides beside or below for every row together, never row by row.
    Markup: each child is a row with two children, the content first and the
-   actions last (wrap several actions in one element). The list must be block-level: container-type sizes it from its parent,
-   so as a flex item that sizes to content it collapses to zero width.
+   actions last (wrap several actions in one element). The list must be
+   block-level: container-type sizes it from its parent, so as a flex item that
+   sizes to content it collapses to zero width.
    Contract (layout-audit "row-list"): one arrangement for all rows, one action edge. */
 .row-list {
 	container-type: inline-size;
@@ -17,7 +18,7 @@
 .row-list > * {
 	grid-column: 1 / -1;
 	display: grid;
-	gap: var(--space-2);
+	row-gap: var(--space-2);
 }
 .row-list > * > * {
 	min-inline-size: 0;
