@@ -24,6 +24,7 @@ jobs:
       dotnet-os: ubuntu-latest      # windows-latest for WPF
       dotnet-ef-project: "App.Data" # EF Core project, path from the repo root, e.g. "api/App.Data"
       dotnet-ef-startup-project: "App.Api" # startup project for dotnet ef when it differs, e.g. "api/App.Api"
+      powershell: ""                # Pester tests directory, e.g. "tests"; runs on windows-latest
 
   # CodeQL on every pull request, forks included; the main ruleset waits for its results.
   codeql:
@@ -31,11 +32,11 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: malinfossum/ward/.github/workflows/codeql.yml@6616cb64aca999157934d2a69d2af92d6e847011 # v1.4.0
+    uses: malinfossum/ward/.github/workflows/codeql.yml@98c70a64336c90ceef7b278c66778ad91f9f0314 # v1.7.0
 
   automerge:
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
       contents: write
       pull-requests: write
-    uses: malinfossum/ward/.github/workflows/dependabot-automerge.yml@81c5a32c5a0bdb52ea1f8e99fd314d41eb73b397 # v1.2.1
+    uses: malinfossum/ward/.github/workflows/dependabot-automerge.yml@9987863d40a510af9a27a223d8007a767a0020ad # v1.7.1
