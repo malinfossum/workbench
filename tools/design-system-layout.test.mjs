@@ -61,4 +61,25 @@ test("primitives/index.css imports control-row and switcher", () => {
 	for (const name of ["control-row", "switcher"]) assert.match(index, new RegExp(`@import "\\./${name}\\.css";`));
 });
 
+test(".row-list: one shared grid, one container query decides beside or below for every row", () => {
+	const css = read("primitives/row-list.css");
+	assert.match(css, /\.row-list \{[^}]*container-type: inline-size;[^}]*display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/s);
+	assert.match(css, /\.row-list > \* \{[^}]*grid-column: 1 \/ -1;[^}]*display: grid;/s);
+	assert.match(css, /@container \(min-width: [\d.]+rem\) \{\s*\.row-list > \* \{[^}]*grid-template-columns: subgrid;/s);
+	assert.match(css, /\.row-list > \* > \* \{[^}]*min-inline-size: 0;[^}]*overflow-wrap: anywhere;/s);
+});
+
+test(".card-grid: auto-fit columns that never overflow, cards take --card-slots rows as a subgrid", () => {
+	const css = read("primitives/card-grid.css");
+	assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, var\(--card-min\)\), 1fr\)\);/);
+	assert.match(css, /\.card-grid > \.card \{[^}]*--card-slots: 4;[^}]*display: grid;[^}]*grid-row: span var\(--card-slots\);[^}]*grid-template-rows: subgrid;/s);
+	assert.match(css, /\.card-grid > \.card > \* \{[^}]*min-inline-size: 0;[^}]*overflow-wrap: anywhere;/s);
+	assert.doesNotMatch(read("components/card.css"), /subgrid/, "a standalone .card keeps its own layout; only .card-grid > .card is a subgrid");
+});
+
+test("primitives/index.css imports row-list and card-grid", () => {
+	const index = read("primitives/index.css");
+	for (const name of ["row-list", "card-grid"]) assert.match(index, new RegExp(`@import "\\./${name}\\.css";`));
+});
+
 export { read, shippedCss };
