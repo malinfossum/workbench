@@ -1,0 +1,12 @@
+{
+	"name": "layout-audit-selftest",
+	"private": true,
+	"type": "module",
+	"description": "Self-test for libraries/layout-audit. Not shipped: extract copies only the files in extract.json.",
+	"scripts": {
+		"test": "playwright test"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.63.0"
+	}
+}

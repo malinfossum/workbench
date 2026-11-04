@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>layout-audit fixtures: every contract kept</title>
+		<link rel="stylesheet" href="/libraries/design-system/tokens/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/reset.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/base.css" />
+		<link rel="stylesheet" href="/libraries/design-system/primitives/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/components/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/utilities/index.css" />
+	</head>
+	<body>
+		<main class="container stack stack-lg section">
+			<h1>Every contract kept</h1>
+
+			<section class="stack" aria-labelledby="row-title">
+				<h2 id="row-title">Control row</h2>
+				<div class="control-row" id="row-good">
+					<button class="btn" type="button">Ring 113</button>
+					<button class="btn" type="button">Legevakt: ring 116 117 når det haster om natten</button>
+					<a class="btn" href="#kart">Kart</a>
+					<input class="input" type="search" aria-label="Søk" />
+				</div>
+				<div class="control-row" id="row-empty"></div>
+				<div class="control-row" id="row-one"><button class="btn" type="button">Alene</button></div>
+				<div class="control-row" id="row-file">
+					<input class="file-input-hidden" type="file" id="upload" />
+					<label class="btn file-input-label" for="upload">Last opp vedlegg</label>
+					<button class="btn" type="button" hidden>Skjult</button>
+				</div>
+				<div class="control-row" id="row-picker">
+					<details class="picker" data-picker="lang">
+						<summary class="btn icon-btn">Aa<span class="sr-only">Språk</span></summary>
+						<ul class="picker-list"><li><button class="picker-row" type="button">Norsk bokmål</button></li></ul>
+					</details>
+					<button class="btn" type="button">Lagre</button>
+				</div>
+				<div class="control-row" id="row-shadcn">
+					<span data-slot="input-group-addon" data-align="inline-end"><span aria-hidden="true">⌕</span></span>
+					<button class="btn" type="button">Søk</button>
+				</div>
+				<div data-align="row" id="custom-row" style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem">
+					<button class="btn" type="button">Avbryt</button>
+					<button class="btn btn-primary" type="button">Send inn skjemaet nå</button>
+				</div>
+			</section>
+
+			<section class="stack" aria-labelledby="switch-title">
+				<h2 id="switch-title">Switcher</h2>
+				<div class="switcher" id="switch-good">
+					<a class="btn" href="#a">Ring 113</a>
+					<a class="btn" href="#b">Ring 112</a>
+					<a class="btn" href="#c">Ring 110 brann</a>
+				</div>
+				<div class="switcher" id="switch-one"><a class="btn" href="#d">Ring 113</a></div>
+			</section>
+
+			<section class="stack" aria-labelledby="rows-title">
+				<h2 id="rows-title">Row list</h2>
+				<ul class="row-list" id="rows-good">
+					<li><span>Mental helse hjelpetelefon</span><a class="btn" href="#e">Ring 116 123</a></li>
+					<li><span>Kirkens SOS, døgnåpen samtaletjeneste for alle som trenger noen å snakke med</span><a class="btn" href="#f">Ring 22 40 00 40</a></li>
+					<li><span>https://www.eksempel.no/en/veldig/lang/adresse/uten/mellomrom/som/må/brytes/i/stedet/for/å/flyte/over</span><a class="btn" href="#g">Åpne</a></li>
+				</ul>
+				<ul class="row-list" id="rows-empty"></ul>
+			</section>
+
+			<section class="stack" aria-labelledby="cards-title">
+				<h2 id="cards-title">Card grid</h2>
+				<div class="card-grid" id="cards-good">
+					<article class="card">
+						<h3>Legevakt</h3>
+						<p class="cluster cluster-sm"><span class="badge">Døgnåpen</span></p>
+						<p>Akutt hjelp når fastlegen er stengt.</p>
+						<div class="control-row"><a class="btn" href="#h">Ring 116 117</a></div>
+					</article>
+					<article class="card">
+						<h3>Barnevernsvakten i Oslo og omegn, akuttjeneste</h3>
+						<div></div>
+						<p>Sykehusapotekenesinformasjonstjenestekontaktpunkt svarer hele døgnet.</p>
+						<div class="control-row"><a class="btn" href="#i">Ring 116 111</a><a class="btn" href="#j">Kart</a></div>
+					</article>
+					<article class="card">
+						<h3>Fastlege</h3>
+						<p class="cluster cluster-sm"><span class="badge">Hverdager</span><span class="badge">Timebestilling</span></p>
+						<p>Ring kontoret ditt.</p>
+						<div class="control-row"><a class="btn" href="#k">Ring</a></div>
+					</article>
+				</div>
+				<div class="card-grid" id="cards-one">
+					<article class="card"><h3>Ett kort</h3><div></div><p>Bare ett kort i rutenettet.</p><div></div></article>
+				</div>
+			</section>
+
+			<section class="stack" aria-labelledby="labels-title">
+				<h2 id="labels-title">Labels</h2>
+				<dl class="stack stack-sm" id="labels-good">
+					<div><dt>Åpent</dt><dd>Hele døgnet</dd></div>
+					<div><dt>Telefon</dt><dd>116 117</dd></div>
+				</dl>
+				<p><span data-align="label">Sist oppdatert</span> <time datetime="2026-10-15">15. oktober 2026</time></p>
+			</section>
+		</main>
+	</body>
+</html>

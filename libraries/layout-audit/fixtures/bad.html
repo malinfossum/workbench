@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>layout-audit fixtures: every contract broken once</title>
+		<link rel="stylesheet" href="/libraries/design-system/tokens/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/reset.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/base.css" />
+		<link rel="stylesheet" href="/libraries/design-system/primitives/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/components/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/utilities/index.css" />
+	</head>
+	<body>
+		<main class="container stack stack-lg section">
+			<h1>Every contract broken once</h1>
+			<div class="control-row" id="bad-row" style="align-items: flex-start">
+				<button class="btn" type="button" style="max-inline-size: 8rem">Legevakt: ring 116 117 om natten</button>
+				<button class="btn" type="button">Ring</button>
+			</div>
+			<div class="switcher" id="bad-switch">
+				<a class="btn" href="#a" style="flex: 0 0 45%">En</a>
+				<a class="btn" href="#b" style="flex: 0 0 45%">To</a>
+				<a class="btn" href="#c" style="flex: 0 0 45%">Tre</a>
+			</div>
+			<ul data-align="rows" id="bad-rows" style="display: grid; gap: 0.75rem; list-style: none; padding: 0">
+				<li style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center"><span>Kort</span><a class="btn" href="#d">Ring</a></li>
+				<li style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center"><span style="inline-size: 100%">Et navn som tar hele raden</span><a class="btn" href="#e">Ring</a></li>
+			</ul>
+			<ul data-align="rows" id="bad-rows-left" style="display: grid; gap: 0.75rem; list-style: none; padding: 0">
+				<li style="display: flex; gap: 0.5rem; align-items: center"><span>Kort</span><a class="btn" href="#f">Ring</a></li>
+				<li style="display: flex; gap: 0.5rem; align-items: center"><span>Et lengre navn</span><a class="btn" href="#g">Ring</a></li>
+			</ul>
+			<div style="display: flex">
+				<ul class="row-list" id="bad-collapsed"><li><span>Ingen bredde</span><a class="btn" href="#h">Ring</a></li></ul>
+			</div>
+			<div data-align="slots" id="bad-slots" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem">
+				<article class="card stack"><h3>Barnevernsvakten i Oslo og omegn, akuttjeneste hele døgnet og alle helger</h3><p>Brødtekst.</p></article>
+				<article class="card stack"><h3>Kort</h3><p>Brødtekst.</p></article>
+			</div>
+			<dl id="bad-label"><dt style="font: inherit; color: var(--text-muted)">Åpent</dt><dd>Hele døgnet</dd></dl>
+			<p><span data-align="label" id="bad-label-orphan">Telefon</span></p>
+			<div class="control-row" id="bad-floor">
+				<button type="button" style="block-size: 2rem; min-block-size: 0">Liten</button>
+				<button type="button" style="block-size: 2rem; min-block-size: 0">Også liten</button>
+			</div>
+			<div class="control-row" id="bad-clip">
+				<span class="btn" style="inline-size: 6rem; overflow: hidden; white-space: nowrap">Et altfor langt navn på en knapp</span>
+			</div>
+			<div data-align="rwo" id="bad-typo"><button class="btn" type="button">Skrivefeil</button></div>
+			<div class="card-grid" id="bad-slot-count">
+				<article class="card" id="bad-slot-card"><h3>Fem deler</h3><p>To</p><p>Tre</p><p>Fire</p><p>Fem</p></article>
+			</div>
+			<div class="card-grid" id="bad-nested">
+				<article class="card"><h3>Kort</h3><div></div><p>Tekst.</p><div class="control-row"><button id="bad-nested-button" type="button" style="block-size: 2rem; min-block-size: 0">Liten</button></div></article>
+			</div>
+			<div id="bad-wide" style="inline-size: 150vw">Bredere enn skjermen</div>
+		</main>
+	</body>
+</html>
