@@ -2,8 +2,8 @@
 .textarea,
 .select {
 	width: 100%;
-	min-height: 2.75rem;
-	/* No block padding: min-height alone sizes a single-line control, so it lands on the
+	min-block-size: var(--control-height);
+	/* No block padding: min-block-size alone sizes a single-line control, so it lands on the
 	   same 44px as .btn. Padding on top of the line box made inputs 51.6px and selects
 	   47px beside a 44px button (3.7.1). The textarea keeps its block padding below. */
 	padding: 0 0.875rem;
@@ -19,7 +19,7 @@
 		background-color var(--duration-base) var(--ease-standard);
 }
 .textarea {
-	min-height: 8rem;
+	min-block-size: 8rem;
 	padding-block: 0.75rem;
 	resize: vertical;
 }

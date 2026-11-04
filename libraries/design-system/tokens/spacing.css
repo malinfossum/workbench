@@ -13,4 +13,9 @@
 	--container-padding: clamp(1rem, 2vw, 1.5rem);
 	--content-width: 72rem;
 	--reading-width: 42rem;
+
+	/* One floor for every control: buttons, fields, tabs, picker rows. A min-block-size,
+	   so a control grows with zoomed text but never drops under 44 px (WCAG 2.5.5, the
+	   house standard; 2.5.8 AA only asks for 24 px). */
+	--control-height: 2.75rem;
 }

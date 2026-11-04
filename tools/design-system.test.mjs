@@ -108,19 +108,11 @@ test("interactive controls are 44px, the touch-target floor", () => {
 	// difference: a future shape pass may raise these, and only a DROP should fail.
 	const FLOOR_REM = 2.75;
 	for (const file of ["components/button.css", "components/input.css", "components/tabs.css"]) {
-		const declared = [...read(file).matchAll(/min-height:\s*([\d.]+)rem/g)].map((m) => Number(m[1]));
-		assert.ok(declared.length > 0, `${file}: no rem min-height found — did the control lose its floor?`);
-		// .textarea's 8rem is legitimately taller; only the SHORTEST control is a floor question.
-		const shortest = Math.min(...declared);
-		assert.ok(
-			shortest >= FLOOR_REM,
-			`${file}: shortest min-height is ${shortest}rem (${shortest * 16}px), under the ` +
-				`${FLOOR_REM}rem (${FLOOR_REM * 16}px) floor`,
-		);
+		assert.match(read(file), /min-block-size: var\(--control-height\);/, `${file}: the control lost its floor`);
 	}
-	// An icon button has no label to stretch it, so its width is its whole hit area.
-	const iconWidth = Number(read("components/button.css").match(/\.icon-btn \{\s*width:\s*([\d.]+)rem/)?.[1]);
-	assert.ok(iconWidth >= FLOOR_REM, `.icon-btn is ${iconWidth}rem wide, under the ${FLOOR_REM}rem floor`);
+	const token = Number(read("tokens/spacing.css").match(/--control-height:\s*([\d.]+)rem;/)?.[1]);
+	assert.ok(token >= FLOOR_REM, `--control-height is ${token}rem, under the ${FLOOR_REM}rem floor`);
+	assert.match(read("components/button.css"), /\.icon-btn \{\s*inline-size: var\(--control-height\);/, ".icon-btn lost its floor");
 });
 
 test("single-line fields carry no block padding, so they share the 44px of .btn", () => {
@@ -588,13 +580,11 @@ test("flags: every bundled SVG is inert, and the check goes red on a script fixt
 });
 
 test("picker: rows keep the 44px floor, the trigger gets a focus ring, and the list scrolls instead of clipping", () => {
-	const FLOOR_REM = 2.75;
 	const css = read("components/picker.css");
 	assert.match(read("components/index.css"), /@import "\.\/picker\.css";/, "picker.css must be imported by components/index.css");
 	const row = css.match(/\.picker-row \{([^}]*)\}/s)?.[1];
 	assert.ok(row, "picker.css must define .picker-row");
-	const minHeight = Number(row.match(/min-height:\s*([\d.]+)rem/)?.[1]);
-	assert.ok(minHeight >= FLOOR_REM, `.picker-row min-height is ${minHeight}rem, under the ${FLOOR_REM}rem floor`);
+	assert.match(row, /min-block-size: var\(--control-height\);/, ".picker-row must take the 44px floor from --control-height");
 	// Browsers do not all draw a ring on <summary>, so the DS restates its own.
 	assert.match(css, /summary:focus-visible \{[^}]*outline: 2px solid var\(--accent-strong\);/s);
 	// Safari still draws the disclosure triangle unless the pseudo-element is hidden.
