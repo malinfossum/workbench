@@ -188,7 +188,7 @@ export function createView({ header, main }, i18n) {
 		header.innerHTML = `
 			<div class="cluster-between">
 				<span class="brand">${esc(t("app.title"))}</span>
-				<div class="cluster cluster-sm">${pickers.join("")}</div>
+				<div class="control-row">${pickers.join("")}</div>
 			</div>
 		`
 	}

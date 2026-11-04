@@ -1,7 +1,7 @@
 /* ======================================================================
    src/components/Counter.tsx — EXAMPLE COMPONENT
    Rendering and event wiring only — state comes from the hook, logic from
-   the service. Uses design-system classes (btn, cluster); the reset goes
+   the service. Uses the btn class and the ControlRow layout component; the reset goes
    through a shadcn Dialog (ResetDialog) so the two systems sit side by
    side once. Delete this file (plus the hook, the service and ResetDialog)
    when you start your real app.
@@ -9,6 +9,7 @@
 
 import { useCounter } from "../hooks/useCounter.ts"
 import { useI18n } from "../hooks/useI18n.ts"
+import { ControlRow } from "./layout.tsx"
 import { ResetDialog } from "./ResetDialog.tsx"
 
 export function Counter() {
@@ -20,7 +21,7 @@ export function Counter() {
 			<p aria-live="polite">
 				{t("counter.label")} <strong>{count}</strong>
 			</p>
-			<div className="cluster">
+			<ControlRow>
 				<button
 					type="button"
 					className="btn"
@@ -38,7 +39,7 @@ export function Counter() {
 					+
 				</button>
 				<ResetDialog onConfirm={reset} />
-			</div>
+			</ControlRow>
 		</div>
 	)
 }

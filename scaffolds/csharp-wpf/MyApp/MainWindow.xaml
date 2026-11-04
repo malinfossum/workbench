@@ -1,6 +1,7 @@
 <Window x:Class="MyApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:layout="clr-namespace:MyApp.Layout"
         Title="{Binding Title}"
         Language="{Binding Language.Current, ConverterCulture=en}"
         MinWidth="400" MinHeight="280"
@@ -33,19 +34,30 @@
                  Foreground="{StaticResource Text}"
                  VerticalAlignment="Center"/>
 
-      <StackPanel Grid.Column="1" Orientation="Horizontal">
-        <TextBlock x:Name="LanguageLabel"
-                   Text="{Binding Language.Title}"
-                   FontSize="{StaticResource TextSm}"
-                   Foreground="{StaticResource TextMuted}"
-                   VerticalAlignment="Center"
-                   Margin="0,0,8,0"/>
-        <ComboBox ItemsSource="{Binding Language.Options}"
+      <!-- A Grid, not a horizontal StackPanel: children stretch to the row's height,
+           so the label and the picker share one height and one bottom edge.
+           Align.Contract="Row" is what MainWindowLayoutTests checks. -->
+      <Grid Grid.Column="1" layout:Align.Contract="Row">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Label x:Name="LanguageLabel"
+               Grid.Column="0"
+               Content="{Binding Language.Title}"
+               Target="{Binding ElementName=LanguagePicker}"
+               FontSize="{StaticResource TextSm}"
+               Foreground="{StaticResource TextMuted}"
+               Padding="0,0,8,0"
+               VerticalContentAlignment="Center"/>
+        <ComboBox x:Name="LanguagePicker"
+                  Grid.Column="1"
+                  ItemsSource="{Binding Language.Options}"
                   SelectedItem="{Binding Language.Selected}"
                   DisplayMemberPath="Label"
                   AutomationProperties.LabeledBy="{Binding ElementName=LanguageLabel}"
                   MinWidth="180"/>
-      </StackPanel>
+      </Grid>
     </Grid>
 
     <TextBlock Grid.Row="1"

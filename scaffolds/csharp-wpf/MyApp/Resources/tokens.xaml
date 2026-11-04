@@ -3,10 +3,10 @@
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
   <!-- ====================================================================
-       tokens.xaml — design-system mirror for WPF
+       tokens.xaml: design-system mirror for WPF
        Colours, spacing, radius, typography, and motion mirror the
        canonical web design-system (libraries/design-system/tokens/),
-       identity 2.0.0: crisp shape (6px controls, 42px control height),
+       identity 2.0.0 shape (6px controls), 44px control floor (design system 2.0.2),
        solid primary button, heading weight 600.
        Edit the palette per project; keep the keys stable.
        Fonts: Sora (display) + Figtree (body) are embedded as static TTFs
@@ -66,8 +66,9 @@
   <CornerRadius x:Key="RadiusLg">12</CornerRadius>
   <CornerRadius x:Key="RadiusXl">16</CornerRadius>
 
-  <!-- Control height (identity 2.0.0) -->
-  <sys:Double x:Key="ControlHeight">42</sys:Double>
+  <!-- Control height: the 44px floor of design system 2.0.2+ (identity 2.0.0 had 42).
+       Used as MinHeight, so a control grows with its content but never drops below it. -->
+  <sys:Double x:Key="ControlHeight">44</sys:Double>
 
   <!-- Typography (design-system text scale) -->
   <FontFamily x:Key="FontSans">pack://application:,,,/Resources/Fonts/#Figtree, Segoe UI Variable, Segoe UI, sans-serif</FontFamily>

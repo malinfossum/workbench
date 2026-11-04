@@ -16,3 +16,6 @@ dist/
 
 # Vite cache
 .vite/
+
+# Layout audit screenshots of failing cells
+test-results/

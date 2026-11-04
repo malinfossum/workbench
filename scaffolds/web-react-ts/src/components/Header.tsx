@@ -13,6 +13,7 @@ import { usePreferences } from "../hooks/usePreferences.ts"
 import { i18n } from "../locales/index.ts"
 import { currencyName } from "../services/preferences.ts"
 import { Icon } from "./Icon.tsx"
+import { ControlRow } from "./layout.tsx"
 import { Picker, type PickerName, type PickerRow } from "./Picker.tsx"
 
 // Every flag the design system ships, as URLs: Vite serves them in dev and
@@ -125,7 +126,7 @@ export function Header() {
 		<header className="topbar">
 			<div className="cluster-between">
 				<span className="brand">{t("app.title")}</span>
-				<div className="cluster cluster-sm">
+				<ControlRow>
 					{languages.length > 1 && (
 						<Picker
 							name="lang"
@@ -157,7 +158,7 @@ export function Header() {
 							rows={currencyRows}
 						/>
 					)}
-				</div>
+				</ControlRow>
 			</div>
 		</header>
 	)

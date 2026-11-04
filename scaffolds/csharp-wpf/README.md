@@ -26,6 +26,7 @@ WPF/MVVM starter for desktop projects. CommunityToolkit.Mvvm, a Services I/O bou
 - Views bind; they don't compute. Code-behind is for view-only concerns (focus, window placement), never business logic.
 - Resize-tolerant layouts: `Grid` with `*` rows/columns and `MinWidth`/`MinHeight`. No fixed pixels for content.
 - Dark-first via `tokens.xaml`; state changes never rely on colour alone (see the focus visual and toggle patterns in Tidsro for reference).
+- **Layout contracts.** Controls side by side go in a `Grid` with `Auto` columns, never a horizontal `StackPanel`, and the Grid gets `layout:Align.Contract="Row"`. `MainWindowLayoutTests` lays each window out at its minimum and default sizes, at 960 x 540 DIP (1080p at 200 % scale) and at 1920 x 1080, in every locale, and fails if a marked row's children differ in height or bottom edge, or a control is under 44 DIP (`ControlHeight` in `tokens.xaml`). Equal-width button bars use `UniformGrid Rows="1"`; lists and label columns use `Grid.IsSharedSizeScope` with `SharedSizeGroup`. Add every new window to the test's cells.
 
 ## Language
 
