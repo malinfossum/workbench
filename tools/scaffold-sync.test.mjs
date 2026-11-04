@@ -10,7 +10,7 @@ const WORKBENCH = resolve(import.meta.dirname, "..");
 const BUNDLES = {
   "design-system": [["web-vite", "."], ["web-react-ts", "."]],
   i18n: [["web-vite", "."], ["web-react-ts", "."]],
-  "layout-audit": [["web-react-ts", "e2e"]],
+  "layout-audit": [["web-react-ts", "e2e"], ["web-vite", "tests/e2e"]],
 };
 
 for (const [library, targets] of Object.entries(BUNDLES)) {
