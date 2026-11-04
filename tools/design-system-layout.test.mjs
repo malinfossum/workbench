@@ -82,4 +82,33 @@ test("primitives/index.css imports row-list and card-grid", () => {
 	for (const name of ["row-list", "card-grid"]) assert.match(index, new RegExp(`@import "\\./${name}\\.css";`));
 });
 
+test("no max-width media query in shipped CSS: layouts collapse by their own size", () => {
+	const offenders = [];
+	for (const [file, css] of shippedCss()) for (const m of css.matchAll(/@media[^{]*max-width[^{]*/g)) offenders.push(`${file}: ${m[0].trim()}`);
+	assert.deepEqual(offenders, []);
+});
+
+test("no grid column has a bare rem minimum: 16rem is 512 px at 200 % text, wider than a 320 px screen", () => {
+	const offenders = [];
+	for (const [file, css] of shippedCss()) for (const m of css.matchAll(/minmax\(\s*([\d.]+rem)/g)) offenders.push(`${file}: minmax(${m[1]}, ...)`);
+	assert.deepEqual(offenders, []);
+});
+
+test("no order, row-reverse or column-reverse: visual order is DOM and focus order (WCAG 1.3.2, 2.4.3)", () => {
+	const offenders = [];
+	for (const [file, css] of shippedCss()) {
+		if (/(?<![\w-])order\s*:/.test(css)) offenders.push(`${file}: order`);
+		if (/(row|column)-reverse/.test(css)) offenders.push(`${file}: reverse`);
+	}
+	assert.deepEqual(offenders, []);
+});
+
+test("grid-2 and grid-3 cap their column count with max(), sidebar and split wrap by content", () => {
+	const grid = read("primitives/grid.css");
+	assert.match(grid, /\.grid-2 \{\s*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, max\(18rem, \(100% - var\(--grid-gap, var\(--space-5\)\)\) \/ 2\)\), 1fr\)\);/);
+	assert.match(grid, /\.grid-3 \{\s*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, max\(14rem, \(100% - 2 \* var\(--grid-gap, var\(--space-5\)\)\) \/ 3\)\), 1fr\)\);/);
+	assert.match(read("primitives/sidebar.css"), /\.sidebar-layout > :last-child \{[^}]*flex: 999 1 0;[^}]*min-inline-size: 60%;/s);
+	assert.match(read("primitives/split.css"), /\.split > :first-child \{[^}]*flex: 1\.2 1 0;[^}]*min-inline-size: min\(100%, 26rem\);/s);
+});
+
 export { read, shippedCss };

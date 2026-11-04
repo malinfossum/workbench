@@ -1,11 +1,18 @@
+/* .split: main content first, a narrower aside last. Both are flex items with a
+   minimum; when the two minimums no longer fit side by side the aside wraps below,
+   decided by the content box, not the viewport. Side by side they keep the old
+   1.2 : 0.8 share. */
 .split {
-	display: grid;
-	grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
 	gap: var(--space-6);
-	align-items: start;
 }
-@media (max-width: 56rem) {
-	.split {
-		grid-template-columns: 1fr;
-	}
+.split > :first-child {
+	flex: 1.2 1 0;
+	min-inline-size: min(100%, 26rem);
+}
+.split > :last-child {
+	flex: 0.8 1 0;
+	min-inline-size: min(100%, 18rem);
 }
