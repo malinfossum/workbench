@@ -9,8 +9,8 @@
 	--space-8: 4rem;
 	--space-9: 5rem;
 
-	--section-space: clamp(3rem, 6vw, 5rem);
-	--container-padding: clamp(1rem, 2vw, 1.5rem);
+	--section-space: clamp(3rem, 2rem + 4vw, 5rem);
+	--container-padding: clamp(1rem, 0.75rem + 1vw, 1.5rem);
 	--content-width: 72rem;
 	--reading-width: 42rem;
 

@@ -111,4 +111,28 @@ test("grid-2 and grid-3 cap their column count with max(), sidebar and split wra
 	assert.match(read("primitives/split.css"), /\.split > :first-child \{[^}]*flex: 1\.2 1 0;[^}]*min-inline-size: min\(100%, 26rem\);/s);
 });
 
+test("every fluid clamp() has a rem term in its middle value, so it grows with text zoom (WCAG 1.4.4)", () => {
+	const offenders = [];
+	for (const [file, css] of shippedCss()) {
+		for (const m of css.matchAll(/clamp\(([^,]+),([^,]+),/g)) {
+			const middle = m[2].trim();
+			if (/\d(vw|vh|vi|vb|vmin|vmax)\b/.test(middle) && !/\drem\b/.test(middle)) offenders.push(`${file}: clamp(${m[1].trim()}, ${middle}, ...)`);
+		}
+	}
+	assert.deepEqual(offenders, []);
+});
+
+test("headings balance and break long words; body text wraps pretty", () => {
+	const base = read("base/base.css");
+	assert.match(base, /h1,\nh2,\nh3,\nh4 \{[^}]*text-wrap: balance;[^}]*overflow-wrap: break-word;/s);
+	assert.match(base, /p,\nli,\ndd,\nblockquote,\nfigcaption \{[^}]*text-wrap: pretty;/s);
+});
+
+test("a label beside its value differs in weight and colour: dt over dd, [data-align=label]", () => {
+	assert.match(read("tokens/typography.css"), /--weight-label: 600;/);
+	const base = read("base/base.css");
+	assert.match(base, /dt,\n\[data-align="label"\] \{[^}]*color: var\(--text\);[^}]*font-weight: var\(--weight-label\);/s);
+	assert.match(base, /dd \{[^}]*color: var\(--text-muted\);/s);
+});
+
 export { read, shippedCss };
