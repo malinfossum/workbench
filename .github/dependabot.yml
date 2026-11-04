@@ -15,3 +15,12 @@ updates:
           - "github/*"
           - "dependabot/*"
         update-types: [minor, patch]
+
+  - package-ecosystem: npm # package.json
+    directory: /libraries/layout-audit
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]

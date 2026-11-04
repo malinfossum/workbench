@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 import { cellName, cells, knownFor, TEXT_SPACING_CSS, textSizeCss, unreachableKnown, VIEWPORT_HEIGHT, validateKnown, verdict } from "./shared.js";
 
+export { CONTRACTS, validateKnown, unreachableKnown } from "./shared.js";
+
 const AUDIT = fileURLToPath(new URL("./audit.js", import.meta.url));
 
 // Load a path the way a returning visitor sees it: fonts loaded, then a reload with

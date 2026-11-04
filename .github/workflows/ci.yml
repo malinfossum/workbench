@@ -23,3 +23,24 @@ jobs:
         run: node --test "tools/*.test.mjs"
       - name: Link check (dashboard, guide, docs)
         run: node tools/check-links.mjs
+
+  layout-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: libraries/layout-audit
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
+      - name: Layout audit self-test (fixtures, adapter, matrix)
+        run: npm test
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: layout-audit-results
+          path: libraries/layout-audit/test-results
+          retention-days: 7

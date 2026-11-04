@@ -10,7 +10,7 @@ One source-of-truth home for reusable libraries and copy-to-start scaffolds. Lib
 
 | Tier | What it is |
 |---|---|
-| [`libraries/`](./libraries) | The source of truth. Versioned, reused as-is: `design-system/`, `storyboard/` and `i18n/` |
+| [`libraries/`](./libraries) | The source of truth. Versioned, reused as-is: `design-system/`, `storyboard/`, `i18n/` and `layout-audit/` |
 | [`scaffolds/`](./scaffolds) | Starters you copy once to begin a project, then own |
 | [`tools/`](./tools) | `extract.mjs`, `translate.mjs` plus the test suite CI runs (extract, translate, structure, scaffold drift, links). The repo-hygiene checker moved to [Ward](https://github.com/malinfossum/ward/blob/main/docs/repo-hygiene.md) |
 | [`guide/`](./guide) | Setup guide. The dashboard's scaffold cards link into it |
@@ -43,6 +43,7 @@ node tools/extract.mjs design-system ../my-api/wwwroot    # into a C# wwwroot
 node tools/extract.mjs design-system ../my-app --check    # is my copy stale or drifted?
 node tools/extract.mjs storyboard ../my-app               # engine only → ../my-app/storyboard
 node tools/extract.mjs i18n ../my-app                     # translator → ../my-app/i18n
+node tools/extract.mjs layout-audit ../my-app/e2e         # layout checks → ../my-app/e2e/layout-audit (test folder only)
 ```
 
 The tool copies only the lean parts, records the version, and refuses to overwrite files you've edited locally (pass `--force` to override). Edit a library **in the workbench**, never in a consuming project, then re-run extract.
