@@ -122,10 +122,10 @@ test("every fluid clamp() has a rem term in its middle value, so it grows with t
 	assert.deepEqual(offenders, []);
 });
 
-test("headings balance and break long words; body text wraps pretty", () => {
+test("headings balance and break long words; body text wraps pretty and breaks long tokens", () => {
 	const base = read("base/base.css");
 	assert.match(base, /h1,\nh2,\nh3,\nh4 \{[^}]*text-wrap: balance;[^}]*overflow-wrap: break-word;/s);
-	assert.match(base, /p,\nli,\ndd,\nblockquote,\nfigcaption \{[^}]*text-wrap: pretty;/s);
+	assert.match(base, /p,\nli,\ndd,\nblockquote,\nfigcaption \{[^}]*text-wrap: pretty;[^}]*overflow-wrap: break-word;/s);
 });
 
 test("a label beside its value differs in weight and colour: dt over dd, [data-align=label]", () => {

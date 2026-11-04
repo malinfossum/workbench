@@ -42,6 +42,8 @@ blockquote,
 figcaption {
 	color: var(--text-muted);
 	text-wrap: pretty;
+	/* A long token (a URL, a path) breaks instead of making the page scroll sideways. */
+	overflow-wrap: break-word;
 }
 /* A term beside its value reads as a label: stronger ink and weight than the
    value. Contract (layout-audit "label"): weight, size or colour differs. */
