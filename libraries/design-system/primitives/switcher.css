@@ -1,0 +1,18 @@
+/* .switcher: items sit side by side until the container is narrower than
+   --switcher-threshold, then all of them stack at once. The flex-basis is hugely
+   positive under the threshold (each item takes a whole line) and negative above
+   it (clamped to 0, so all share one line). No item ever decides alone.
+   The idea comes from Every Layout (every-layout.dev), written here for this system.
+   Contract (layout-audit "switcher"): all items in one row, or all in one column. */
+.switcher {
+	--switcher-threshold: 30rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+}
+.switcher > * {
+	flex-grow: 1;
+	flex-basis: calc((var(--switcher-threshold) - 100%) * 999);
+	min-inline-size: 0;
+	overflow-wrap: anywhere;
+}

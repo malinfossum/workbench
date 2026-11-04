@@ -40,4 +40,25 @@ test("every control takes its floor from --control-height as min-block-size, nev
 	assert.match(read("components/button.css"), /\.icon-btn \{\s*inline-size: var\(--control-height\);/);
 });
 
+test(".control-row stretches every item on a line to one height", () => {
+	const css = read("primitives/control-row.css");
+	const row = css.match(/\.control-row \{([^}]*)\}/)?.[1];
+	assert.ok(row, "control-row.css must define .control-row");
+	for (const decl of ["display: flex;", "flex-wrap: wrap;", "align-items: stretch;"]) assert.ok(row.includes(decl), `.control-row needs ${decl}`);
+	assert.match(css, /\.control-row > \* \{[^}]*min-inline-size: 0;[^}]*overflow-wrap: anywhere;/s);
+	assert.match(css, /\.control-row > :is\(\.input, \.select\) \{[^}]*flex: 1 1 12rem;[^}]*inline-size: auto;/s);
+});
+
+test(".switcher puts all items side by side or all stacked, flipping at --switcher-threshold", () => {
+	const css = read("primitives/switcher.css");
+	assert.match(css, /\.switcher \{[^}]*--switcher-threshold: [\d.]+rem;[^}]*display: flex;[^}]*flex-wrap: wrap;/s);
+	assert.match(css, /\.switcher > \* \{[^}]*flex-grow: 1;[^}]*flex-basis: calc\(\(var\(--switcher-threshold\) - 100%\) \* 999\);/s);
+	assert.match(css, /\.switcher > \* \{[^}]*min-inline-size: 0;[^}]*overflow-wrap: anywhere;/s);
+});
+
+test("primitives/index.css imports control-row and switcher", () => {
+	const index = read("primitives/index.css");
+	for (const name of ["control-row", "switcher"]) assert.match(index, new RegExp(`@import "\\./${name}\\.css";`));
+});
+
 export { read, shippedCss };
