@@ -6,6 +6,15 @@
    Add every route here as you build it. Known violations need a reason and
    can only shrink.
    ====================================================================== */
+import { readdirSync } from "node:fs"
 import { layoutSuite } from "./layout-audit/playwright.js"
 
-layoutSuite({ paths: ["/"], locales: ["en-US", "nb-NO"] })
+// One locale per src/locales/*.json, so a new language is audited the day it
+// lands. Bare codes map to the tags the app renders; others pass as they are.
+const TAGS: Record<string, string> = { en: "en-US", nb: "nb-NO" }
+const locales = readdirSync(new URL("../src/locales", import.meta.url))
+	.filter((file) => file.endsWith(".json"))
+	.map((file) => file.slice(0, -".json".length))
+	.map((code) => TAGS[code] ?? code)
+
+layoutSuite({ paths: ["/"], locales })

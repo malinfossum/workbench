@@ -1,7 +1,7 @@
 /* ======================================================================
    src/components/Counter.tsx — EXAMPLE COMPONENT
    Rendering and event wiring only — state comes from the hook, logic from
-   the service. Uses design-system classes (btn, ControlRow); the reset goes
+   the service. Uses the btn class and the ControlRow layout component; the reset goes
    through a shadcn Dialog (ResetDialog) so the two systems sit side by
    side once. Delete this file (plus the hook, the service and ResetDialog)
    when you start your real app.

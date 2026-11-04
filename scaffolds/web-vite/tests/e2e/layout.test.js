@@ -6,7 +6,7 @@
    from the workbench (libraries/layout-audit); never edit it here.
    ====================================================================== */
 import assert from "node:assert/strict"
-import { mkdirSync } from "node:fs"
+import { mkdirSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
 import { after, before, test } from "node:test"
 import puppeteer from "puppeteer"
@@ -14,11 +14,14 @@ import { createServer } from "vite"
 import { cellName, cells, checkLayout } from "./layout-audit/puppeteer.js"
 
 const ROOT = resolve(import.meta.dirname, "../..")
-// [locale the cell is named for, the stored "lang" preference that selects it]
-const LOCALES = [
-	["en-US", "en"],
-	["nb-NO", "nb"],
-]
+// [locale the cell is named for, the stored "lang" preference that selects it],
+// one per src/locales/*.json, so a new language is audited the day it lands.
+// Bare codes map to the tags the app renders; others pass as they are.
+const TAGS = { en: "en-US", nb: "nb-NO" }
+const LOCALES = readdirSync(resolve(ROOT, "src/locales"))
+	.filter((file) => file.endsWith(".json"))
+	.map((file) => file.slice(0, -".json".length))
+	.map((code) => [TAGS[code] ?? code, code])
 
 let server
 let browser

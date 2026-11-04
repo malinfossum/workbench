@@ -32,16 +32,19 @@ public class MainWindowLayoutTests(WpfThread wpf)
     [MemberData(nameof(Cells))]
     public void MainWindow_keeps_its_layout_contracts(string locale, string size)
     {
-        var report = wpf.Invoke(() =>
+        var (rendered, report) = wpf.Invoke(() =>
         {
             var localizer = Localizer.FromEmbedded();
             var window = new MainWindow
             {
                 DataContext = new MainViewModel(localizer, new LanguageViewModel(localizer, new MemoryPreferences(), locale)),
             };
-            return LayoutAudit.Check(LayoutHost.Lay(window, SizeOf(window, size)));
+            var host = LayoutHost.Lay(window, SizeOf(window, size));
+            return (host.Language.IetfLanguageTag, LayoutAudit.Check(host));
         });
 
+        // A cell that silently rendered another language would audit the wrong strings.
+        Assert.Equal(locale.Split('-')[0], rendered.Split('-')[0]);
         Assert.True(report.Contracts > 0, "no Align.Contract element found: the audit checked nothing");
         Assert.Empty(report.Violations);
     }

@@ -7,6 +7,8 @@
    these fits is a review finding.
    Card renders an <article>: use it for self-contained items (a service,
    a result). A panel that is not one stays <div className="card">.
+   RowList sets role="list": list-style: none drops the list role in
+   Safari with VoiceOver.
    ====================================================================== */
 
 import { cn } from "cn"
@@ -27,7 +29,10 @@ export function Switcher({
 }
 
 export function RowList({ className, ...props }: ComponentProps<"ul">) {
-	return <ul className={cn("row-list", className)} {...props} />
+	return (
+		// biome-ignore lint/a11y/noRedundantRoles: list-style: none drops the implicit list role in Safari with VoiceOver
+		<ul role="list" className={cn("row-list", className)} {...props} />
+	)
 }
 
 export function CardGrid({
