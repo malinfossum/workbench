@@ -3,8 +3,8 @@
 - **Date:** 2026-10-17
 - **Home:** `libraries/design-system/` (DS 3.11.0)
 - **Depends on:** DS 3.10.0 from the layout-by-construction plan (`.control-row`,
-  `--control-height`). This work starts after that release, and the version moves up if
-  something else claims 3.11.0 first.
+  `--control-height`), shipped 04.11.2026 as workbench v2.22.0. `VERSION` reads 3.10.0 on
+  04.11.2026, so 3.11.0 is free; the version moves up if something else claims it first.
 - **Origin:** Varde's footer redesign (`malinfossum/varde`,
   `docs/superpowers/specs/2026-10-16-varde-footer-design.md`), approved 2026-10-16. Varde builds
   it first in its own Tailwind port; this spec makes the pattern a standard.
@@ -54,7 +54,7 @@ Markup, in reading order (the same at every width):
   <div class="site-footer-row" data-tips>
     <p class="site-footer-lead">One or two sentences that must be read, with any vital link.</p>
     <nav class="site-footer-nav" aria-labelledby="footer-label">
-      <span id="footer-label" class="site-footer-label">About this site</span>
+      <span id="footer-label" class="site-footer-label" data-align="label">About this site</span>
       <span class="cluster">…text links, each a 44 px target…</span>
     </nav>
     <p class="site-footer-note"><span>© Name · No tracking.</span> <span>No cookies.</span></p>
@@ -70,15 +70,27 @@ Markup, in reading order (the same at every width):
   bar spreads its two ends apart (icons at the start, the pill at the end).
 - **From 1024 px:** one wrapping flex row, `justify-content: space-between`. The label becomes
   visually hidden but still names the nav. The lead is capped at `17rem` so it wraps to two
-  lines inside the 44 px row. Every group except the nav is `flex: none`, so groups wrap whole,
-  never in the middle.
+  lines inside the 44 px row in English; a longer language (Norwegian runs about a third
+  longer) may take three, and the row grows with it, because the outer row is not a
+  `.control-row` and makes no height promise. Every group except the nav is `flex: none`, so
+  groups wrap whole, never in the middle.
 - **Label and note** share one text style: `0.75rem`, `line-height: 1rem`, uppercase through
   `text-transform`, `letter-spacing: 0.14em`, `var(--text-muted)`. The note is two short lines
-  (each `span` is `display: block`).
+  (each `span` is `display: block`). The label carries `data-align="label"`, so layout-audit's
+  label contract proves it stands off from the links after it (weight, size or colour), at
+  every width, also while it is visually hidden.
+- **The note is each project's own true statement.** "No tracking. No cookies." is the
+  gallery's sample, true for the gallery. A project writes what holds for it: a site that
+  stores a theme in `localStorage` still has no cookies, but a site with analytics may not copy
+  the sample unchanged (markedsføringsloven § 7, a misleading claim). The composition doc says
+  so beside the markup.
+- **A project with no text links omits the nav** (label included), never an empty landmark.
 - **Icon links** at the start of the bar get `margin-inline-start: -0.75rem` below 1024 px, so
   the 20 px glyph lines up with the text above while the 44 px target stays whole.
 - The bar is a `.control-row` (3.10.0), so every control in it shares one height and one bottom
-  edge by construction, and layout-audit checks it.
+  edge by construction, and layout-audit checks it. It wraps like any `.control-row`: at 320 px
+  with three or more marks the pill drops to a second line at the end, and the contract holds
+  per line.
 
 ### 3.2 Theme pill
 
@@ -97,8 +109,10 @@ Markup, in reading order (the same at every width):
 - Each button is `--control-height` square and round. The pill's outline is an inset 1 px
   `box-shadow` in `var(--border)`, so it adds no size. Pressed: `color: var(--text)` and an
   inset 1 px ring in `var(--text)`.
-- Forced colours: the pill gets `outline: 1px solid CanvasText`; the pressed button
-  `border: 2px solid Highlight`. A border, not an outline, so it never replaces the focus ring.
+- Forced colours: the pill gets `outline: 1px solid CanvasText`; the pressed button takes the
+  same look as `.btn[aria-pressed="true"]` in `button.css` (`forced-color-adjust: none`,
+  `background: Highlight`, `color: HighlightText`), so the system has one pressed look. A fill,
+  not an outline, so it never replaces the focus ring.
 - `icons.js` gains `monitor` (it has `sun` and `moon`). Fifteen icons.
 - **A project uses the pill or the 3.8.0 theme picker, not both on the same screen.** The pill
   suits a footer; the picker suits a header that already holds the language picker.
@@ -109,14 +123,22 @@ Markup, in reading order (the same at every width):
 marks which one is current. v3 adds two things, still as one set of delegated listeners:
 
 - **Pressed state:** on load, after every click, and on the `storage` and `prefers-color-scheme`
-  events, every `[data-theme-set]` that is a `button` gets `aria-pressed="true"` when it matches
-  the stored key (`system` when no key is stored) and `"false"` otherwise. Picker rows, which use
-  `aria-current`, are left alone.
-- **Status line:** after a click, if the page has a `[data-theme-status]` element, the script
-  writes the group's name and the button's name into it ("Theme: Dark"), read from the closest
+  events, every `button[data-theme-set][aria-pressed]` gets `aria-pressed="true"` when it
+  matches the stored key (`system` when no key is stored) and `"false"` otherwise. Opt-in by
+  the attribute: a control that ships without `aria-pressed` in its markup is never touched,
+  which is how the 3.8.0 picker rows (buttons that carry `aria-current`) stay out of it. The
+  gallery's sidebar group already ships `aria-pressed="false"` on its three buttons, so v3 takes
+  that work over: `gallery/app.js` drops its own `aria-pressed` loop in `syncTheme`, leaving one
+  writer.
+- **Status line:** after every click on a pill button, the pressed one included, if the page
+  has a `[data-theme-status]` element (the first), the script writes the group's name and the
+  button's name into it with `textContent` ("Theme: Dark"), read from the closest
   `[role="group"]`'s `aria-label` and the button's `.sr-only` text. With no group name it
   writes the button's name alone, never ": Dark". No strings live in the script, so it works in
-  any language. Clicking the pressed button changes nothing and writes nothing.
+  any language. A click on the already pressed button writes the same line again, because every
+  press needs an audible result (house rule, NVDA pass 07.10.2026): the script clears the
+  element first and writes on the next frame, so a repeated line is announced and not swallowed
+  as "no change".
 - **The status element** must be in the page's first HTML, outside any container a view
   re-renders, or a screen reader may miss the first change (the house live-region rule). The
   gallery and the composition docs show it as the footer's last child.
@@ -133,7 +155,12 @@ A generic hover and focus tooltip, because icon-only controls need one and the D
 - The gap between control and bubble is the tip's own transparent padding, so the pointer can
   move onto the bubble without it closing (WCAG 1.4.13, hoverable).
 - Shown on `:hover` and `:focus-visible`, only under `(hover: hover) and (pointer: fine)`, so a
-  tap on a phone never leaves a tooltip behind.
+  tap on a phone never leaves a tooltip behind. It appears at once, with no transition, so there
+  is nothing for `prefers-reduced-motion` to switch off.
+- Forced colours: the bubble gets `border: 1px solid CanvasText`, because its background and
+  shadow are dropped and the text would float on the canvas.
+- `tip-start` and `tip-end` exist so a bubble never leaves the viewport: at 320 px the first
+  and last control in the bar use them, and the Footer panel proves it (§ 6).
 - `tooltip.js` (delegated, like the other scripts): Escape sets `data-tips="hidden"` on every
   `[data-tips]` container, which hides its tips, until the pointer enters or focus lands on a
   `.tip-host` inside it (WCAG 1.4.13, dismissible).
@@ -180,21 +207,33 @@ only to screen readers), so the behaviour can be seen.
 Static checks in `tools/design-system.test.mjs`, in the style of the 3.10.0 tests:
 
 - `site-footer.css` exists, is imported by `compositions/index.css`, stacks below 1024 px and
-  rows from `min-width: 1024px` (no `max-width` query).
-- `theme-pill.css` sets the inset outline, the pressed ring and the forced-colours border.
-- `tooltip.css` hides tips outside `(hover: hover) and (pointer: fine)`, and `[data-tips="hidden"]`
-  hides them inside it.
+  rows from `min-width: 1024px`. The "no `max-width` query in shipped CSS" guard already exists
+  in `tools/design-system-layout.test.mjs` and covers the new file for free.
+- `theme-pill.css` sets the inset outline, the pressed ring, and under `forced-colors: active`
+  the `Highlight` fill with `HighlightText` ink.
+- `tooltip.css` hides tips outside `(hover: hover) and (pointer: fine)`, `[data-tips="hidden"]`
+  hides them inside it, the bubble has a `CanvasText` border under forced colours, and the file
+  holds no `transition` or `animation`.
 - `theme-toggle.js` sets `aria-pressed` and holds no user-facing strings (a regex for quoted
   words fails on any).
 - `brand-icons.js`: every mark has a source comment with a URL and a date; no mark holds
   `<script`, `<foreignObject`, `href=` or an `on*=` attribute (the same check the flags have).
 - `theme-toggle.js` in jsdom: a pill with no group name writes only the button's name; a click
-  on the pressed button writes nothing; a `storage` event re-marks the pressed button.
+  on the pressed button writes the line again; a `button[data-theme-set]` without
+  `aria-pressed` in its markup is never given one; a `storage` event re-marks the pressed
+  button; the status element is written with `textContent` (a name holding `<b>` arrives as
+  text).
+- `gallery/app.js` no longer sets `aria-pressed` (a grep guard), so v3 is the only writer.
 - `brandIcon("nope")` returns `""`.
 - Each new guard has a fixture that must fail.
 
-A browser check through layout-audit (3.10.0) on the gallery's Footer panel: one row at 1280,
-`.control-row` contract holds at 320, 375, 1024, 1280, both themes, text at 200 %.
+**Browser check, manual.** No CI job audits the gallery (the layout-audit job runs the
+library's own fixtures), so I run this myself before the 3.11.0 tag, on the gallery served
+locally, and paste the counts into the PR: layout-audit (3.10.0) over the Footer panel at every
+cell of the shared matrix (`shared.js`: 320, 375, 768, 1024, 1280, 1920 px, text at 100 and
+200 %, WCAG 1.4.12 spacing at 320 and 1280), default theme only until themes join the matrix
+(layout-by-construction ruling 10, deferred); one row at 1280; and a hover on the first and
+last `.tip-host` at 320 px with the bubble's `getBoundingClientRect()` inside the viewport.
 
 ## 7. Version and release
 
@@ -212,6 +251,14 @@ should check (named in the CHANGELOG).
   wrong meanwhile.
 - **Escape in `tooltip.js` and `picker.js` both firing.** Hiding tooltips while a picker closes
   is harmless, so the two scripts do not coordinate.
+- **A gallery audit in CI.** It needs a served gallery and a Playwright harness inside the DS
+  library, which no consumer needs. The manual run in § 6 is honest about who runs it and when;
+  a CI job comes when a second composition needs the same proof.
+- **Themes in the browser check.** The shared matrix has no theme axis yet (ruling 10 of the
+  layout plan). The footer uses only tokens that both themes define, so a theme adds no layout
+  risk; the check joins the matrix when the axis lands.
+- **Writing the status line when another tab changes the theme.** Nothing was pressed here, so
+  there is no result to confirm; the pressed state updates silently, as the picker rows do.
 
 ## 9. Out of scope
 
@@ -220,4 +267,4 @@ should check (named in the CHANGELOG).
 - Changing the 3.8.0 theme picker.
 - Varde adopting the DS. That is Varde's own decision, later.
 
-> Stress-tested 2026-10-17 (skill 1b85fca): 5 applied, 0 adapted, 0 decided by me.
+> Stress-tested 2026-11-04 (skill a217382): 8 applied, 3 adapted, 0 decided by me.
