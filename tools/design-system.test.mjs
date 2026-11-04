@@ -674,13 +674,13 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
 });
 
-test("VERSION is 3.9.1 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers and the Tailwind bridge", () => {
-	assert.equal(read("VERSION").trim(), "3.9.1");
+test("VERSION is 3.10.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge and the layout primitives", () => {
+	assert.equal(read("VERSION").trim(), "3.10.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.9\.1 — /m, "CHANGELOG must carry the 3.9.1 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.10\.0 — /m, "CHANGELOG must carry the 3.10.0 entry");
 });
 
 test("tailwind bridge: every var() resolves to a DS token, index.css leaves it out, the dark variant keys on data-theme", () => {

@@ -1,0 +1,25 @@
+/* .card-grid + .card: cards in a responsive grid whose parts line up across a row.
+   Each card spans --card-slots rows of the grid and takes them as its own
+   (subgrid), so title, badges, body and actions are fixed slots, and slot k of
+   every card on one visual row shares one top edge. A card that lacks a part keeps
+   an empty element in its place, so later slots stay in their track.
+   A .card outside .card-grid is unchanged.
+   Contract (layout-audit "card-grid"): slot k on one row of cards, one top edge. */
+.card-grid {
+	--card-min: 18rem;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--card-min)), 1fr));
+	gap: var(--space-5);
+}
+.card-grid > .card {
+	--card-slots: 4;
+	display: grid;
+	grid-row: span var(--card-slots);
+	grid-template-rows: subgrid;
+	gap: var(--space-3);
+	align-content: start;
+}
+.card-grid > .card > * {
+	min-inline-size: 0;
+	overflow-wrap: anywhere;
+}

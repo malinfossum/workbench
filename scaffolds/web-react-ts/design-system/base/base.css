@@ -18,6 +18,9 @@ h4 {
 	font-weight: var(--weight-display);
 	line-height: var(--leading-snug);
 	letter-spacing: var(--tracking-heading);
+	text-wrap: balance;
+	/* A long word in a big heading breaks instead of pushing the page sideways. */
+	overflow-wrap: break-word;
 }
 h1,
 h2 {
@@ -33,7 +36,21 @@ h3 {
 	font-size: var(--text-xl);
 }
 p,
-li {
+li,
+dd,
+blockquote,
+figcaption {
+	color: var(--text-muted);
+	text-wrap: pretty;
+}
+/* A term beside its value reads as a label: stronger ink and weight than the
+   value. Contract (layout-audit "label"): weight, size or colour differs. */
+dt,
+[data-align="label"] {
+	color: var(--text);
+	font-weight: var(--weight-label);
+}
+dd {
 	color: var(--text-muted);
 }
 small,

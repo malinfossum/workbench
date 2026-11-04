@@ -5,7 +5,7 @@
 	/* Space between an inline icon and its label; a flex box drops the whitespace
 	   text node between them, so without this they touch. */
 	gap: var(--space-2);
-	min-height: 2.75rem;
+	min-block-size: var(--control-height);
 	padding-inline: var(--space-4);
 	border-radius: var(--radius-sm);
 	/* --control-border, not --border: the fill (--interactive-bg) is ~1.2:1 against
@@ -72,6 +72,6 @@
 	width: 100%;
 }
 .icon-btn {
-	width: 2.75rem;
+	inline-size: var(--control-height);
 	padding: 0;
 }

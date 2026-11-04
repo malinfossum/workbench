@@ -3,6 +3,17 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.10.0 — 2026-11-04
+
+Layout by construction (loadout spec `2026-10-15-layout-by-construction-design.md`). Additive classes, but the collapse fixes move existing layouts, so syncing a project to 3.10.0 is an adoption.
+
+- **New `--control-height` token** (`2.75rem`). `.btn`, `.icon-btn`, `.input`/`.select`, `.tab` and `.picker-row` take it as `min-block-size` instead of a literal `min-height`, so a control grows with zoomed text but never drops under 44 px.
+- **New primitives:** `.control-row`, `.switcher`, `.row-list` (subgrid plus a container query), `.card-grid` with subgrid `.card` slots. Each class is a contract that `libraries/layout-audit` checks.
+- **Collapse fixes:** `.grid-2`, `.grid-3`, `.grid-auto`, `.split` and `.sidebar-layout` drop their `max-width` media queries for intrinsic sizing; `.dashboard-grid` and `.kpi-row` minimums can no longer overflow. Collapse points move (see the PR).
+- **Text:** headings `text-wrap: balance` and break long words; body text `text-wrap: pretty`; every fluid `clamp()` has a rem term (WCAG 1.4.4).
+- **Labels:** `dt` and `[data-align="label"]` use `--text` at the new `--weight-label` (600); `dd` is muted.
+- Static tests in `tools/design-system-layout.test.mjs` pin the token, the primitives, no `max-width`, no `order` or reverse, no bare rem `minmax()` and rem terms in `clamp()`.
+
 ## 3.9.1 — 2026-10-08
 
 - **Every `@import url("x.css")` in the shipped CSS is now `@import "x.css"`.** Browsers treat

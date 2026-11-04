@@ -1,11 +1,16 @@
+/* .sidebar-layout: a 16rem sidebar first, content last. The content keeps at least
+   60 % of the row; when it cannot, the sidebar wraps above it, in DOM order.
+   The idea comes from Every Layout (every-layout.dev), written here for this system. */
 .sidebar-layout {
-	display: grid;
-	grid-template-columns: 16rem minmax(0, 1fr);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
 	gap: var(--space-6);
-	align-items: start;
 }
-@media (max-width: 62rem) {
-	.sidebar-layout {
-		grid-template-columns: 1fr;
-	}
+.sidebar-layout > :first-child {
+	flex: 1 1 16rem;
+}
+.sidebar-layout > :last-child {
+	flex: 999 1 0;
+	min-inline-size: 60%;
 }

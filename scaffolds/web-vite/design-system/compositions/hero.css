@@ -1,5 +1,5 @@
 .hero {
-	padding-block: clamp(4rem, 8vw, 7rem);
+	padding-block: clamp(4rem, 3rem + 4vw, 7rem);
 }
 .hero-copy {
 	display: grid;

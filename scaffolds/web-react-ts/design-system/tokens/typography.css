@@ -112,6 +112,7 @@
 	--font-display: "Sora", "Figtree", sans-serif;
 
 	--weight-display: 600;
+	--weight-label: 600;
 	--tracking-display: -0.03em;
 	--tracking-heading: -0.02em;
 
@@ -120,9 +121,9 @@
 	--text-md: 1rem;
 	--text-lg: 1.125rem;
 	--text-xl: 1.25rem;
-	--text-2xl: clamp(1.5rem, 2vw, 1.75rem);
-	--text-3xl: clamp(2rem, 4vw, 2.75rem);
-	--text-4xl: clamp(2.5rem, 5vw, 3.75rem);
+	--text-2xl: clamp(1.5rem, 1.25rem + 1vw, 1.75rem);
+	--text-3xl: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+	--text-4xl: clamp(2.5rem, 1.75rem + 3vw, 3.75rem);
 
 	--leading-tight: 1.1;
 	--leading-snug: 1.25;

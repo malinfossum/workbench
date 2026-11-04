@@ -1,0 +1,31 @@
+/* .row-list: a list whose rows share one grid, so every row's actions sit in one
+   column with one left edge. The list is the container: one container query
+   decides beside or below for every row together, never row by row.
+   Markup: each child is a row with two children, the content first and the
+   actions last (wrap several actions in one element). The list must be block-level: container-type sizes it from its parent,
+   so as a flex item that sizes to content it collapses to zero width.
+   Contract (layout-audit "row-list"): one arrangement for all rows, one action edge. */
+.row-list {
+	container-type: inline-size;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: var(--space-3) var(--space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.row-list > * {
+	grid-column: 1 / -1;
+	display: grid;
+	gap: var(--space-2);
+}
+.row-list > * > * {
+	min-inline-size: 0;
+	overflow-wrap: anywhere;
+}
+@container (min-width: 32rem) {
+	.row-list > * {
+		grid-template-columns: subgrid;
+		align-items: center;
+	}
+}
