@@ -1,0 +1,20 @@
+/* .control-row: controls side by side that decide their height as a group.
+   align-items: stretch makes every item on a line as tall as the tallest, so when
+   one label wraps its neighbours grow with it and the bottoms stay on one edge.
+   Contract (layout-audit "control-row"): per visual row, one height and one
+   bottom edge; every control at least --control-height. */
+.control-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: var(--space-2);
+}
+.control-row > * {
+	min-inline-size: 0;
+	overflow-wrap: anywhere;
+}
+/* Fields are width: 100% on their own; in a row they share the line instead. */
+.control-row > :is(.input, .select) {
+	flex: 1 1 12rem;
+	inline-size: auto;
+}

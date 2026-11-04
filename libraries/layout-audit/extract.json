@@ -1,0 +1,5 @@
+{
+  "versionFile": "VERSION",
+  "include": ["audit.js", "shared.js", "playwright.js", "playwright.d.ts", "puppeteer.js"],
+  "anchor": "audit.js"
+}

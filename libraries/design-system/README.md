@@ -28,7 +28,7 @@ Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 
 - `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes) and `tailwind.css` (the Tailwind bridge, not part of `index.css`)
 - `base/`: `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
-- `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`)
+- `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`) and the layout-contract primitives (`control-row`, `switcher`, `row-list`, `card-grid`)
 - `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon`, `picker` (CSS) + `icons.js` (the SVG set) + `picker.js` (picker behaviour)
 - `compositions/`: page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
 - `utilities/`: single-purpose helpers
@@ -192,6 +192,27 @@ anyway. And `tokens/index.css` does not import the file: the React scaffold's CS
 it unlayered, after `tailwindcss/theme.css`. Browsers ignore `@theme`, so the file is inert
 wherever Tailwind is not installed; `web-vite` ships it unused. The cascade order, the house
 edits and the components live in `docs/specs/2026-10-08-shadcn-web-react-ts.md`.
+
+## Layout contracts
+
+Layout is decided per group, never per item. Each of these primitives makes the decision once for the whole group, and its class is also a test contract that `libraries/layout-audit` checks in a browser.
+
+| Primitive | Behaviour | Contract |
+|---|---|---|
+| `--control-height` | `2.75rem` (44 px), every control's `min-block-size` | Every control inside a primitive is at least 44 px tall |
+| `.control-row` | Flex row with `align-items: stretch` | Per visual row: one height, one bottom edge |
+| `.switcher` | Side by side until `--switcher-threshold` (30rem), then all stacked | All in one row, or all in one column |
+| `.row-list` | Rows share one `minmax(0, 1fr) auto` grid (subgrid); a container query decides beside or below | One arrangement, one action edge |
+| `.card-grid` + `.card` | Auto-fit columns of at least `--card-min`; each card spans `--card-slots` rows as a subgrid | Slot k on one row shares one top edge |
+| `dt` / `dd`, `[data-align="label"]` | Label in `--text` at `--weight-label`, value muted | Label and value differ |
+
+Change a grid's gap with `--grid-gap`, never with `gap`: the `.grid-2`/`.grid-3` column cap reads `--grid-gap`, so a plain `gap` override drops a column. Set `--card-slots` on `.card-grid` for every card, or on one card to change only that card.
+
+For custom markup, `data-align="row|switch|rows|slots|label"` applies the matching contract. No primitive uses `order` or a reverse direction, so visual order is DOM order. Grids, `.split` and `.sidebar-layout` collapse by their own size (auto-fit, flex wrap), never by a `max-width` media query, and every fluid `clamp()` has a rem term so it follows text zoom.
+
+In React, use the scaffold's thin components (`<ControlRow>`, `<Switcher>`, `<RowList>`, `<CardGrid>`, `<Card>`). A row of controls hand-rolled with Tailwind utilities when a primitive fits is a review finding.
+
+Syncing an existing project to 3.10.0 or later is an adoption and gets an adoption preview first: the collapse fixes move layouts.
 
 ## Versioning
 

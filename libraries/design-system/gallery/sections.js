@@ -312,6 +312,58 @@ const GALLERY_SECTIONS = [
                 <button class="btn btn-primary" type="button">New project</button>
               </div>
             </div>`,
+        }) +
+        specimen({
+          title: "Control row",
+          note: "Controls decide their height as a group: when one label wraps, its neighbours grow with it.",
+          classes: [".control-row"],
+          demo: `
+            <div class="control-row" style="max-inline-size: 22rem">
+              <button class="btn" type="button">Ring 113</button>
+              <button class="btn" type="button">Legevakt: ring 116 117 om natten</button>
+              <button class="btn" type="button">Kart</button>
+            </div>`,
+        }) +
+        specimen({
+          title: "Switcher",
+          note: "All side by side, or all stacked. Narrow the window past --switcher-threshold to see them flip together.",
+          classes: [".switcher"],
+          demo: `
+            <div class="switcher">
+              <a class="btn" href="#">Ring 113</a>
+              <a class="btn" href="#">Ring 112</a>
+              <a class="btn" href="#">Ring 110</a>
+            </div>`,
+        }) +
+        specimen({
+          title: "Row list",
+          note: "Every row's actions share one column. One container query moves all of them below the text at once.",
+          classes: [".row-list"],
+          demo: `
+            <ul class="row-list">
+              <li><span>Mental helse hjelpetelefon</span><a class="btn" href="#">Ring 116 123</a></li>
+              <li><span>Kirkens SOS, døgnåpen samtaletjeneste</span><a class="btn" href="#">Ring 22 40 00 40</a></li>
+            </ul>`,
+        }) +
+        specimen({
+          title: "Card grid",
+          note: "Title, badges, body and actions are fixed slots, so they line up across a row. Keep an empty element for a missing part.",
+          classes: [".card-grid", ".card", "--card-slots"],
+          demo: `
+            <div class="card-grid">
+              <article class="card"><h3>Legevakt</h3><p class="cluster cluster-sm"><span class="badge">Døgnåpen</span></p><p>Akutt hjelp når fastlegen er stengt.</p><div class="control-row"><a class="btn" href="#">Ring 116 117</a></div></article>
+              <article class="card"><h3>Barnevern, akuttvakt for Oslo og omegn</h3><div></div><p>Svarer hele døgnet.</p><div class="control-row"><a class="btn" href="#">Ring 116 111</a></div></article>
+            </div>`,
+        }) +
+        specimen({
+          title: "Labels beside values",
+          note: "dt over dd, or data-align=\"label\" before a value: stronger ink and weight than the value.",
+          classes: ["dt", "dd", "[data-align=label]"],
+          demo: `
+            <dl class="stack stack-sm">
+              <div><dt>Åpent</dt><dd>Hele døgnet</dd></div>
+              <div><dt>Telefon</dt><dd>116 117</dd></div>
+            </dl>`,
         })
       );
     },
