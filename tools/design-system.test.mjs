@@ -763,3 +763,36 @@ test("shipped CSS never uses @import url(): Tailwind's bundler leaves that form 
 	for (const dir of shipped) walk(dir);
 	assert.deepEqual(offenders, []);
 });
+
+test("tooltip: pointer devices only, hidden by data-tips after the show rule, bordered in forced colours, no motion, dismissal script is delegated", () => {
+	const css = read("components/tooltip.css");
+	assert.match(read("components/index.css"), /@import "\.\/tooltip\.css";/, "tooltip.css must be imported by components/index.css");
+	assert.match(css, /\.tip-host \{[^}]*position: relative;/s);
+	assert.match(css, /\.tip \{[^}]*display: none;[^}]*position: absolute;/s);
+	// The gap is the tip's own padding, so the pointer can cross onto the bubble (WCAG 1.4.13 hoverable).
+	assert.match(css, /\.tip \{[^}]*padding-block-start: var\(--space-2\);/s);
+	assert.doesNotMatch(css, /pointer-events: none/, "the bubble must stay hoverable");
+	for (const name of ["tip-above", "tip-start", "tip-end", "tip-bubble"]) assert.match(css, new RegExp(`\.${name} \{`), `tooltip.css must define .${name}`);
+	// Hover is gated to pointer devices; focus is not, because a tap never yields :focus-visible on a button.
+	const pointerAt = css.indexOf("@media (hover: hover) and (pointer: fine)");
+	assert.ok(pointerAt > 0, "hover tips show only under (hover: hover) and (pointer: fine)");
+	const pointer = css.slice(pointerAt, css.indexOf("}", css.indexOf("display: block;", pointerAt)) + 2);
+	assert.match(pointer, /\.tip-host:hover > \.tip \{[^}]*display: block;/s);
+	assert.doesNotMatch(pointer, /focus-visible/, "focus shows a tip on every device");
+	const focusAt = css.indexOf(".tip-host:focus-visible > .tip {");
+	assert.ok(focusAt > 0 && focusAt < pointerAt, "the focus rule sits outside the pointer media query");
+	assert.match(css.slice(focusAt), /^\.tip-host:focus-visible > \.tip \{[^}]*display: block;/s);
+	// The hide rule must match the show rules' specificity (0,3,0) and come after both, or Escape never wins.
+	const hiddenAt = css.indexOf('[data-tips="hidden"] .tip-host > .tip {');
+	assert.ok(hiddenAt > css.indexOf(".tip-host:hover > .tip {"), "the hide rule comes after the hover rule");
+	assert.match(css.slice(hiddenAt), /^\[data-tips="hidden"\] \.tip-host > \.tip \{[^}]*display: none;/s);
+	assert.doesNotMatch(css, /\[data-tips="hidden"\] \.tip \{/, "a (0,2,0) hide rule loses to the (0,3,0) show rules");
+	assert.match(css, /forced-colors: active[^{]*\{\s*(?:\/\*[^*]*\*\/\s*)?\.tip-bubble \{[^}]*border: 1px solid CanvasText;/s);
+	assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /transition|animation/, "nothing for prefers-reduced-motion to switch off");
+	const js = read("components/tooltip.js");
+	assert.doesNotMatch(js, /^\s*(?:import|export)\s/m, "tooltip.js must stay a classic script");
+	assert.match(js, /tipsWired/, "guarded against a double install");
+	assert.doesNotMatch(js, /preventDefault|stopPropagation/, "Escape must still reach picker.js");
+	assert.match(js, /"mouseover"/, "mouseover bubbles, mouseenter does not");
+	assert.match(js, /"focusin"/);
+});
