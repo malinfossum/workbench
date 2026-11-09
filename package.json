@@ -1,0 +1,12 @@
+{
+	"name": "workbench",
+	"private": true,
+	"description": "Root test runner for tools/. Not a package: jsdom is here for the design system's behaviour tests only.",
+	"scripts": {
+		"test": "node --test \"tools/*.test.mjs\"",
+		"links": "node tools/check-links.mjs"
+	},
+	"devDependencies": {
+		"jsdom": "^30.1.0"
+	}
+}
