@@ -7,7 +7,7 @@ re-run `node tools/extract.mjs design-system <target>` to catch up.
 
 The site footer pattern (`docs/specs/2026-10-17-site-footer.md`). Additive. One behaviour change to check: `theme-toggle.js` now writes `aria-pressed` on every `button[data-theme-set][aria-pressed]`, so a consumer with its own pressed logic on such buttons has two writers and should drop its own.
 
-- **New `compositions/site-footer.css`:** lead, labelled text links, two-line note, a `.control-row` bar of brand marks and the theme pill. A stack below 1024 px, one spread row from 1024 px. The note is each project's own true statement.
+- **New `compositions/site-footer.css`:** lead, labelled text links, two-line note, a `.control-row` bar of brand marks and the theme pill. A stack below 1024 px, a wrapping row from 1024 px (groups spread on one line when they fit, wrap whole when they do not). The note is each project's own true statement.
 - **New `components/theme-pill.css`:** light, system, dark as three 44 px round icon buttons in one pill; pressed state from `aria-pressed`, `Highlight` fill in forced colours.
 - **New `components/tooltip.css` + `tooltip.js`:** hover and focus tooltips on pointer devices only, `tip-above`, `tip-start`, `tip-end`; Escape hides them per `[data-tips]` container until the pointer or focus returns (WCAG 1.4.13).
 - **New `components/brand-icons.js`:** `brandIcon(name)`, filled marks with their provenance; ships `github` (Octicons, MIT).

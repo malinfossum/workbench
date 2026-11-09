@@ -657,7 +657,6 @@ export function userFacingStrings(js) {
 	return code.match(/["'][A-Z][a-z][^"']*["']/)?.[0] ?? null;
 }
 
-
 test("theme: data-theme-set is the standard, data-theme-toggle is kept and deprecated, the snippet resolves System", () => {
 	const toggle = read("theme/theme-toggle.js");
 	assert.match(toggle, /\[data-theme-set\]/);
@@ -839,7 +838,7 @@ test("theme pill: inset outline, 44 px round buttons, pressed ring in --text, Hi
 	assert.doesNotMatch(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*outline/s, "pressed is a fill, never an outline, so it cannot pass for the focus ring");
 });
 
-test("site footer: a stack below 1024 px, one spread row from min-width: 1024px, label and note in one small uppercase style, the bar is a control row", () => {
+test("site footer: a stack below 1024 px, a wrapping row from min-width: 1024px, label and note in one small uppercase style, the bar is a control row", () => {
 	const css = read("compositions/site-footer.css");
 	assert.match(read("compositions/index.css"), /@import "\.\/site-footer\.css";/, "site-footer.css must be imported by compositions/index.css");
 	assert.match(css, /\.site-footer-row \{[^}]*display: flex;[^}]*flex-direction: column;/s);

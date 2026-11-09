@@ -89,11 +89,11 @@ uses the pill or the 3.8.0 picker, never both. The Footer panel in the gallery s
 ## Site footer
 
 `compositions/site-footer.css`: a lead that must be read, text links under a small label, a two-line
-note and a bar with brand marks and the theme pill. A stack below 1024 px, one spread row from 1024 px,
-the same reading order at every width. The bar is a `.control-row`, so layout-audit checks it; the
+note and a bar with brand marks and the theme pill. A stack below 1024 px. From 1024 px one wrapping row: the groups spread apart on one line when they fit and wrap whole, never mid-group, when they do not.
+The same reading order at every width. The bar is a `.control-row`, so layout-audit checks it; the
 label carries `data-align="label"`. The full markup and the rules for the note and the status element
-sit in the comment at the top of the file. The note is each project's own true statement: "No tracking.
-No cookies." holds for the gallery, and a site with analytics may not copy it unchanged.
+sit in the comment at the top of the file. The note is each project's own true statement: "No analytics.
+No cookies." is the gallery's own sample and holds for the gallery; a project writes what holds for it.
 
 Browser check: the layout-audit job in CI runs the library's own fixtures, not the gallery, so the
 footer's check over the shared matrix runs by hand before a tag:

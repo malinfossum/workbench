@@ -669,7 +669,7 @@ const GALLERY_SECTIONS = [
         specimen({
           title: "Site footer",
           note:
-            "A stack below 1024 px, one row from 1024 px. The pill is live: it drives the gallery's theme through theme-toggle.js. The line under the footer echoes what a screen reader hears after a press, from the page's live region in the sidebar; a consumer ships that region as the footer's last child, visually hidden. Hover a mark for its tooltip; Escape hides the tooltips until the pointer returns. The note is this gallery's own true statement; a project writes what holds for it.",
+            "A stack below 1024 px, a wrapping row from 1024 px; in this panel's narrow column the row wraps. The pill is live: it drives the gallery's theme through theme-toggle.js. The line under the footer echoes what a screen reader hears after a press, from the page's live region in the sidebar; a consumer ships that region as the footer's last child, visually hidden. Hover a mark for its tooltip; Escape hides the tooltips until the pointer returns. The note is this gallery's own true statement; a project writes what holds for it.",
           classes: [
             ".site-footer",
             ".site-footer-row",

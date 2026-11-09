@@ -27,10 +27,11 @@
        <p class="sr-only" role="status" data-theme-status></p>
      </footer>
 
-   The note is each project's own true statement. "No tracking. No cookies." is the
-   gallery's sample and holds for the gallery; a site that stores a theme in
-   localStorage still has no cookies, but a site with analytics may not copy it
-   unchanged (markedsføringsloven § 7, a misleading claim). A project with no text
+   The note is each project's own true statement. "No analytics. No cookies." is the
+   gallery's own sample and holds for the gallery; a project writes what holds for
+   it. A site that stores a theme in localStorage still has no cookies, but a site
+   with analytics may not copy the sample unchanged (markedsføringsloven § 7, a
+   misleading claim). A project with no text
    links omits the nav, label included, never an empty landmark. The status element
    is the footer's last child, in the first HTML, outside anything a view re-renders.
 

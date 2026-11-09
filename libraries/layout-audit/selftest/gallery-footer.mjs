@@ -1,6 +1,6 @@
 /* Manual browser check for the design system's Footer panel (spec § 6). Not a
    spec file, so `playwright test` ignores it; no CI job audits the gallery.
-   Runs the layout audit over the Footer panel at every cell of the shared matrix
+   Runs the layout audit over the page, sidebar hidden, at every cell of the shared matrix
    (default theme), checks one row at 1280 px, and hovers the first and last
    tooltip host at 320 px with the bubble inside the viewport. Prints the counts
    to paste into the PR. Needs the self-test server: `node selftest/serve.mjs`
@@ -39,7 +39,7 @@ for (const cell of cells([GALLERY])) {
 	const report = await page.evaluate(async () => {
 		await document.fonts.ready;
 		await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-		return globalThis.auditLayout(document.querySelector(".site-footer").ownerDocument, { known: [], mark: false });
+		return globalThis.auditLayout(document, { known: [], mark: false });
 	});
 	const errors = verdict(report, { cell, locale: "en-US", lang: undefined, status: 200 });
 	failures += errors.length;
