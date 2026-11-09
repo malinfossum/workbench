@@ -3,6 +3,10 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.11.1 — 2026-11-09
+
+A fix in `theme/theme-toggle.js`: when storage refuses the write and an older valid key is still stored (a quota error), the pill now presses the session choice the page shows, not the stale key. Pinned in `tools/design-system-dom.test.mjs`. Gallery only, not extracted: the sidebar shell is gated on `@container (min-width: 48rem)` on `body` instead of a 768 px media query, so 200 % text stacks it instead of overflowing the page.
+
 ## 3.11.0 — 2026-11-09
 
 The site footer pattern (`docs/specs/2026-10-17-site-footer.md`). Additive. One behaviour change to check: `theme-toggle.js` now writes `aria-pressed` on every `button[data-theme-set][aria-pressed]`, so a consumer with its own pressed logic on such buttons has two writers and should drop its own.

@@ -77,9 +77,11 @@
 		document.documentElement.dataset.theme = value || systemTheme();
 	}
 
-	// Every opt-in button reflects the stored key; no key is System.
+	// Every opt-in button reflects the stored key; no key is System. A session
+	// choice that storage refused wins over an older key still stored (a quota
+	// error), so the pill presses what the page shows.
 	function mark() {
-		var current = stored() || fallback || "system";
+		var current = fallback || stored() || "system";
 		document.querySelectorAll(PRESSABLE).forEach(function (button) {
 			var value = button.dataset.themeSet === "" ? "system" : button.dataset.themeSet;
 			button.setAttribute("aria-pressed", String(value === current));

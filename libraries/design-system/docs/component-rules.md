@@ -8,7 +8,7 @@
 
 ## Icons
 - `icon(name)` from `components/icons.js`; never emoji, never a hard-coded colour
-- an icon is decorative — the control carries the name (visible label, or `aria-label` on `.icon-btn`)
+- an icon is decorative: the control carries the name (visible label, or `aria-label` on `.icon-btn`)
 - 20px inside controls; 48px for empty states, and let the stroke ramp thin it
 - one stroke family: no mixing in filled or outline icons from elsewhere, except brand marks from `brand-icons.js` (a mark is drawn the way its owner draws it)
 
@@ -31,7 +31,7 @@
 - help text is optional, not decorative
 - one field group = label + control + help text
 - file inputs use `.file-input-hidden` + `<label class="btn file-input-label">`; never hide the input with `display: none`
-- a file picker reflects the chosen file (name in `.help`, or a preview) — the native filename text is gone with the control
+- a file picker reflects the chosen file (name in `.help`, or a preview): the native filename text is gone with the control
 
 ## Navigation
 - topbar stays simple by default

@@ -729,8 +729,8 @@ test("brand marks: filled currentColor SVGs with provenance, inert, and an unkno
 	assert.equal(brandIcon("constructor"), "", "a prototype name is not a mark");
 });
 
-test("VERSION is 3.11.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge, the layout primitives and the site footer", () => {
-	assert.equal(read("VERSION").trim(), "3.11.0");
+test("VERSION is 3.11.1 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge, the layout primitives and the site footer", () => {
+	assert.equal(read("VERSION").trim(), "3.11.1");
 	const readme = read("README.md");
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit", "site-footer", "theme-pill", "tooltip.js", "brand-icons.js", "data-theme-status", "data-tips", "Icons or text"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
@@ -883,4 +883,11 @@ test("gallery: a Footer panel with a live pill that reads its pressed state from
 	assert.match(app, /import \{ BRAND_NAMES, brandIcon \} from "\.\.\/components\/brand-icons\.js";/);
 	assert.match(app, /window\.brandIcon = brandIcon;/);
 	assert.match(read("gallery/gallery.css"), /\.gallery-theme-status \{/);
+});
+
+test("gallery: the sidebar shell is gated on the container's width in rem, so zoomed text stacks it instead of overflowing", () => {
+	const css = read("gallery/gallery.css");
+	assert.doesNotMatch(css, /@media \(min-width/, "a px media query ignores text size: 768 px at 200 % text cannot host a 16rem sidebar beside the column");
+	assert.match(css, /body \{\s*container-type: inline-size;/, "body is the query container (a container query cannot style the container itself)");
+	assert.match(css, /@container \(min-width: 48rem\) \{/, "48rem is 768 px at 100 % text, so nothing moves for the default size");
 });

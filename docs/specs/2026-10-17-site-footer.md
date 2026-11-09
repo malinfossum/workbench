@@ -131,8 +131,8 @@ marks which one is current. v3 adds two things, still as one set of delegated li
   that work over: `gallery/app.js` drops its own `aria-pressed` loop in `syncTheme`, leaving one
   writer.
 - **Status line:** after every click on a pill button, the pressed one included, if the page
-  has a `[data-theme-status]` element (the first), the script writes the group's name and the
-  button's name into it with `textContent` ("Theme: Dark"), read from the closest
+  has `[data-theme-status]` elements, the script writes the group's name and the button's
+  name into every one of them with `textContent` ("Theme: Dark"), read from the closest
   `[role="group"]`'s `aria-label` and the button's `.sr-only` text. With no group name it
   writes the button's name alone, never ": Dark". No strings live in the script, so it works in
   any language. A click on the already pressed button writes the same line again, because every
@@ -141,7 +141,9 @@ marks which one is current. v3 adds two things, still as one set of delegated li
   as "no change".
 - **The status element** must be in the page's first HTML, outside any container a view
   re-renders, or a screen reader may miss the first change (the house live-region rule). The
-  gallery and the composition docs show it as the footer's last child.
+  gallery and the composition docs show it as the footer's last child. Every element with
+  the attribute gets the line, so a hidden live region and a visible echo coexist (amended
+  09.11.2026: the draft said only the first).
 
 ### 3.4 Tooltip
 
@@ -225,7 +227,9 @@ Static checks in `tools/design-system.test.mjs`, in the style of the 3.10.0 test
   text).
 - `gallery/app.js` no longer sets `aria-pressed` (a grep guard), so v3 is the only writer.
 - `brandIcon("nope")` returns `""`.
-- Each new guard has a fixture that must fail.
+- The two scanners (`userFacingStrings` and the markup check the brand marks share with the
+  flags) each have a fixture that must fail; the guards that pin shipped files need none
+  (amended 09.11.2026: the draft asked one of every guard).
 
 **Browser check, manual.** No CI job audits the gallery (the layout-audit job runs the
 library's own fixtures), so I run this myself before the 3.11.0 tag, on the gallery served

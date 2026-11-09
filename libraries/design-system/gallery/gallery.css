@@ -155,7 +155,15 @@
 	background: var(--surface-2);
 }
 
-@media (min-width: 768px) {
+/* The sidebar sits beside the column only when the shell is at least 48rem wide,
+   read by a container query on body so the threshold follows the text size: at
+   200 % text a 768 px viewport is 24rem and cannot hold a 16rem sidebar plus a
+   column, so it stays stacked (the old px media query put the sidebar in and the
+   column overflowed the page). 48rem is 768 px at 100 %, so nothing moves there. */
+body {
+	container-type: inline-size;
+}
+@container (min-width: 48rem) {
 	.gallery {
 		display: grid;
 		grid-template-columns: 16rem 1fr;
