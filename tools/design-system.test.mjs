@@ -834,3 +834,27 @@ test("theme pill: inset outline, 44 px round buttons, pressed ring in --text, Hi
 	assert.match(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*forced-color-adjust: none;[^}]*background: Highlight;[^}]*color: HighlightText;/s);
 	assert.doesNotMatch(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*outline/s, "pressed is a fill, never an outline, so it cannot pass for the focus ring");
 });
+
+test("site footer: a stack below 1024 px, one spread row from min-width: 1024px, label and note in one small uppercase style, the bar is a control row", () => {
+	const css = read("compositions/site-footer.css");
+	assert.match(read("compositions/index.css"), /@import "\.\/site-footer\.css";/, "site-footer.css must be imported by compositions/index.css");
+	assert.match(css, /\.site-footer-row \{[^}]*display: flex;[^}]*flex-direction: column;/s);
+	assert.match(css, /\.site-footer-label,\n\.site-footer-note \{[^}]*font-size: 0\.75rem;[^}]*line-height: 1rem;[^}]*text-transform: uppercase;[^}]*letter-spacing: 0\.14em;[^}]*color: var\(--text-muted\);/s);
+	assert.doesNotMatch(css, /\.site-footer-label,\n\.site-footer-note \{[^}]*font-weight/s, "the label keeps --weight-label from base.css, which is how it stands off from the links");
+	assert.match(css, /\.site-footer-note > span \{[^}]*display: block;/s, "the note is two short lines");
+	for (const control of ["site-footer-link", "site-footer-mark"]) assert.match(css, new RegExp(`\\.${control} \\{[^}]*min-block-size: var\\(--control-height\\);`, "s"), `.${control} is a 44 px target`);
+	assert.match(css, /\.site-footer-bar > \.theme-pill \{[^}]*margin-inline-start: auto;/s, "the pill sits at the end of the bar, also on a wrapped line");
+	assert.match(css, /\.site-footer-bar > \.site-footer-mark:first-child \{[^}]*margin-inline-start: -0\.75rem;/s, "the first mark's glyph lines up with the text above");
+	const wideAt = css.indexOf("@media (min-width: 1024px)");
+	assert.ok(wideAt > 0, "one min-width: 1024px block");
+	const wide = css.slice(wideAt);
+	assert.match(wide, /\.site-footer-row \{[^}]*flex-direction: row;[^}]*flex-wrap: wrap;[^}]*justify-content: space-between;/s);
+	assert.match(wide, /\.site-footer-lead \{[^}]*flex: none;[^}]*max-inline-size: 17rem;/s);
+	assert.match(wide, /\.site-footer-note,\n\t\.site-footer-bar \{[^}]*flex: none;/s, "every group except the nav wraps whole");
+	assert.match(wide, /\.site-footer-label \{[^}]*clip: rect\(0, 0, 0, 0\);/s, "the label is visually hidden from 1024 px and still names the nav");
+	assert.match(wide, /\.site-footer-bar > \.site-footer-mark:first-child \{[^}]*margin-inline-start: 0;/s);
+	assert.doesNotMatch(css, /@media[^{]*max-width/);
+	assert.doesNotMatch(css, /\.site-footer-row[^{]*\{[^}]*min-block-size|\.site-footer-row[^{]*\{[^}]*block-size:/s, "the outer row makes no height promise");
+	assert.match(css, /markedsføringsloven § 7/, "the note rule travels with the markup");
+	assert.match(css, /omits the nav/, "a project with no text links omits the nav, label included");
+});

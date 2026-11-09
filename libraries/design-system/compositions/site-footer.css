@@ -1,0 +1,146 @@
+/* Site footer (docs/specs/2026-10-17-site-footer.md): a lead that must be read,
+   text links under a small label, a two-line note, and a bar of brand marks with
+   the theme pill. The rule: an icon where the meaning is universal, short text
+   where it is not; a safety, legal or trust link is always text
+   (docs/component-rules.md § Icons or text).
+
+   Markup, in reading order, the same at every width:
+     <footer class="site-footer">
+       <div class="site-footer-row" data-tips>
+         <p class="site-footer-lead">One or two sentences that must be read, with any vital link.</p>
+         <nav class="site-footer-nav" aria-labelledby="footer-label">
+           <span id="footer-label" class="site-footer-label" data-align="label">About this site</span>
+           <span class="cluster">
+             <a class="site-footer-link" href="…">Report an error</a>
+             …each a 44 px target…
+           </span>
+         </nav>
+         <p class="site-footer-note"><span>© Name · No tracking.</span> <span>No cookies.</span></p>
+         <div class="site-footer-bar control-row">
+           <a class="site-footer-mark tip-host" href="https://github.com/…">
+             ${brandIcon("github")}<span class="sr-only">GitHub</span>
+             <span class="tip tip-above tip-start" aria-hidden="true"><span class="tip-bubble">GitHub</span></span>
+           </a>
+           …the theme pill (components/theme-pill.css), its last button with tip-end…
+         </div>
+       </div>
+       <p class="sr-only" role="status" data-theme-status></p>
+     </footer>
+
+   The note is each project's own true statement. "No tracking. No cookies." is the
+   gallery's sample and holds for the gallery; a site that stores a theme in
+   localStorage still has no cookies, but a site with analytics may not copy it
+   unchanged (markedsføringsloven § 7, a misleading claim). A project with no text
+   links omits the nav, label included, never an empty landmark. The status element
+   is the footer's last child, in the first HTML, outside anything a view re-renders.
+
+   Below 1024 px: a stack. The label shows over the links, the note sits on its own
+   line, the bar puts the marks at the start and the pill at the end. From 1024 px:
+   one wrapping row with the groups spread apart. The label is visually hidden and
+   still names the nav. The lead is capped at 17rem so it wraps to two lines in
+   English; a longer language may take three, and the row grows with it, because
+   this row is not a .control-row and makes no height promise. Every group except
+   the nav is flex: none, so groups wrap whole, never in the middle. The bar is a
+   .control-row, so its controls share one height and one bottom edge, and
+   layout-audit checks it; at 320 px with three or more marks the pill drops to a
+   second line at the end, and the contract holds per line. */
+.site-footer {
+	padding-block: var(--space-6);
+	border-block-start: 1px solid var(--line);
+}
+.site-footer-row {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+}
+.site-footer-lead {
+	margin: 0;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+.site-footer-nav {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+/* Label and note share one text style. The label keeps --weight-label from
+   base.css ([data-align="label"]), which is how it stands off from the links. */
+.site-footer-label,
+.site-footer-note {
+	margin: 0;
+	font-size: 0.75rem;
+	line-height: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	color: var(--text-muted);
+}
+.site-footer-note > span {
+	display: block;
+}
+/* A text link: a 44 px target with no box, muted until hovered. */
+.site-footer-link {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: var(--control-height);
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+.site-footer-link:hover {
+	color: var(--text);
+}
+/* A brand mark: a 44 px round target around a 20 px glyph. */
+.site-footer-mark {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--control-height);
+	min-block-size: var(--control-height);
+	border-radius: var(--radius-pill);
+	color: var(--text-muted);
+}
+.site-footer-mark:hover {
+	color: var(--text);
+}
+/* The first mark pulls back by half of (44 minus 20) px, so its glyph lines up
+   with the text above while the target stays whole. Its tip-start bubble starts
+   at the same point, 0.75rem left of the text column, so the footer needs at
+   least that much inline padding around it; .container gives 1rem or more. */
+.site-footer-bar > .site-footer-mark:first-child {
+	margin-inline-start: -0.75rem;
+}
+/* The pill takes the end of its line, also when it wraps to a second one. */
+.site-footer-bar > .theme-pill {
+	margin-inline-start: auto;
+}
+@media (min-width: 1024px) {
+	.site-footer-row {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.site-footer-lead {
+		flex: none;
+		max-inline-size: 17rem;
+	}
+	.site-footer-note,
+	.site-footer-bar {
+		flex: none;
+	}
+	/* Visually hidden, still the nav's name. The .sr-only declarations are
+	   repeated here because the class is fixed by the markup below 1024 px. */
+	.site-footer-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+	.site-footer-bar > .site-footer-mark:first-child {
+		margin-inline-start: 0;
+	}
+}
