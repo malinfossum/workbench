@@ -97,10 +97,16 @@
 	color: var(--text);
 }
 
+/* Horizontal padding follows the shell and caps at the token. Two rem-sized
+   layers (this column and .stage) left 62 px of a 320 px viewport for content at
+   200 % text, so every control stuck out. 5cqi of body is 16 px per layer at
+   320 px and reaches the 1.5rem cap from 480 px (960 px at 200 %). Block padding
+   keeps the token: height is free. The container block below restores the
+   token on both axes, where the cap always wins. */
 .gallery-main {
 	max-width: 64rem;
-	padding: var(--space-6);
-	padding-block-end: var(--space-8);
+	padding-block: var(--space-6) var(--space-8);
+	padding-inline: min(var(--space-6), 5cqi);
 }
 
 /* Content presentation */
@@ -130,7 +136,8 @@
 	border: 1px solid var(--border);
 }
 .stage {
-	padding: var(--space-6);
+	padding-block: var(--space-6);
+	padding-inline: min(var(--space-6), 5cqi);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
 	background: var(--surface-1);

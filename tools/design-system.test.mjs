@@ -891,3 +891,14 @@ test("gallery: the sidebar shell is gated on the container's width in rem, so zo
 	assert.match(css, /body \{\s*container-type: inline-size;/, "body is the query container (a container query cannot style the container itself)");
 	assert.match(css, /@container \(min-width: 48rem\) \{/, "48rem is 768 px at 100 % text, so nothing moves for the default size");
 });
+
+test("gallery: horizontal padding on the column and the stage scales with the shell and caps at the token, so 200 % text on a 320 px phone keeps room for a control", () => {
+	const css = read("gallery/gallery.css");
+	const main = css.match(/\.gallery-main \{([^}]*)\}/)?.[1];
+	const stage = css.match(/\.stage \{([^}]*)\}/)?.[1];
+	assert.ok(main && stage, "gallery.css must define .gallery-main and .stage");
+	for (const [name, block] of [["main", main], ["stage", stage]]) {
+		assert.match(block, /padding-inline: min\(var\(--space-6\), 5cqi\);/, `.gallery-${name === "main" ? "main" : "stage"}: two rem-sized layers at 200 % text left 62 px of a 320 px viewport for content`);
+		assert.doesNotMatch(block, /\n\s*padding: /, `${name} must not set shorthand padding over the scaled inline padding`);
+	}
+});
