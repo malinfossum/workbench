@@ -639,6 +639,80 @@ const GALLERY_SECTIONS = [
     },
   },
   {
+    id: "footer",
+    label: "Footer",
+    render() {
+      // The panel renders after theme-toggle.js ran, so it marks the pill itself
+      // from the stored preference; v3 takes over from the next click or event.
+      const stored = preferences.readPreference("theme", preferences.THEMES);
+      const current = stored === null ? "system" : stored;
+      const pill = [
+        ["light", "sun", "Light"],
+        ["system", "monitor", "System"],
+        ["dark", "moon", "Dark"],
+      ]
+        .map(([value, glyph, name], i, all) => {
+          const edge = i === all.length - 1 ? " tip-end" : "";
+          return `
+            <button class="theme-pill-btn tip-host" type="button" data-theme-set="${value}" aria-pressed="${value === current}">
+              ${icon(glyph)}<span class="sr-only">${name}</span>
+              <span class="tip tip-above${edge}" aria-hidden="true"><span class="tip-bubble">${name}</span></span>
+            </button>`;
+        })
+        .join("");
+      return (
+        panelHeader(
+          "Composition",
+          "Footer",
+          "An icon where the meaning is universal, short text where it is not. A safety, legal or trust link is always text.",
+        ) +
+        specimen({
+          title: "Site footer",
+          note:
+            "A stack below 1024 px, a wrapping row from 1024 px; in this panel's narrow column the row wraps. The pill is live: it drives the gallery's theme through theme-toggle.js. The line under the footer echoes what a screen reader hears after a press, from the page's live region in the sidebar; a consumer ships that region as the footer's last child, visually hidden. Hover a mark for its tooltip; Escape hides the tooltips until the pointer returns. The note is this gallery's own true statement; a project writes what holds for it.",
+          classes: [
+            ".site-footer",
+            ".site-footer-row",
+            ".site-footer-lead",
+            ".site-footer-nav",
+            ".site-footer-label",
+            ".site-footer-link",
+            ".site-footer-note",
+            ".site-footer-bar.control-row",
+            ".site-footer-mark",
+            ".theme-pill",
+            ".tip",
+            "[data-tips]",
+            "[data-theme-status]",
+          ],
+          demo: `
+            <footer class="site-footer">
+              <div class="site-footer-row" data-tips>
+                <p class="site-footer-lead">Sample text for one or two sentences that must be read, with <a href="#">a vital link</a>.</p>
+                <nav class="site-footer-nav" aria-labelledby="footer-label">
+                  <span id="footer-label" class="site-footer-label" data-align="label">About this site</span>
+                  <span class="cluster">
+                    <a class="site-footer-link" href="#">Report an error</a>
+                    <a class="site-footer-link" href="#">About and liability</a>
+                    <a class="site-footer-link" href="#">Privacy</a>
+                  </span>
+                </nav>
+                <p class="site-footer-note"><span>© Design System · No analytics.</span> <span>No cookies.</span></p>
+                <div class="site-footer-bar control-row">
+                  <a class="site-footer-mark tip-host" href="https://github.com/malinfossum/workbench">
+                    ${brandIcon("github")}<span class="sr-only">GitHub</span>
+                    <span class="tip tip-above tip-start" aria-hidden="true"><span class="tip-bubble">GitHub</span></span>
+                  </a>
+                  <div class="theme-pill" role="group" aria-label="Theme">${pill}</div>
+                </div>
+              </div>
+              <p class="gallery-theme-status" data-theme-status></p>
+            </footer>`,
+        })
+      );
+    },
+  },
+  {
     id: "overlays",
     label: "Overlays",
     render() {

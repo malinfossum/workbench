@@ -24,3 +24,12 @@ updates:
       npm-minor-patch:
         patterns: ["*"]
         update-types: [minor, patch]
+
+  - package-ecosystem: npm # package.json: jsdom for the design system's behaviour tests
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]

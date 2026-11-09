@@ -649,6 +649,14 @@ test("preferences: invalid values are removed on read, System removes the key, s
 	}
 });
 
+// A quoted string that starts with a capital letter followed by lower case is a
+// word a person reads. Comments are stripped first, so the docs can show the
+// "Theme: Dark" format. Returns the first offender or null.
+export function userFacingStrings(js) {
+	const code = js.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+	return code.match(/["'][A-Z][a-z][^"']*["']/)?.[0] ?? null;
+}
+
 test("theme: data-theme-set is the standard, data-theme-toggle is kept and deprecated, the snippet resolves System", () => {
 	const toggle = read("theme/theme-toggle.js");
 	assert.match(toggle, /\[data-theme-set\]/);
@@ -657,6 +665,18 @@ test("theme: data-theme-set is the standard, data-theme-toggle is kept and depre
 	assert.match(toggle, /removeItem\("theme"\)/, "System must remove the key, not store a string");
 	assert.match(toggle, /prefers-color-scheme: light/);
 	assert.doesNotMatch(toggle, /^\s*(?:import|export)\s/m, "theme-toggle.js must stay a classic script");
+	// v3: pressed state and the status line, with no words of its own.
+	assert.match(toggle, /button\[data-theme-set\]\[aria-pressed\]/, "pressed state is opt-in by the attribute");
+	assert.match(toggle, /setAttribute\("aria-pressed"/);
+	assert.match(toggle, /querySelectorAll\("\[data-theme-status\]"\)/, "every status element gets the line: a page may hold a hidden live region and a visible echo");
+	assert.match(toggle, /themeWired/, "guarded against a double install, like picker.js and tooltip.js");
+	assert.match(toggle, /\.textContent = /, "the status line is written with textContent, never innerHTML");
+	assert.doesNotMatch(toggle, /innerHTML/);
+	assert.equal(userFacingStrings(toggle), null, `theme-toggle.js must hold no user-facing strings, found ${userFacingStrings(toggle)}`);
+	// The red case: a line with a capitalised quoted word fails the check.
+	assert.equal(userFacingStrings('status.textContent = "Theme: " + name;'), '"Theme: "');
+	assert.equal(userFacingStrings("var label = 'Dark';"), "'Dark'");
+	assert.equal(userFacingStrings('addEventListener("DOMContentLoaded", mark); var q = "(prefers-color-scheme: light)";'), null, "event names and media queries are not words a person reads");
 	const snippet = read("theme/theme-init-snippet.html");
 	assert.match(snippet, /<meta name="color-scheme" content="dark light" \/>/);
 	assert.match(snippet, /prefers-color-scheme: light/);
@@ -673,16 +693,53 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	for (const file of ["gallery/index.html", "gallery/app.js", "gallery/gallery.css", "gallery/sections.js"]) {
 		assert.doesNotMatch(read(file), /data-theme-toggle/, `${file} must not use the deprecated attribute`);
 	}
-	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
+	assert.doesNotMatch(read("gallery/app.js"), /aria-pressed/, "theme-toggle.js v3 is the only writer of aria-pressed");
+	assert.doesNotMatch(read("gallery/app.js"), /\.gallery-themes/, "app.js no longer syncs the sidebar; v3 marks it");
 });
 
-test("VERSION is 3.10.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge and the layout primitives", () => {
-	assert.equal(read("VERSION").trim(), "3.10.0");
+test("icons: monitor joins sun and moon for the theme pill, fifteen icons in the set", async () => {
+	const { ICON_NAMES, icon } = await import(pathToFileURL(join(DS, "components", "icons.js")).href);
+	assert.ok(ICON_NAMES.includes("monitor"), "icons.js must export monitor");
+	assert.equal(ICON_NAMES.length, 15, `the set is fifteen icons, got ${ICON_NAMES.length}: ${ICON_NAMES.join(", ")}`);
+	assert.match(icon("monitor"), /<rect /, "monitor is a screen on a stand");
+});
+
+test("brand marks: filled currentColor SVGs with provenance, inert, and an unknown name renders nothing", async () => {
+	const { BRAND_NAMES, brandIcon } = await import(pathToFileURL(join(DS, "components", "brand-icons.js")).href);
+	assert.deepEqual([...BRAND_NAMES], ["github"], "3.11.0 ships github only");
+	assert.ok(Object.isFrozen(BRAND_NAMES));
+	const source = read("components/brand-icons.js");
+	for (const name of BRAND_NAMES) {
+		const markup = brandIcon(name);
+		assert.match(markup, /^<svg class="icon" width="20" height="20" viewBox="0 0 \d+ \d+" fill="currentColor" aria-hidden="true" focusable="false">/, `${name} must be a decorative currentColor mark on the .icon class`);
+		assert.doesNotMatch(markup, /stroke=/, `${name} is filled, not a stroke icon`);
+		assert.ok(flagIsSafe(markup), `${name} carries a script, a foreignObject, a remote href or an on* handler`);
+		assert.match(brandIcon(name, { size: 16 }), /width="16" height="16"/);
+		// Provenance travels with the mark: source, licence, logo guidelines, checked date.
+		const block = source.match(new RegExp(`\\* ${name}:[\\s\\S]*?\\*/`))?.[0];
+		assert.ok(block, `${name} needs a comment block starting "* ${name}:"`);
+		assert.match(block, /Source: https:\/\/\S+/, `${name}: Source URL`);
+		assert.match(block, /Licence: \S+, https:\/\/\S+/, `${name}: licence name and URL`);
+		assert.match(block, /Logo guidelines: https:\/\/\S+/, `${name}: logo guidelines URL`);
+		assert.match(block, /Checked: \d{4}-\d{2}-\d{2}/, `${name}: checked date`);
+	}
+	assert.match(source, /Permission is hereby granted, free of charge/, "the MIT notice travels with the Octicons mark");
+	assert.equal(brandIcon("nope"), "");
+	assert.equal(brandIcon(""), "");
+	assert.equal(brandIcon("constructor"), "", "a prototype name is not a mark");
+});
+
+test("VERSION is 3.11.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge, the layout primitives and the site footer", () => {
+	assert.equal(read("VERSION").trim(), "3.11.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit", "site-footer", "theme-pill", "tooltip.js", "brand-icons.js", "data-theme-status", "data-tips", "Icons or text"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.10\.0 — /m, "CHANGELOG must carry the 3.10.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.11\.0 — /m, "CHANGELOG must carry the 3.11.0 entry");
+	const rules = read("docs/component-rules.md");
+	assert.match(rules, /## Icons or text/);
+	assert.match(rules, /A safety, legal or trust link is always text/);
+	assert.match(rules, /except brand marks from `brand-icons\.js`/);
 });
 
 test("tailwind bridge: every var() resolves to a DS token, index.css leaves it out, the dark variant keys on data-theme", () => {
@@ -730,4 +787,100 @@ test("shipped CSS never uses @import url(): Tailwind's bundler leaves that form 
 	};
 	for (const dir of shipped) walk(dir);
 	assert.deepEqual(offenders, []);
+});
+
+test("tooltip: pointer devices only, hidden by data-tips after the show rule, bordered in forced colours, no motion, dismissal script is delegated", () => {
+	const css = read("components/tooltip.css");
+	assert.match(read("components/index.css"), /@import "\.\/tooltip\.css";/, "tooltip.css must be imported by components/index.css");
+	assert.match(css, /\.tip-host \{[^}]*position: relative;/s);
+	assert.match(css, /\.tip \{[^}]*display: none;[^}]*position: absolute;/s);
+	// The gap is the tip's own padding, so the pointer can cross onto the bubble (WCAG 1.4.13 hoverable).
+	assert.match(css, /\.tip \{[^}]*padding-block-start: var\(--space-2\);/s);
+	assert.doesNotMatch(css, /pointer-events: none/, "the bubble must stay hoverable");
+	for (const name of ["tip-above", "tip-start", "tip-end", "tip-bubble"]) assert.match(css, new RegExp(`\\.${name} \\{`), `tooltip.css must define .${name}`);
+	// Hover is gated to pointer devices; focus is not, because a tap never yields :focus-visible on a button.
+	const pointerAt = css.indexOf("@media (hover: hover) and (pointer: fine)");
+	assert.ok(pointerAt > 0, "hover tips show only under (hover: hover) and (pointer: fine)");
+	const pointer = css.slice(pointerAt, css.indexOf("}", css.indexOf("display: block;", pointerAt)) + 2);
+	assert.match(pointer, /\.tip-host:hover > \.tip \{[^}]*display: block;/s);
+	assert.doesNotMatch(pointer, /focus-visible/, "focus shows a tip on every device");
+	const focusAt = css.indexOf(".tip-host:focus-visible > .tip {");
+	assert.ok(focusAt > 0 && focusAt < pointerAt, "the focus rule sits outside the pointer media query");
+	assert.match(css.slice(focusAt), /^\.tip-host:focus-visible > \.tip \{[^}]*display: block;/s);
+	// The hide rule must match the show rules' specificity (0,3,0) and come after both, or Escape never wins.
+	const hiddenAt = css.indexOf('[data-tips="hidden"] .tip-host > .tip {');
+	assert.ok(hiddenAt > css.indexOf(".tip-host:hover > .tip {"), "the hide rule comes after the hover rule");
+	assert.match(css.slice(hiddenAt), /^\[data-tips="hidden"\] \.tip-host > \.tip \{[^}]*display: none;/s);
+	assert.doesNotMatch(css, /\[data-tips="hidden"\] \.tip \{/, "a (0,2,0) hide rule loses to the (0,3,0) show rules");
+	assert.match(css, /forced-colors: active[^{]*\{\s*(?:\/\*[^*]*\*\/\s*)?\.tip-bubble \{[^}]*border: 1px solid CanvasText;/s);
+	assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /transition|animation/, "nothing for prefers-reduced-motion to switch off");
+	const js = read("components/tooltip.js");
+	assert.doesNotMatch(js, /^\s*(?:import|export)\s/m, "tooltip.js must stay a classic script");
+	assert.match(js, /tipsWired/, "guarded against a double install");
+	assert.doesNotMatch(js, /preventDefault|stopPropagation/, "Escape must still reach picker.js");
+	assert.match(js, /"mouseover"/, "mouseover bubbles, mouseenter does not");
+	assert.match(js, /"focusin"/);
+});
+
+test("theme pill: inset outline, 44 px round buttons, pressed ring in --text, Highlight fill in forced colours", () => {
+	const css = read("components/theme-pill.css");
+	assert.match(read("components/index.css"), /@import "\.\/theme-pill\.css";/, "theme-pill.css must be imported by components/index.css");
+	assert.match(css, /\.theme-pill \{[^}]*display: inline-flex;[^}]*border-radius: var\(--radius-pill\);[^}]*box-shadow: inset 0 0 0 1px var\(--border\);/s);
+	const btn = css.match(/\.theme-pill-btn \{([^}]*)\}/s)?.[1];
+	assert.ok(btn, "theme-pill.css must define .theme-pill-btn");
+	for (const decl of ["inline-size: var(--control-height);", "min-block-size: var(--control-height);", "border-radius: var(--radius-pill);", "color: var(--text-muted);"]) assert.ok(btn.includes(decl), `.theme-pill-btn needs ${decl}`);
+	assert.match(css, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*color: var\(--text\);[^}]*box-shadow: inset 0 0 0 1px var\(--text\);/s);
+	// The focus ring is also a box-shadow (base.css); a pressed button keeps its ring under it.
+	assert.match(css, /\.theme-pill-btn\[aria-pressed="true"\]:focus-visible \{[^}]*inset 0 0 0 1px var\(--text\),\s*var\(--shadow-focus\);/s);
+	const forced = css.slice(css.indexOf("@media (forced-colors: active)"));
+	assert.match(forced, /\.theme-pill \{[^}]*outline: 1px solid CanvasText;/s);
+	assert.match(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*forced-color-adjust: none;[^}]*background: Highlight;[^}]*color: HighlightText;/s);
+	assert.doesNotMatch(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*outline/s, "pressed is a fill, never an outline, so it cannot pass for the focus ring");
+});
+
+test("site footer: a stack below 1024 px, a wrapping row from min-width: 1024px, label and note in one small uppercase style, the bar is a control row", () => {
+	const css = read("compositions/site-footer.css");
+	assert.match(read("compositions/index.css"), /@import "\.\/site-footer\.css";/, "site-footer.css must be imported by compositions/index.css");
+	assert.match(css, /\.site-footer-row \{[^}]*display: flex;[^}]*flex-direction: column;/s);
+	assert.match(css, /\.site-footer-label,\n\.site-footer-note \{[^}]*font-size: 0\.75rem;[^}]*line-height: 1rem;[^}]*text-transform: uppercase;[^}]*letter-spacing: 0\.14em;[^}]*color: var\(--text-muted\);/s);
+	assert.doesNotMatch(css, /\.site-footer-label,\n\.site-footer-note \{[^}]*font-weight/s, "the label keeps --weight-label from base.css, which is how it stands off from the links");
+	assert.match(css, /\.site-footer-note > span \{[^}]*display: block;/s, "the note is two short lines");
+	for (const control of ["site-footer-link", "site-footer-mark"]) assert.match(css, new RegExp(`\\.${control} \\{[^}]*min-block-size: var\\(--control-height\\);`, "s"), `.${control} is a 44 px target`);
+	assert.match(css, /\.site-footer-bar > \.theme-pill \{[^}]*margin-inline-start: auto;/s, "the pill sits at the end of the bar, also on a wrapped line");
+	assert.match(css, /\.site-footer-bar > \.site-footer-mark:first-child \{[^}]*margin-inline-start: -0\.75rem;/s, "the first mark's glyph lines up with the text above");
+	const wideAt = css.indexOf("@media (min-width: 1024px)");
+	assert.ok(wideAt > 0, "one min-width: 1024px block");
+	const wide = css.slice(wideAt);
+	assert.match(wide, /\.site-footer-row \{[^}]*flex-direction: row;[^}]*flex-wrap: wrap;[^}]*justify-content: space-between;/s);
+	assert.match(wide, /\.site-footer-lead \{[^}]*flex: none;[^}]*max-inline-size: 17rem;/s);
+	assert.match(wide, /\.site-footer-note,\n\t\.site-footer-bar \{[^}]*flex: none;/s, "every group except the nav wraps whole");
+	assert.match(wide, /\.site-footer-label \{[^}]*clip: rect\(0, 0, 0, 0\);/s, "the label is visually hidden from 1024 px and still names the nav");
+	assert.match(wide, /\.site-footer-bar > \.site-footer-mark:first-child \{[^}]*margin-inline-start: 0;/s);
+	assert.doesNotMatch(css, /@media[^{]*max-width/);
+	assert.doesNotMatch(css, /\.site-footer-row[^{]*\{[^}]*min-block-size|\.site-footer-row[^{]*\{[^}]*block-size:/s, "the outer row makes no height promise");
+	assert.match(css, /markedsføringsloven § 7/, "the note rule travels with the markup");
+	assert.match(css, /omits the nav/, "a project with no text links omits the nav, label included");
+});
+
+test("gallery: a Footer panel with a live pill that reads its pressed state from preferences, a visible status line, tooltip.js loaded, brand marks on window", () => {
+	const sections = read("gallery/sections.js");
+	const panel = sections.match(/id: "footer",[\s\S]*?\n  \},\n/)?.[0];
+	assert.ok(panel, "sections.js needs a footer section");
+	assert.match(panel, /preferences\.readPreference\("theme", preferences\.THEMES\)/, "a panel rendered after load marks the pill itself; v3 takes over from the next event");
+	assert.match(panel, /aria-pressed="\$\{/, "aria-pressed is rendered from the stored preference");
+	for (const needle of ['class="site-footer"', 'class="site-footer-row" data-tips', 'data-align="label"', 'class="site-footer-bar control-row"', 'brandIcon("github")', 'class="theme-pill" role="group" aria-label="Theme"', "tip-start", "tip-end", "No analytics.", "No cookies."]) {
+		assert.ok(panel.includes(needle), `the Footer panel needs ${needle}`);
+	}
+	assert.match(panel, /\["light", "sun", "Light"\],\s*\["system", "monitor", "System"\],\s*\["dark", "moon", "Dark"\]/, "light, system, dark: the pill reads as a scale");
+	// One live region per page, in the first HTML; the panel's line is a visible echo with no role.
+	assert.match(panel, /<p class="gallery-theme-status" data-theme-status><\/p>/, "the visible echo carries the attribute and no role");
+	assert.doesNotMatch(panel, /role="status"/, "the panel is innerHTML after load, so it holds no live region");
+	const index = read("gallery/index.html");
+	assert.match(index, /<p class="sr-only" role="status" data-theme-status><\/p>/, "the live region sits in the first HTML, in the sidebar");
+	assert.ok(index.indexOf('data-theme-status') < index.indexOf('id="panel"'), "the live region comes before the panel");
+	assert.match(index, /<script src="\.\.\/components\/tooltip\.js"><\/script>/);
+	const app = read("gallery/app.js");
+	assert.match(app, /import \{ BRAND_NAMES, brandIcon \} from "\.\.\/components\/brand-icons\.js";/);
+	assert.match(app, /window\.brandIcon = brandIcon;/);
+	assert.match(read("gallery/gallery.css"), /\.gallery-theme-status \{/);
 });

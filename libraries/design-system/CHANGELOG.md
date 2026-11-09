@@ -3,6 +3,19 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.11.0 — 2026-11-09
+
+The site footer pattern (`docs/specs/2026-10-17-site-footer.md`). Additive. One behaviour change to check: `theme-toggle.js` now writes `aria-pressed` on every `button[data-theme-set][aria-pressed]`, so a consumer with its own pressed logic on such buttons has two writers and should drop its own.
+
+- **New `compositions/site-footer.css`:** lead, labelled text links, two-line note, a `.control-row` bar of brand marks and the theme pill. A stack below 1024 px, a wrapping row from 1024 px (groups spread on one line when they fit, wrap whole when they do not). The note is each project's own true statement.
+- **New `components/theme-pill.css`:** light, system, dark as three 44 px round icon buttons in one pill; pressed state from `aria-pressed`, `Highlight` fill in forced colours.
+- **New `components/tooltip.css` + `tooltip.js`:** hover and focus tooltips on pointer devices only, `tip-above`, `tip-start`, `tip-end`; Escape hides them per `[data-tips]` container until the pointer or focus returns (WCAG 1.4.13).
+- **New `components/brand-icons.js`:** `brandIcon(name)`, filled marks with their provenance; ships `github` (Octicons, MIT).
+- **`theme/theme-toggle.js` v3:** marks `aria-pressed` on opt-in buttons (load, click, `storage`, `prefers-color-scheme`); writes the group and button name into every `[data-theme-status]` after every click on such a button, the pressed one included. No strings in the script; guarded against a double install. The gallery's `app.js` dropped its own loop.
+- **`icons.js`:** `monitor`. Fifteen icons.
+- **Rules:** `docs/component-rules.md` § Icons or text (an icon where the meaning is universal, short text where it is not; a safety, legal or trust link is always text), and the brand-mark exception under § Icons.
+- Static tests pin every file; `tools/design-system-dom.test.mjs` runs the two scripts in jsdom.
+
 ## 3.10.0 — 2026-11-04
 
 Layout by construction (loadout spec `2026-10-15-layout-by-construction-design.md`). Additive classes, but the collapse fixes move existing layouts, so syncing a project to 3.10.0 is an adoption.

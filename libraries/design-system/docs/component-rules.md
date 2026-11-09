@@ -10,7 +10,14 @@
 - `icon(name)` from `components/icons.js`; never emoji, never a hard-coded colour
 - an icon is decorative — the control carries the name (visible label, or `aria-label` on `.icon-btn`)
 - 20px inside controls; 48px for empty states, and let the stroke ramp thin it
-- one stroke family — no mixing in filled or outline icons from elsewhere
+- one stroke family: no mixing in filled or outline icons from elsewhere, except brand marks from `brand-icons.js` (a mark is drawn the way its owner draws it)
+
+## Icons or text
+- an icon where the meaning is universal, short text where it is not: a brand mark linking to that brand, sun, monitor and moon for the theme
+- not universal: "Report an error", "About and liability", "Delete your history", a privacy promise; a wrong guess at an icon costs the reader more than the words take
+- **A safety, legal or trust link is always text**
+- every icon-only control has a hidden name (`.sr-only` text) in every language the app ships, and a tooltip (`.tip`) with the same name for mouse users
+- this applies to headers and toolbars too, not only footers
 
 ## Cards
 - Use cards for grouped content

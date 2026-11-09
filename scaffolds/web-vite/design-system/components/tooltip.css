@@ -1,0 +1,78 @@
+/* Tooltip for icon-only controls (docs/specs/2026-10-17-site-footer.md § 3.4).
+   The control's hidden text carries the name; the tip repeats it for mouse users
+   and is aria-hidden, so a screen reader hears the name once. Markup, inside a
+   control that carries class="tip-host":
+     <span class="tip tip-above" aria-hidden="true"><span class="tip-bubble">Light</span></span>
+   Position: below by default. .tip-above for controls near the bottom of the
+   screen (a footer). .tip-start and .tip-end align to the control's start or end
+   edge instead of its centre, for the first and last control at a page edge, so a
+   bubble never leaves the viewport.
+   Hover shows a tip on pointer devices only, so a tap on a phone never leaves one
+   behind. Focus shows a tip on every device: a tap never gives a button
+   :focus-visible, and a keyboard on a tablet deserves the name too. A tip appears
+   at once, with no transition, so prefers-reduced-motion has nothing to switch
+   off. Escape (tooltip.js) sets data-tips="hidden" on the container, which hides
+   its tips until the pointer or focus returns to a host (WCAG 1.4.13). */
+.tip-host {
+	position: relative;
+}
+.tip {
+	display: none;
+	position: absolute;
+	inset-block-start: 100%;
+	inset-inline-start: 50%;
+	translate: -50% 0;
+	z-index: var(--z-dropdown);
+	/* The gap is the tip's own transparent padding, so the pointer can move from
+	   the control onto the bubble without the tip closing (WCAG 1.4.13, hoverable). */
+	padding-block-start: var(--space-2);
+}
+.tip-above {
+	inset-block-start: auto;
+	inset-block-end: 100%;
+	padding-block-start: 0;
+	padding-block-end: var(--space-2);
+}
+.tip-start {
+	inset-inline-start: 0;
+	translate: none;
+}
+.tip-end {
+	inset-inline-start: auto;
+	inset-inline-end: 0;
+	translate: none;
+}
+.tip-bubble {
+	display: block;
+	padding: var(--space-1) var(--space-2);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: var(--surface-3);
+	color: var(--text);
+	box-shadow: var(--shadow-md);
+	font-size: var(--text-sm);
+	font-weight: 400;
+	line-height: 1.4;
+	letter-spacing: normal;
+	text-transform: none;
+	white-space: nowrap;
+}
+.tip-host:focus-visible > .tip {
+	display: block;
+}
+@media (hover: hover) and (pointer: fine) {
+	.tip-host:hover > .tip {
+		display: block;
+	}
+}
+/* Escape. Same specificity as the two show rules (0,3,0) and after both, so it
+   wins; a plain [data-tips="hidden"] .tip would lose to them. */
+[data-tips="hidden"] .tip-host > .tip {
+	display: none;
+}
+@media (forced-colors: active) {
+	/* Background and shadow are dropped; a border keeps the bubble off the canvas. */
+	.tip-bubble {
+		border: 1px solid CanvasText;
+	}
+}
