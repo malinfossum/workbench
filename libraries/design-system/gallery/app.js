@@ -3,10 +3,13 @@
 // this file reads already exists — and every panel renders after this line, so
 // sections.js can call `icon()` as a global.
 import { ICON_NAMES, icon } from "../components/icons.js";
+import { BRAND_NAMES, brandIcon } from "../components/brand-icons.js";
 import * as preferences from "../theme/preferences.js";
 
 window.icon = icon;
 window.ICON_NAMES = ICON_NAMES;
+window.brandIcon = brandIcon;
+window.BRAND_NAMES = BRAND_NAMES;
 window.preferences = preferences;
 
 // The gallery follows the same theme model as a consumer: the head snippet set

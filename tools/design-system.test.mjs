@@ -858,3 +858,26 @@ test("site footer: a stack below 1024 px, one spread row from min-width: 1024px,
 	assert.match(css, /markedsføringsloven § 7/, "the note rule travels with the markup");
 	assert.match(css, /omits the nav/, "a project with no text links omits the nav, label included");
 });
+
+test("gallery: a Footer panel with a live pill that reads its pressed state from preferences, a visible status line, tooltip.js loaded, brand marks on window", () => {
+	const sections = read("gallery/sections.js");
+	const panel = sections.match(/id: "footer",[\s\S]*?\n  \},\n/)?.[0];
+	assert.ok(panel, "sections.js needs a footer section");
+	assert.match(panel, /preferences\.readPreference\("theme", preferences\.THEMES\)/, "a panel rendered after load marks the pill itself; v3 takes over from the next event");
+	assert.match(panel, /aria-pressed="\$\{/, "aria-pressed is rendered from the stored preference");
+	for (const needle of ['class="site-footer"', 'class="site-footer-row" data-tips', 'data-align="label"', 'class="site-footer-bar control-row"', 'brandIcon("github")', 'class="theme-pill" role="group" aria-label="Theme"', "tip-start", "tip-end", "No analytics.", "No cookies."]) {
+		assert.ok(panel.includes(needle), `the Footer panel needs ${needle}`);
+	}
+	assert.match(panel, /\["light", "sun", "Light"\],\s*\["system", "monitor", "System"\],\s*\["dark", "moon", "Dark"\]/, "light, system, dark: the pill reads as a scale");
+	// One live region per page, in the first HTML; the panel's line is a visible echo with no role.
+	assert.match(panel, /<p class="gallery-theme-status" data-theme-status><\/p>/, "the visible echo carries the attribute and no role");
+	assert.doesNotMatch(panel, /role="status"/, "the panel is innerHTML after load, so it holds no live region");
+	const index = read("gallery/index.html");
+	assert.match(index, /<p class="sr-only" role="status" data-theme-status><\/p>/, "the live region sits in the first HTML, in the sidebar");
+	assert.ok(index.indexOf('data-theme-status') < index.indexOf('id="panel"'), "the live region comes before the panel");
+	assert.match(index, /<script src="\.\.\/components\/tooltip\.js"><\/script>/);
+	const app = read("gallery/app.js");
+	assert.match(app, /import \{ BRAND_NAMES, brandIcon \} from "\.\.\/components\/brand-icons\.js";/);
+	assert.match(app, /window\.brandIcon = brandIcon;/);
+	assert.match(read("gallery/gallery.css"), /\.gallery-theme-status \{/);
+});

@@ -181,3 +181,16 @@
 		margin-inline: auto;
 	}
 }
+
+/* The Footer panel's status line is a visible echo of the page's live region
+   (index.html, in the sidebar), so the audible result of a press can be seen.
+   It has no role: the panel is innerHTML after load, and a region inserted then
+   may be silent on its first change. A consumer ships one .sr-only region. The
+   min height keeps the footer from jumping while the line is cleared for a frame. */
+.gallery-theme-status {
+	min-block-size: 1.5rem;
+	margin: 0;
+	margin-block-start: var(--space-4);
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
