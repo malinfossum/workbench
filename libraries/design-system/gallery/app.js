@@ -53,18 +53,14 @@ document.addEventListener("change", (e) => {
   help.textContent = names ? `Chosen: ${names}` : "No file chosen.";
 });
 
-// Theme: the sidebar group and the Pickers demo both carry data-theme-set rows.
-// theme-toggle.js, registered earlier, has already applied the choice when this
-// handler runs; this keeps the sidebar's aria-pressed and the demo header in step.
-// The header is re-rendered whole when a preference changes, and focus lands on
-// the trigger of the picker that was used (its new name is the audible result of
-// the press). Language and currency live in PICKER_DEMO.
+// Theme: the sidebar group, the Footer panel's pill and the Pickers demo all
+// carry data-theme-set. theme-toggle.js (v3) applies the choice and marks every
+// pressed button, so nothing here touches the pressed state; this only keeps
+// the demo header in step. The header is re-rendered whole when a preference
+// changes, and focus lands on the trigger of the picker that was used (its new
+// name is the audible result of the press). Language and currency live in
+// PICKER_DEMO.
 function syncTheme(focusPicker) {
-  const stored = preferences.readPreference("theme", preferences.THEMES);
-  for (const button of document.querySelectorAll(".gallery-themes [data-theme-set]")) {
-    const pressed = stored === null ? button.dataset.themeSet === "system" : button.dataset.themeSet === stored;
-    button.setAttribute("aria-pressed", String(pressed));
-  }
   const header = document.getElementById("picker-header");
   if (!header) return;
   header.innerHTML = renderPickerHeader();

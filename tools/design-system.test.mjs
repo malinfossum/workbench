@@ -649,6 +649,15 @@ test("preferences: invalid values are removed on read, System removes the key, s
 	}
 });
 
+// A quoted string that starts with a capital letter followed by lower case is a
+// word a person reads. Comments are stripped first, so the docs can show the
+// "Theme: Dark" format. Returns the first offender or null.
+export function userFacingStrings(js) {
+	const code = js.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+	return code.match(/["'][A-Z][a-z][^"']*["']/)?.[0] ?? null;
+}
+
+
 test("theme: data-theme-set is the standard, data-theme-toggle is kept and deprecated, the snippet resolves System", () => {
 	const toggle = read("theme/theme-toggle.js");
 	assert.match(toggle, /\[data-theme-set\]/);
@@ -657,6 +666,18 @@ test("theme: data-theme-set is the standard, data-theme-toggle is kept and depre
 	assert.match(toggle, /removeItem\("theme"\)/, "System must remove the key, not store a string");
 	assert.match(toggle, /prefers-color-scheme: light/);
 	assert.doesNotMatch(toggle, /^\s*(?:import|export)\s/m, "theme-toggle.js must stay a classic script");
+	// v3: pressed state and the status line, with no words of its own.
+	assert.match(toggle, /button\[data-theme-set\]\[aria-pressed\]/, "pressed state is opt-in by the attribute");
+	assert.match(toggle, /setAttribute\("aria-pressed"/);
+	assert.match(toggle, /querySelectorAll\("\[data-theme-status\]"\)/, "every status element gets the line: a page may hold a hidden live region and a visible echo");
+	assert.match(toggle, /themeWired/, "guarded against a double install, like picker.js and tooltip.js");
+	assert.match(toggle, /\.textContent = /, "the status line is written with textContent, never innerHTML");
+	assert.doesNotMatch(toggle, /innerHTML/);
+	assert.equal(userFacingStrings(toggle), null, `theme-toggle.js must hold no user-facing strings, found ${userFacingStrings(toggle)}`);
+	// The red case: a line with a capitalised quoted word fails the check.
+	assert.equal(userFacingStrings('status.textContent = "Theme: " + name;'), '"Theme: "');
+	assert.equal(userFacingStrings("var label = 'Dark';"), "'Dark'");
+	assert.equal(userFacingStrings('addEventListener("DOMContentLoaded", mark); var q = "(prefers-color-scheme: light)";'), null, "event names and media queries are not words a person reads");
 	const snippet = read("theme/theme-init-snippet.html");
 	assert.match(snippet, /<meta name="color-scheme" content="dark light" \/>/);
 	assert.match(snippet, /prefers-color-scheme: light/);
@@ -673,7 +694,8 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	for (const file of ["gallery/index.html", "gallery/app.js", "gallery/gallery.css", "gallery/sections.js"]) {
 		assert.doesNotMatch(read(file), /data-theme-toggle/, `${file} must not use the deprecated attribute`);
 	}
-	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
+	assert.doesNotMatch(read("gallery/app.js"), /aria-pressed/, "theme-toggle.js v3 is the only writer of aria-pressed");
+	assert.doesNotMatch(read("gallery/app.js"), /\.gallery-themes/, "app.js no longer syncs the sidebar; v3 marks it");
 });
 
 test("icons: monitor joins sun and moon for the theme pill, fifteen icons in the set", async () => {
