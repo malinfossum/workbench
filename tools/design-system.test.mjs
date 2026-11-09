@@ -676,6 +676,38 @@ test("gallery sidebar: the theme group uses data-theme-set with aria-pressed, no
 	assert.ok(read("gallery/app.js").includes('.gallery-themes [data-theme-set]'), "app.js syncs the sidebar pressed state");
 });
 
+test("icons: monitor joins sun and moon for the theme pill, fifteen icons in the set", async () => {
+	const { ICON_NAMES, icon } = await import(pathToFileURL(join(DS, "components", "icons.js")).href);
+	assert.ok(ICON_NAMES.includes("monitor"), "icons.js must export monitor");
+	assert.equal(ICON_NAMES.length, 15, `the set is fifteen icons, got ${ICON_NAMES.length}: ${ICON_NAMES.join(", ")}`);
+	assert.match(icon("monitor"), /<rect /, "monitor is a screen on a stand");
+});
+
+test("brand marks: filled currentColor SVGs with provenance, inert, and an unknown name renders nothing", async () => {
+	const { BRAND_NAMES, brandIcon } = await import(pathToFileURL(join(DS, "components", "brand-icons.js")).href);
+	assert.deepEqual([...BRAND_NAMES], ["github"], "3.11.0 ships github only");
+	assert.ok(Object.isFrozen(BRAND_NAMES));
+	const source = read("components/brand-icons.js");
+	for (const name of BRAND_NAMES) {
+		const markup = brandIcon(name);
+		assert.match(markup, /^<svg class="icon" width="20" height="20" viewBox="0 0 \d+ \d+" fill="currentColor" aria-hidden="true" focusable="false">/, `${name} must be a decorative currentColor mark on the .icon class`);
+		assert.doesNotMatch(markup, /stroke=/, `${name} is filled, not a stroke icon`);
+		assert.ok(flagIsSafe(markup), `${name} carries a script, a foreignObject, a remote href or an on* handler`);
+		assert.match(brandIcon(name, { size: 16 }), /width="16" height="16"/);
+		// Provenance travels with the mark: source, licence, logo guidelines, checked date.
+		const block = source.match(new RegExp(`\\* ${name}:[\\s\\S]*?\\*/`))?.[0];
+		assert.ok(block, `${name} needs a comment block starting "* ${name}:"`);
+		assert.match(block, /Source: https:\/\/\S+/, `${name}: Source URL`);
+		assert.match(block, /Licence: \S+, https:\/\/\S+/, `${name}: licence name and URL`);
+		assert.match(block, /Logo guidelines: https:\/\/\S+/, `${name}: logo guidelines URL`);
+		assert.match(block, /Checked: \d{4}-\d{2}-\d{2}/, `${name}: checked date`);
+	}
+	assert.match(source, /Permission is hereby granted, free of charge/, "the MIT notice travels with the Octicons mark");
+	assert.equal(brandIcon("nope"), "");
+	assert.equal(brandIcon(""), "");
+	assert.equal(brandIcon("constructor"), "", "a prototype name is not a mark");
+});
+
 test("VERSION is 3.10.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge and the layout primitives", () => {
 	assert.equal(read("VERSION").trim(), "3.10.0");
 	const readme = read("README.md");
