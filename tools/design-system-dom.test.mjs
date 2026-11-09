@@ -202,3 +202,40 @@ test("theme-toggle v3: the script loaded before its buttons marks them on DOMCon
 	document.dispatchEvent(new window.Event("DOMContentLoaded"));
 	assert.deepEqual(pressed(document), ["light"]);
 });
+
+test("theme-toggle v3: storage refuses the write: the session choice stays pressed, applied and announced, and an OS change does not undo it", async () => {
+	const window = loadPage(PILL() + STATUS);
+	const { document } = window;
+	let onChange = null;
+	let osLight = false;
+	Object.defineProperty(window, "localStorage", {
+		configurable: true,
+		value: {
+			getItem: () => null,
+			setItem: () => {
+				throw new Error("refused");
+			},
+			removeItem: () => {
+				throw new Error("refused");
+			},
+		},
+	});
+	window.matchMedia = () => ({
+		get matches() {
+			return osLight;
+		},
+		addEventListener: (type, fn) => {
+			onChange = fn;
+		},
+	});
+	window.eval(readFileSync(join(import.meta.dirname, "..", "libraries", "design-system", "theme", "theme-toggle.js"), "utf8"));
+	document.querySelector('[data-theme-set="light"]').click();
+	assert.equal(document.documentElement.dataset.theme, "light");
+	assert.deepEqual(pressed(document), ["light"], "the pill follows the session choice");
+	await frames(window);
+	assert.equal(document.querySelector("[data-theme-status]").textContent, "Theme: Light");
+	osLight = false;
+	onChange();
+	assert.equal(document.documentElement.dataset.theme, "light", "an OS change leaves the session choice applied");
+	assert.deepEqual(pressed(document), ["light"]);
+});

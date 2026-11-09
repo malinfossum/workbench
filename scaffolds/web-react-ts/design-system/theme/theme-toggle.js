@@ -33,7 +33,8 @@
  *
  * This is a classic script (loaded via <script src>), so it cannot import
  * theme/preferences.js; the few lines of read, write and resolve logic are
- * repeated here on purpose and must stay in step with that module.
+ * repeated here on purpose and must stay in step with that module. stored()
+ * does not remove an invalid key because the head snippet and preferences.js do.
  *
  * [data-theme-toggle] (cycle light and dark) is kept for consumers that have
  * not migrated. Deprecated since 3.8.0, removed in DS 4.0.0; logs nothing.
@@ -58,12 +59,18 @@
 			return null;
 		}
 	}
+	// When storage refuses the write, the choice lives here for the session so
+	// the pill and the page agree.
+	var fallback = null;
 	function write(value) {
 		try {
 			if (value) localStorage.setItem("theme", value);
 			else localStorage.removeItem("theme");
+			fallback = null;
+			return true;
 		} catch (e) {
-			// Storage refused; the page still shows the choice.
+			fallback = value || null;
+			return false;
 		}
 	}
 	function apply(value) {
@@ -72,7 +79,7 @@
 
 	// Every opt-in button reflects the stored key; no key is System.
 	function mark() {
-		var current = stored() || "system";
+		var current = stored() || fallback || "system";
 		document.querySelectorAll(PRESSABLE).forEach(function (button) {
 			var value = button.dataset.themeSet === "" ? "system" : button.dataset.themeSet;
 			button.setAttribute("aria-pressed", String(value === current));
@@ -137,7 +144,7 @@
 		var query = matchMedia(LIGHT_QUERY);
 		if (typeof query.addEventListener === "function") {
 			query.addEventListener("change", function () {
-				if (stored() === null) apply(null);
+				if ((stored() || fallback) === null) apply(null);
 				mark();
 			});
 		}
