@@ -239,3 +239,25 @@ test("theme-toggle v3: storage refuses the write: the session choice stays press
 	assert.equal(document.documentElement.dataset.theme, "light", "an OS change leaves the session choice applied");
 	assert.deepEqual(pressed(document), ["light"]);
 });
+
+test("theme-toggle v3: storage refuses the write while an older key is still stored: the pill presses the session choice, not the stale key", () => {
+	const window = loadPage(PILL() + STATUS);
+	const { document } = window;
+	Object.defineProperty(window, "localStorage", {
+		configurable: true,
+		value: {
+			getItem: () => "dark",
+			setItem: () => {
+				throw new Error("QuotaExceededError");
+			},
+			removeItem: () => {
+				throw new Error("QuotaExceededError");
+			},
+		},
+	});
+	window.eval(readFileSync(join(import.meta.dirname, "..", "libraries", "design-system", "theme", "theme-toggle.js"), "utf8"));
+	assert.deepEqual(pressed(document), ["dark"], "on load the stored key is pressed");
+	document.querySelector('[data-theme-set="light"]').click();
+	assert.equal(document.documentElement.dataset.theme, "light");
+	assert.deepEqual(pressed(document), ["light"], "the page shows the session choice, so the pill presses it too");
+});
