@@ -772,7 +772,7 @@ test("tooltip: pointer devices only, hidden by data-tips after the show rule, bo
 	// The gap is the tip's own padding, so the pointer can cross onto the bubble (WCAG 1.4.13 hoverable).
 	assert.match(css, /\.tip \{[^}]*padding-block-start: var\(--space-2\);/s);
 	assert.doesNotMatch(css, /pointer-events: none/, "the bubble must stay hoverable");
-	for (const name of ["tip-above", "tip-start", "tip-end", "tip-bubble"]) assert.match(css, new RegExp(`\.${name} \{`), `tooltip.css must define .${name}`);
+	for (const name of ["tip-above", "tip-start", "tip-end", "tip-bubble"]) assert.match(css, new RegExp(`\\.${name} \\{`), `tooltip.css must define .${name}`);
 	// Hover is gated to pointer devices; focus is not, because a tap never yields :focus-visible on a button.
 	const pointerAt = css.indexOf("@media (hover: hover) and (pointer: fine)");
 	assert.ok(pointerAt > 0, "hover tips show only under (hover: hover) and (pointer: fine)");
