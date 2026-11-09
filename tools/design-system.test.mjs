@@ -730,10 +730,10 @@ test("brand marks: filled currentColor SVGs with provenance, inert, and an unkno
 	assert.equal(brandIcon("constructor"), "", "a prototype name is not a mark");
 });
 
-test("VERSION is 3.10.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge and the layout primitives", () => {
-	assert.equal(read("VERSION").trim(), "3.10.0");
+test("VERSION is 3.11.0 and README documents the identity, the icon set, the file picker, toggle buttons, the pickers, the Tailwind bridge, the layout primitives and the site footer", () => {
+	assert.equal(read("VERSION").trim(), "3.11.0");
 	const readme = read("README.md");
-	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit"]) {
+	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit", "site-footer", "theme-pill", "tooltip.js", "brand-icons.js", "data-theme-status", "data-tips", "Icons or text"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
 	assert.match(read("CHANGELOG.md"), /^## 3\.10\.0 — /m, "CHANGELOG must carry the 3.10.0 entry");

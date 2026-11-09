@@ -29,8 +29,8 @@ Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 - `tokens/`: colors, spacing, typography, radius, shadows, motion, layers (the values), plus `palettes/` (opt-in brand palettes) and `tailwind.css` (the Tailwind bridge, not part of `index.css`)
 - `base/`: `reset.css` and `base.css` (HTML defaults, focus rings, reduced motion, forced colors, skip link)
 - `primitives/`: layout helpers (`stack`, `cluster`, `grid`, `sidebar`, `split`, `center`, `container`) and the layout-contract primitives (`control-row`, `switcher`, `row-list`, `card-grid`)
-- `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon`, `picker` (CSS) + `icons.js` (the SVG set) + `picker.js` (picker behaviour)
-- `compositions/`: page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`)
+- `components/`: `button`, `card`, `input`, `nav`, `modal`, `alert`, `badge`, `progress`, `stat`, `table`, `toast`, `tabs`, `skeleton`, `icon`, `picker`, `theme-pill`, `tooltip` (CSS) + `icons.js` (the SVG set) + `brand-icons.js` (filled brand marks) + `picker.js` and `tooltip.js` (behaviour)
+- `compositions/`: page patterns (`app-shell`, `dashboard`, `settings`, `hero`, `empty-state`, `site-footer`)
 - `utilities/`: single-purpose helpers
 - `theme/`: `theme-toggle.js`, `palette-switch.js`, `preferences.js` (stored preferences and the theme model) and `theme-init-snippet.html` (inline `<head>` snippet)
 - `assets/fonts/`: self-hosted fonts (Sora, Figtree, Fraunces, Instrument Serif, Schibsted Grotesk, Atkinson Hyperlegible Next, Space Grotesk, Bricolage Grotesque, Hanken Grotesk)
@@ -54,6 +54,52 @@ import { icon } from "./design-system/components/icons.js";
 `<button class="btn btn-primary" type="button">${icon("plus")} Add</button>`;
 `<button class="btn icon-btn" type="button" aria-label="Close">${icon("close")}</button>`;
 ```
+
+## Brand marks
+
+`components/brand-icons.js` is the one place a filled icon is allowed: `brandIcon(name, { size = 20 })`
+returns a brand's own mark, unaltered, coloured through `currentColor`, decorative like every icon.
+It ships `github` only; a project that needs another mark adds it here with the same comment block
+(source, licence, logo guidelines, checked date). An unknown name returns `""`. `BRAND_NAMES` lists the set.
+
+## Icons or text
+
+An icon where the meaning is universal, short text where it is not. A safety, legal or trust link
+is always text. Every icon-only control has a hidden name (`.sr-only`) in every language the app
+ships and a tooltip with the same name for mouse users. The rule and its examples:
+`docs/component-rules.md` § Icons or text.
+
+## Tooltip
+
+Inside any control that carries `tip-host`: `<span class="tip" aria-hidden="true"><span class="tip-bubble">Name</span></span>`.
+Below by default; `tip-above` for controls near the bottom of the screen; `tip-start` and `tip-end`
+align to the control's edge for the first and last control at a page edge, so a bubble never leaves
+the viewport. Tips show on hover and `:focus-visible`, only on pointer devices (`(hover: hover) and
+(pointer: fine)`), at once and with no motion. Wrap the controls in a `[data-tips]` container and load
+`components/tooltip.js` (a classic script): Escape hides the container's tips until the pointer or
+focus returns to a host (WCAG 1.4.13).
+
+## Theme pill
+
+`<div class="theme-pill" role="group" aria-label="Theme">` with three `button.theme-pill-btn.tip-host`
+in the order light, system, dark, each `data-theme-set` plus `aria-pressed="false"`, an icon (`sun`,
+`monitor`, `moon`), a `.sr-only` name and a tip. `theme-toggle.js` marks the pressed one. A screen
+uses the pill or the 3.8.0 picker, never both. The Footer panel in the gallery shows the markup.
+
+## Site footer
+
+`compositions/site-footer.css`: a lead that must be read, text links under a small label, a two-line
+note and a bar with brand marks and the theme pill. A stack below 1024 px, one spread row from 1024 px,
+the same reading order at every width. The bar is a `.control-row`, so layout-audit checks it; the
+label carries `data-align="label"`. The full markup and the rules for the note and the status element
+sit in the comment at the top of the file. The note is each project's own true statement: "No tracking.
+No cookies." holds for the gallery, and a site with analytics may not copy it unchanged.
+
+Browser check: the layout-audit job in CI runs the library's own fixtures, not the gallery, so the
+footer's check over the shared matrix runs by hand before a tag:
+`node selftest/serve.mjs` and `node selftest/gallery-footer.mjs` from `libraries/layout-audit`, with
+the counts pasted into the PR. The audit skips the visually hidden label from 1024 px (a 1 px box), so
+the label contract is proven below 1024 px and pinned by a static test above it.
 
 ## File picker
 
@@ -143,6 +189,16 @@ click handler in `theme/theme-toggle.js` sets the theme from any `[data-theme-se
 `"dark"` or `"system"` element; `system` removes the key, and while no key is stored the page
 follows `prefers-color-scheme` and other tabs. `[data-theme-toggle]` (cycle light and dark)
 still works for consumers that have not migrated; it is deprecated and goes in 4.0.0.
+
+Since 3.11.0 the script also marks every `button[data-theme-set][aria-pressed]` (`"true"` on the
+current choice, System when no key is stored) on load, after every click and on the `storage` and
+`prefers-color-scheme` events; a button without `aria-pressed` in its markup is never touched. A view
+that renders such a button after load sets `aria-pressed` itself from `readPreference`. After a click
+on such a button, the pressed one included, every `[data-theme-status]` element gets "Theme: Dark"
+(the group's `aria-label`, the button's `.sr-only` text), cleared first and written on the next frame
+so a repeated press is announced. Put one live region in the page's first HTML, outside anything a view
+re-renders, as `<p class="sr-only" role="status" data-theme-status></p>`; a second element with the
+attribute and no role is a visible echo, which is how the gallery shows the line.
 
 `theme/preferences.js` is the ES-module half for a controller: `readPreference(key, valid)`
 (an invalid stored value is removed on first read), `writePreference(key, value)` (`""` or
