@@ -1,0 +1,59 @@
+/* Theme pill: light, system and dark as three icon buttons in one pill
+   (docs/specs/2026-10-17-site-footer.md § 3.2). The pressed state lives in
+   aria-pressed, written by theme/theme-toggle.js (v3); this file only draws it.
+   A screen uses the pill or the 3.8.0 theme picker, never both: the pill suits a
+   footer, the picker a header that already holds the language picker.
+   Markup (order light, system, dark, so the pill reads as a scale):
+     <div class="theme-pill" role="group" aria-label="Theme">
+       <button class="theme-pill-btn tip-host" type="button" data-theme-set="light" aria-pressed="false">
+         ${icon("sun")}<span class="sr-only">Light</span>
+         <span class="tip tip-above" aria-hidden="true"><span class="tip-bubble">Light</span></span>
+       </button>
+       …system (monitor), dark (moon, with tip-end)…
+     </div>
+     <p class="sr-only" role="status" data-theme-status></p> */
+.theme-pill {
+	display: inline-flex;
+	border-radius: var(--radius-pill);
+	/* An inset shadow, not a border, so the pill adds no size to its row. */
+	box-shadow: inset 0 0 0 1px var(--border);
+}
+.theme-pill-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	inline-size: var(--control-height);
+	min-block-size: var(--control-height);
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-pill);
+	background: transparent;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.theme-pill-btn:hover {
+	color: var(--text);
+}
+.theme-pill-btn[aria-pressed="true"] {
+	color: var(--text);
+	box-shadow: inset 0 0 0 1px var(--text);
+}
+/* The focus ring (base.css) is also a box-shadow; keep the pressed ring under it. */
+.theme-pill-btn[aria-pressed="true"]:focus-visible {
+	box-shadow:
+		inset 0 0 0 1px var(--text),
+		var(--shadow-focus);
+}
+@media (forced-colors: active) {
+	.theme-pill {
+		outline: 1px solid CanvasText;
+	}
+	/* The same pressed look as .btn[aria-pressed="true"]: a fill, never an
+	   outline, so it cannot be mistaken for the focus ring. */
+	.theme-pill-btn[aria-pressed="true"] {
+		forced-color-adjust: none;
+		background: Highlight;
+		color: HighlightText;
+		box-shadow: none;
+	}
+}

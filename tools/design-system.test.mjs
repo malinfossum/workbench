@@ -796,3 +796,19 @@ test("tooltip: pointer devices only, hidden by data-tips after the show rule, bo
 	assert.match(js, /"mouseover"/, "mouseover bubbles, mouseenter does not");
 	assert.match(js, /"focusin"/);
 });
+
+test("theme pill: inset outline, 44 px round buttons, pressed ring in --text, Highlight fill in forced colours", () => {
+	const css = read("components/theme-pill.css");
+	assert.match(read("components/index.css"), /@import "\.\/theme-pill\.css";/, "theme-pill.css must be imported by components/index.css");
+	assert.match(css, /\.theme-pill \{[^}]*display: inline-flex;[^}]*border-radius: var\(--radius-pill\);[^}]*box-shadow: inset 0 0 0 1px var\(--border\);/s);
+	const btn = css.match(/\.theme-pill-btn \{([^}]*)\}/s)?.[1];
+	assert.ok(btn, "theme-pill.css must define .theme-pill-btn");
+	for (const decl of ["inline-size: var(--control-height);", "min-block-size: var(--control-height);", "border-radius: var(--radius-pill);", "color: var(--text-muted);"]) assert.ok(btn.includes(decl), `.theme-pill-btn needs ${decl}`);
+	assert.match(css, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*color: var\(--text\);[^}]*box-shadow: inset 0 0 0 1px var\(--text\);/s);
+	// The focus ring is also a box-shadow (base.css); a pressed button keeps its ring under it.
+	assert.match(css, /\.theme-pill-btn\[aria-pressed="true"\]:focus-visible \{[^}]*inset 0 0 0 1px var\(--text\),\s*var\(--shadow-focus\);/s);
+	const forced = css.slice(css.indexOf("@media (forced-colors: active)"));
+	assert.match(forced, /\.theme-pill \{[^}]*outline: 1px solid CanvasText;/s);
+	assert.match(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*forced-color-adjust: none;[^}]*background: Highlight;[^}]*color: HighlightText;/s);
+	assert.doesNotMatch(forced, /\.theme-pill-btn\[aria-pressed="true"\] \{[^}]*outline/s, "pressed is a fill, never an outline, so it cannot pass for the focus ring");
+});
