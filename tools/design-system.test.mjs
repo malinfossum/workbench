@@ -736,7 +736,11 @@ test("VERSION is 3.11.0 and README documents the identity, the icon set, the fil
 	for (const needle of ["Sora", "Figtree", "data-typeskin", "fraunces", "instrument", "nordic", "Daily", "hugin", "classic", "kenaz", "icons.js", "file-input-hidden", "aria-pressed", "picker.js", "preferences.js", "data-theme-set", "circle-flags", "tailwind.css", "@theme inline", "--color-input", "shadow-ring", "control-row", "switcher", "row-list", "card-grid", "--control-height", "data-align", "layout-audit", "site-footer", "theme-pill", "tooltip.js", "brand-icons.js", "data-theme-status", "data-tips", "Icons or text"]) {
 		assert.ok(readme.includes(needle), `README should mention ${needle}`);
 	}
-	assert.match(read("CHANGELOG.md"), /^## 3\.10\.0 — /m, "CHANGELOG must carry the 3.10.0 entry");
+	assert.match(read("CHANGELOG.md"), /^## 3\.11\.0 — /m, "CHANGELOG must carry the 3.11.0 entry");
+	const rules = read("docs/component-rules.md");
+	assert.match(rules, /## Icons or text/);
+	assert.match(rules, /A safety, legal or trust link is always text/);
+	assert.match(rules, /except brand marks from `brand-icons\.js`/);
 });
 
 test("tailwind bridge: every var() resolves to a DS token, index.css leaves it out, the dark variant keys on data-theme", () => {
