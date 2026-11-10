@@ -1,3 +1,9 @@
+global using System.Linq.Expressions;
 global using App.Core.Authorization;
 global using App.Core.Interfaces;
 global using App.Core.Models;
+global using App.Data;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Data.Sqlite;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.DependencyInjection;

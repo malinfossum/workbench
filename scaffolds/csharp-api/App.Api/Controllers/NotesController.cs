@@ -1,3 +1,4 @@
+using System.Text.Json;
 using App.Core.Dtos;
 using App.Core.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,11 @@ public class NotesController(NoteService service) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<NoteDto>>> GetAll() =>
-        await service.GetAllAsync();
+        await service.ListAsync();
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<NoteDto>> Get(int id) =>
-        await service.GetAsync(id) is { } note ? note : NotFound();
+        await service.GetAsync(id);
 
     [HttpPost]
     public async Task<ActionResult<NoteDto>> Create(CreateNoteDto dto)
@@ -23,11 +24,13 @@ public class NotesController(NoteService service) : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = note.Id }, note);
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<NoteDto>> Update(int id, UpdateNoteDto dto) =>
-        await service.UpdateAsync(id, dto) is { } note ? note : NotFound();
+    [HttpPatch("{id:int}")]
+    public Task<NoteDto> Update(int id, [FromBody] JsonElement body) => service.UpdateAsync(id, body);
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id) =>
-        await service.DeleteAsync(id) ? NoContent() : NotFound();
+    public async Task<IActionResult> Delete(int id)
+    {
+        await service.DeleteAsync(id);
+        return NoContent();
+    }
 }
