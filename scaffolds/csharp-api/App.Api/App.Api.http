@@ -4,7 +4,7 @@
 POST {{host}}/auth/sign-up
 Content-Type: application/json
 
-{ "email": "me@example.test", "password": "correct horse battery staple" }
+{ "email": "me@example.test", "password": "Marmot-lantern-quarry-83-ember-tidewater" }
 
 ### Confirm the email: paste the uid and token from the newest file in `.dev-mail/`
 POST {{host}}/auth/confirm-email
@@ -19,7 +19,7 @@ Content-Type: application/json
 POST {{host}}/auth/sign-in
 Content-Type: application/json
 
-{ "email": "me@example.test", "password": "correct horse battery staple" }
+{ "email": "me@example.test", "password": "Marmot-lantern-quarry-83-ember-tidewater" }
 
 ### List the notes you can read
 GET {{host}}/api/notes

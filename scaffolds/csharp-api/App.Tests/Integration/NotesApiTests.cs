@@ -70,8 +70,12 @@ public class NotesApiTests
         return await Json(res);
     }
 
-    private Task<int> SetConfirmed(string userId, bool confirmed) => _app.With(sp =>
-        sp.GetRequiredService<AppDbContext>().Users.Where(u => u.Id == userId).ExecuteUpdateAsync(u => u.SetProperty(x => x.EmailConfirmed, confirmed)));
+    private async Task SetConfirmed(string userId, bool confirmed)
+    {
+        var rows = await _app.With(sp =>
+            sp.GetRequiredService<AppDbContext>().Users.Where(u => u.Id == userId).ExecuteUpdateAsync(u => u.SetProperty(x => x.EmailConfirmed, confirmed)));
+        Assert.That(rows, Is.EqualTo(1));
+    }
 
     [Test]
     public async Task Post_then_get_round_trips()
@@ -116,10 +120,7 @@ public class NotesApiTests
         var res = await _owner.SendAsync(req);
 
         Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.NotFound), await Said(res));
-        if ((await res.Content.ReadAsStringAsync()).Length > 0)
-        {
-            Assert.That(await ErrorOf(res), Is.EqualTo("not_found"));
-        }
+        Assert.That(await res.Content.ReadAsStringAsync(), Is.Empty); // the handler writes nothing when JSON is ruled out
     }
 
     [Test]
@@ -137,6 +138,9 @@ public class NotesApiTests
         Assert.That(after.GetProperty("body").GetString(), Is.EqualTo("Edited"));
         Assert.That(after.GetProperty("updatedAt").GetDateTime(), Is.GreaterThan(before.GetProperty("updatedAt").GetDateTime()));
         Assert.That(after.GetProperty("createdAt").GetDateTime(), Is.EqualTo(before.GetProperty("createdAt").GetDateTime()));
+        var persisted = await Read(_owner, id);
+        Assert.That(persisted.GetProperty("title").GetString(), Is.EqualTo("Renamed"));
+        Assert.That(persisted.GetProperty("body").GetString(), Is.EqualTo("Edited"));
     }
 
     [Test]
@@ -152,6 +156,9 @@ public class NotesApiTests
         var after = await Json(res);
         Assert.That(after.GetProperty("title").GetString(), Is.EqualTo("By a member"));
         Assert.That(after.GetProperty("body").GetString(), Is.EqualTo("Edited by a member"));
+        var persisted = await Read(_owner, id);
+        Assert.That(persisted.GetProperty("title").GetString(), Is.EqualTo("By a member"));
+        Assert.That(persisted.GetProperty("body").GetString(), Is.EqualTo("Edited by a member"));
     }
 
     [Test]
@@ -263,8 +270,10 @@ public class NotesApiTests
         var unconfirmed = await _app.SeedUser("unconfirmed@example.test");
         await SetConfirmed(unconfirmed.Id, false);
         var id = await CreateViaApi();
-        await _owner.PostAsJsonAsync($"/api/notes/{id}/members", new { email = "member@example.test" });
+        var setup = await _owner.PostAsJsonAsync($"/api/notes/{id}/members", new { email = "member@example.test" });
+        Assert.That(setup.StatusCode, Is.EqualTo(HttpStatusCode.NoContent), await Said(setup));
         var before = (await Read(_owner, id)).GetProperty("members").GetRawText();
+        Assert.That(before, Does.Contain("member@example.test"));
 
         var res = await _owner.PostAsJsonAsync($"/api/notes/{id}/members", new { email });
 
@@ -331,7 +340,7 @@ public class NotesApiTests
         var share = await c.PostAsJsonAsync($"/api/notes/{id}/members", new { email = "owner@example.test" });
 
         Assert.That(note.GetProperty("members").ValueKind, Is.EqualTo(JsonValueKind.Null));
-        Assert.That(note.GetProperty("can").GetProperty("edit").GetBoolean(), Is.False);
+        Assert.That(note.GetProperty("can").GetRawText(), Is.EqualTo("""{"edit":false,"delete":true}"""));
         Assert.That(patch.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden), await Said(patch));
         Assert.That(share.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden), await Said(share));
     }
