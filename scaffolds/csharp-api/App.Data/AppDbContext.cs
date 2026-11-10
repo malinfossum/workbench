@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<NoteMember>().HasKey(m => new { m.NoteId, m.UserId });
+
         modelBuilder.Entity<Note>(note =>
         {
             note.Property(n => n.Title).HasMaxLength(200);
