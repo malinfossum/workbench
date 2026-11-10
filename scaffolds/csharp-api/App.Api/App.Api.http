@@ -1,9 +1,30 @@
 @host = http://localhost:5005
 
-### List all notes
+### Sign up. A confirmation mail goes to .dev-mail/ (no real mail is sent)
+POST {{host}}/auth/sign-up
+Content-Type: application/json
+
+{ "email": "me@example.test", "password": "correct horse battery staple" }
+
+### Confirm the email: paste the uid and token from the newest file in `.dev-mail/`
+POST {{host}}/auth/confirm-email
+Content-Type: application/json
+
+{ "userId": "PASTE-UID", "token": "PASTE-TOKEN" }
+
+### Sign in
+# Sign-in sets a Secure cookie. A client built on .NET's HttpClient (Visual Studio, the tests' Kestrel client) won't send
+# it over plain http, so every request after this answers 401. Run the https profile and set @host to
+# https://localhost:7005 if that happens.
+POST {{host}}/auth/sign-in
+Content-Type: application/json
+
+{ "email": "me@example.test", "password": "correct horse battery staple" }
+
+### List the notes you can read
 GET {{host}}/api/notes
 
-### Create a note
+### Create a note (needs a confirmed email)
 POST {{host}}/api/notes
 Content-Type: application/json
 
@@ -12,16 +33,34 @@ Content-Type: application/json
 ### Get one note
 GET {{host}}/api/notes/1
 
-### Update a note
-PUT {{host}}/api/notes/1
+### Update a note: send only the keys you change
+PATCH {{host}}/api/notes/1
 Content-Type: application/json
 
 { "title": "Renamed note", "body": "Edited body." }
 
-### Delete a note
+### Archive a note (the owner only; a member gets 403 naming the field)
+PATCH {{host}}/api/notes/1
+Content-Type: application/json
+
+{ "archived": true }
+
+### Delete a note (the owner, or a tenant admin)
 DELETE {{host}}/api/notes/1
 
-### Validation error — missing title (expect 400 problem+json)
+### Share a note with a user by email (the owner only; the answer is 204 whether or not it matched)
+# Sign-up gives every account its own tenant (the recipe's rule), so sharing with a second signed-up account answers 204
+# and changes nothing. To try sharing, move that account into yours first:
+# sqlite3 app.db "UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUsers WHERE NormalizedEmail = 'YOU@EXAMPLE.TEST') WHERE NormalizedEmail = 'THEM@EXAMPLE.TEST';"
+POST {{host}}/api/notes/1/members
+Content-Type: application/json
+
+{ "email": "them@example.test" }
+
+### Stop sharing with a member (the owner only; take the id from the note's members list)
+DELETE {{host}}/api/notes/1/members/PASTE-USER-ID
+
+### Validation error: missing title (expect 400 problem+json)
 POST {{host}}/api/notes
 Content-Type: application/json
 

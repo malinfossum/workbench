@@ -11,14 +11,16 @@ namespace App.Tests.Integration;
 // the fallback to English, the key-as-fallback, and a header that fails to parse.
 public class LocalizationTests
 {
-    private ApiFactory _factory = null!;
+    private AuthApiFactory _factory = null!;
     private HttpClient _client = null!;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
-        _factory = new ApiFactory();
-        _client = _factory.CreateClient();
+        _factory = new AuthApiFactory();
+        await _factory.SeedUser("owner@example.test");
+        _client = _factory.Client();
+        await _client.SignIn("owner@example.test", AuthApiFactory.TestPhrase);
     }
 
     [TearDown]
@@ -57,7 +59,7 @@ public class LocalizationTests
     [Test]
     public async Task Malformed_accept_language_still_returns_200()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/notes");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
         request.Headers.TryAddWithoutValidation("Accept-Language", ";;;, q=, *garbage=yes");
 
         var response = await _client.SendAsync(request);
