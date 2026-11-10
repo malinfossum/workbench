@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Recipe source, pinned.** Every "copy from R:a-b" means lines a to b of `skills/auth/references/recipes/csharp-ef.md` at loadout tag `v0.8.0`; "T:a-b" means `skills/auth/references/tests.md` at the same tag. Read them with `git -C ~/.claude/loadout show v0.8.0:skills/auth/references/recipes/csharp-ef.md | sed -n 'a,bp'`. The auth skill is unchanged between `v0.8.0` and loadout `main` (checked 10.11.2026). Copy the code, never retype it from memory. The adaptations each task lists are the only intended differences.
+- **Recipe source, pinned.** Every "copy from R:a-b" means lines a to b of `skills/auth/references/recipes/csharp-ef.md` at loadout tag `v0.8.0`; "T:a-b" means `skills/auth/references/tests.md` at the same tag. Read them with `git -C ~/.claude/loadout show v0.8.0:skills/auth/references/recipes/csharp-ef.md | sed -n 'a,bp'`. The auth skill is unchanged between `v0.8.0` and loadout `main` (checked 10.11.2026). Copy the code, never retype it from memory. The adaptations each task lists are the only intended differences. Some ranges start on a Markdown heading or include the ```` ``` ```` fence lines around a block; drop those lines, they are not code.
 - **Recipe-to-scaffold map, applies to every copied file:**
   - `namespace Api;` becomes the folder's namespace: `App.Core.Authorization`, `App.Core.Models`, `App.Core.Interfaces`, `App.Core.Services`, `App.Data`, `App.Data.Repositories`, `App.Api.Auth`, `App.Api.Auth.Http`, `App.Tests.Auth`.
   - `Board` becomes `Note`, `BoardMember` becomes `NoteMember` (its key property is `NoteId`), `Boards` becomes `Notes`, `BoardActions`/`BoardPolicy`/`BoardCan`/`BoardDto` become `NoteActions`/`NotePolicy`/`NoteCan`/`NoteDto`. The named query filter keeps the name `"Tenant"`.
@@ -29,8 +29,8 @@
 - **Commits:** plain imperative messages, author `malinfossum.dev@proton.me`, no `Co-Authored-By`, no AI attribution. Stage named paths only, never `git add -A` or `commit -a`.
 - **No em dashes** in anything written: C# comments, Markdown, JSON copy, commit messages, PR text. Rewrite the sentence instead.
 - **Voice:** comments, README text and the PR read as if I wrote them, first person where a person speaks.
-- **Secrets during the browser check (Task 9).** Claude never reads the TOTP key, the otpauth URI, recovery codes, `.dev-mail/` files or any log line with a link. Status elements only, by id.
-- **Mid-branch red tests, expected:** from Task 3 until Task 5, `App.Tests/Integration/LocalizationTests.cs` fails (the Notes routes it posts to have no session yet). Run the suite in Tasks 3 and 4 as `dotnet test App.slnx --filter "FullyQualifiedName!~LocalizationTests"`. From Task 3 until Task 4 creates the new migration, the pending-model check is red. Everything else stays green after every task.
+- **Secrets during the browser check (Task 9).** Claude never reads the TOTP key, the otpauth URI, recovery codes, the TOTP code Malin types, `.dev-mail/` files or any log line with a link. Status elements only, through the refs Task 9 Step 3 collects before the first secret is on the page (`find` can't match an id).
+- **Mid-branch red tests, expected:** from Task 3 until Task 5, `App.Tests/Integration/LocalizationTests.cs` fails (the Notes routes it posts to have no session yet). Run the suite in Tasks 3 and 4 as `dotnet test App.slnx --filter "FullyQualifiedName!~LocalizationTests"`. From Task 3 until Task 4 creates the new migration, the pending-model check is red. From Task 3 until Task 5, `node --test "tools/*.test.mjs"` (and so `npm test` in the Stop hook) fails one check, "scaffold ships every load-bearing file", because Task 3 deletes `App.Tests/Integration/NotesApiTests.cs` and Task 5 writes it again. Everything else stays green after every task.
 - **Version floors:** workbench `v2.24.0` at Task 10 only. The design system is untouched and stays at `3.11.1`.
 - **Out of scope (spec § 11):** `web-react-ts`, `csharp-wpf`, `csharp-layered`, `csharp-console`; change-email, SSO/OIDC, a real mail provider; moving the throttle to the database.
 
@@ -66,7 +66,7 @@
 
 - [ ] **Step 4: Rewrite the five test files and the factory to NUnit, case for case.**
   - `[Fact]` becomes `[Test]`; `[Theory]` + `[InlineData(a, b)]` becomes `[TestCase(a, b)]` on the same method.
-  - `IClassFixture<ApiFactory>` with a constructor becomes a field set in `[SetUp]` (`_factory = new ApiFactory(); _client = _factory.CreateClient();`) and disposed in `[TearDown]`, so every test gets its own factory (recipe trap, spec § 8.1).
+  - `IClassFixture<ApiFactory>` with a constructor becomes a field set in `[SetUp]` (`_factory = new ApiFactory(); _client = _factory.CreateClient();`) and disposed in `[TearDown]`, so every test gets its own factory (recipe trap, spec § 8.1). The `[TearDown]` disposes both `_client` and `_factory`: NUnit.Analyzers' NUnit1032 fails the build on a disposable field it never sees disposed.
   - `IDisposable.Dispose` on a test class becomes a `[TearDown]` method.
   - `Assert.Equal(e, a)` becomes `Assert.That(a, Is.EqualTo(e))`; `Assert.Null(x)` becomes `Assert.That(x, Is.Null)`; `Assert.Single(xs)` becomes `Assert.That(xs, Has.Count.EqualTo(1))`; `Assert.Throws<T>(f)` keeps its name (NUnit has it).
   - Method names stay as they are, so the ledger can map old to new.
@@ -148,7 +148,7 @@ public interface ICurrentUser
     public static IReadOnlySet<string> UpdatableFields(UserContext u, Note n) =>
         !Can(u, NoteActions.Update, n) ? NoFields : Can(u, NoteActions.Archive, n) ? AllFields : TextFields;
 ```
-  Core has no package references, so `using System.Linq.Expressions;` goes at the top of the file.
+  Core has no global usings beyond the SDK's implicit ones, so `using System.Linq.Expressions;` and `using App.Core.Models;` (for `Note`) go at the top of the file.
 
 - [ ] **Step 4: Run the matrix test.** Expected: 2 passed. Then the whole suite: 34 passed.
 
@@ -191,8 +191,8 @@ public interface INoteRepository
 
 - [ ] **Step 1: Write the agreement and repository tests.**
   - `App.Tests/Auth/TestDb.cs`: copy `FixedTenant` and `TestDb` from T:1384-1681.
-  - `App.Tests/Auth/AgreementTests.cs`: copy T:1723-1820 with the global map. **Adaptation (FK):** Note.OwnerId and NoteMember.UserId now reference `AspNetUsers`, so the seed adds the five users first: `db.Users.AddRange(TestUsers.All.Where(u => u.Id != "").DistinctBy(u => u.Id).Select(u => new AppUser { Id = u.Id, UserName = u.Id, TenantId = u.TenantId, Role = u.Role }));` then `db.SaveChanges();` before the notes.
-  - `App.Tests/Integration/NoteRepositoryTests.cs`: keep its three cases, built on `TestDb.Context(connection, "t1")` with one seeded `AppUser { Id = "u1", TenantId = "t1" }`; every call passes `NotePolicy.Filter(NoteActions.Read, TestUsers.Owner)`. Add two cases: `Find_misses_when_the_filter_hides_the_note` (a note owned by `u1`, filter for `TestUsers.Stranger`, `FindAsync` returns null) and `FindShareableUserId_matches_only_a_confirmed_email_in_the_tenant` (one confirmed user in t1, one unconfirmed in t1, one confirmed in t2: only the first returns its id, and `" BOB@example.TEST "` still finds `bob@example.test`). The repository needs an `ILookupNormalizer`; pass `new UpperInvariantLookupNormalizer()`.
+  - `App.Tests/Auth/AgreementTests.cs`: copy T:1723-1820 with the global map. **Adaptation (FK):** Note.OwnerId and NoteMember.UserId now reference `AspNetUsers`, so the seed adds one user per distinct id in `TestUsers.All`, the empty id included: `db.Users.AddRange(TestUsers.All.DistinctBy(u => u.Id).Select(u => new AppUser { Id = u.Id, UserName = u.Id, TenantId = u.TenantId, Role = u.Role }));` then `db.SaveChanges();` before the notes. The empty-id row keeps the recipe's two unowned notes (`OwnerId = ""`) legal under the foreign key. They stay, because `Turns_red_on_an_unguarded_rule` only goes red while an unowned row exists; without that user row, SQLite refuses the seed and all five tests fail in `[SetUp]`. Every `new Board { ... }` becomes `new Note { Title = "Note", ... }` (Title is `required` on Note).
+  - `App.Tests/Integration/NoteRepositoryTests.cs`: keep its three cases, built on `TestDb.Context(connection, "t1")` with one seeded `AppUser { Id = "u1", TenantId = "t1" }`; every call passes `NotePolicy.Filter(NoteActions.Read, TestUsers.Owner)`. Add two cases: `Find_misses_when_the_filter_hides_the_note` (a note owned by `u1`, filter for `TestUsers.Stranger`, `FindAsync` returns null) and `FindShareableUserId_matches_only_a_confirmed_email_in_the_tenant` (one confirmed user in t1, one unconfirmed in t1, one confirmed in t2: only the first returns its id, and `" BOB@example.TEST "` still finds `bob@example.test`). The repository needs an `ILookupNormalizer`; pass `new UpperInvariantLookupNormalizer()`. The users are seeded straight into `db.Users`, so set `NormalizedEmail = normalizer.NormalizeEmail(email)` on each, as `UserManager` would; without it the lookup never matches and the positive case can't pass.
   - `App.Tests/Unit/NoteServiceTests.cs`: rewrite on a new `FakeNoteRepository` inside the test file (applies the filter with `.AsQueryable().Where(filter)`, holds an email map for share). Keep all eight old cases in the new API (`Get_unknown_id_returns_null` becomes `Get_unknown_id_throws_NotFound`, `Update_unknown_id_returns_null` becomes `Update_unknown_id_throws_NotFound`, `Delete_unknown_id_returns_false` becomes `Delete_unknown_id_throws_NotFound`). A `StubCurrentUser(UserContext?)` implements `ICurrentUser`. Add:
 ```csharp
     [TestCase("{\"title\": null}", "title")]
@@ -516,18 +516,26 @@ git commit -m "Filter every note read through NotePolicy and give Note an owner,
 ```csharp
     static readonly (string Name, Regex Pattern, string[] AllowedIn)[] Rules =
     [
-        ("role check", new Regex(@"IsInRole\(|\b[iI]sAdmin\b|\.Role\s*[!=]=|\bis\s+(not\s+)?Role\.|\bRole:\s*(not\s+)?Role\.|Authorize\(Roles"), new[] { "App.Core/Authorization/" }),
+        ("role check", new Regex(@"IsInRole\(|\b[iI]sAdmin\b|\.Role\s*([!=]=|[<>]|switch\b)|\bcase\s+Role\.|\bis\s+(not\s+)?Role\.|\bRole:\s*(not\s+)?Role\.|Authorize\(Roles"), new[] { "App.Core/Authorization/" }),
         ("database access", new Regex(@"DbSet<|\b_?db\.(Notes|UserSessions|AuthEvents|Users|Set<)"), new[] { "App.Data/", "App.Api/Auth/" }),
         ("database context", new Regex(@"\bAppDbContext\b"), new[] { "App.Data/", "App.Api/Auth/", "App.Api/Program.cs" }),
         ("bare IgnoreQueryFilters", new Regex(@"IgnoreQueryFilters\(\s*\)"), Array.Empty<string>()),
         ("named IgnoreQueryFilters", new Regex(@"IgnoreQueryFilters\(\s*[^\s)]"), new[] { "App.Data/Jobs/" }),
     ];
 
-    // Per line, in App.Data/Repositories/: a line that touches the notes applies the filter it was passed, or adds or removes a row.
-    static readonly Regex NotesAccess = new(@"\.Notes\b|Set<Note>"), ThroughFilter = new(@"\.Where\(filter\)|\.Add\(|\.Remove\(");
+    // The endpoint files sit inside App.Api/Auth/ but stay out of the database, as the recipe's Http/ folder does.
+    static readonly string[] NeverAllowed = ["App.Api/Auth/Http/"];
 
-    // Per line, in App.Core/Services/: a repository read builds its filter from NotePolicy.Filter.
-    static readonly Regex RepositoryRead = new(@"repository\.(ListAsync|FindAsync)\("), FromPolicy = new(@"NotePolicy\.Filter\(");
+    static bool Allowed(string path, string[] allowedIn) =>
+        allowedIn.Any(dir => path.StartsWith(dir, StringComparison.Ordinal))
+        && !NeverAllowed.Any(dir => path.StartsWith(dir, StringComparison.Ordinal));
+
+    // Per line, in App.Data/Repositories/: a line that touches the notes or their member rows applies the filter it was
+    // passed, or adds or removes a row.
+    static readonly Regex NotesAccess = new(@"\.Notes\b|Set<Note(Member)?>"), ThroughFilter = new(@"\.Where\(filter\)|\.Add\(|\.Remove\(");
+
+    // Per line, in App.Core/Services/: a repository read (on any receiver) builds its filter from NotePolicy.Filter.
+    static readonly Regex RepositoryRead = new(@"\.(ListAsync|FindAsync)\("), FromPolicy = new(@"NotePolicy\.Filter\(");
 
     static IEnumerable<(string, string)> SourceFiles() =>
         new[] { "App.Core", "App.Data", "App.Api" }.SelectMany(project =>
@@ -536,7 +544,7 @@ git commit -m "Filter every note read through NotePolicy and give Note an owner,
                 .Where(p => !p.Contains("/bin/") && !p.Contains("/obj/"))
                 .Select(p => (p, File.ReadAllText(Path.Combine(Source.Root, p)))));
 ```
-  `FindUnfilteredLines` applies `NotesAccess`/`ThroughFilter` to paths starting `App.Data/Repositories/`, and a second method `FindUnboundReads` applies `RepositoryRead`/`FromPolicy` to paths starting `App.Core/Services/`. Every negative fixture path gains its project prefix: `"App.Api/Auth/Http/Endpoints.cs"` (expects 3), `"App.Api/Controllers/Reports.cs"` (one per TestCase; the `Reports(AppDbContext context)` line stays a violation there), `"App.Data/Jobs/Digest.cs"` (allowed), `"App.Data/Repositories/Reports.cs"` with `db.Notes`, `context.Notes` and `_context.Set<Note>()` (one each). Add `Turns_red_on_a_service_read_without_the_policy` with `[TestCase("var all = await repository.ListAsync(n => true);")]` and `[TestCase("return await repository.FindAsync(_ => true, id);")]` on `"App.Core/Services/Reports.cs"`, each expecting 1, and `Every_service_read_builds_its_filter_from_the_policy` asserting `FindUnboundReads(SourceFiles())` is empty. That adds 2 methods and 3 runs beyond the recipe's 6 and 12, so GuardTests is 8 methods, 15 runs.
+  `FindViolations` uses `!Allowed(f.Path, r.AllowedIn)` where the recipe has its inline `StartsWith` check. `FindUnfilteredLines` applies `NotesAccess`/`ThroughFilter` to paths starting `App.Data/Repositories/`, and a second method `FindUnboundReads` applies `RepositoryRead`/`FromPolicy` to paths starting `App.Core/Services/`. Every negative fixture path gains its project prefix: `"App.Api/Auth/Http/Endpoints.cs"` (still expects 3: the role check, `db.Notes` in an endpoint file and the bare `IgnoreQueryFilters`; without `NeverAllowed` it would find 2), `"App.Api/Controllers/Reports.cs"` (one per TestCase; the `Reports(AppDbContext context)` line stays a violation there), `"App.Data/Jobs/Digest.cs"` (allowed), `"App.Data/Repositories/Reports.cs"` with `db.Notes`, `context.Notes`, `_context.Set<Note>()` and `_context.Set<NoteMember>()` (one each). `Turns_red_on_each_shape_of_role_check_and_database_access` gains three rows: `[TestCase("var label = me.Role switch { Role.TenantAdmin => \"admin\", _ => \"member\" };")]`, `[TestCase("case Role.TenantAdmin: return;")]` and `[TestCase("if (me.Role >= Role.TenantAdmin) return;")]`. Add `Turns_red_on_a_service_read_without_the_policy` with `[TestCase("var all = await repository.ListAsync(n => true);")]`, `[TestCase("return await repository.FindAsync(_ => true, id);")]` and `[TestCase("var all = await _notes.ListAsync(n => true);")]` on `"App.Core/Services/Reports.cs"`, each expecting 1, and `Every_service_read_builds_its_filter_from_the_policy` asserting `FindUnboundReads(SourceFiles())` is empty. That adds 2 methods and 8 runs beyond the recipe's 6 and 12, so GuardTests is 8 methods, 20 runs. The `NeverAllowed` list, the three role-check shapes and the `NoteMember` match go on the recipe sync-back list: the recipe's guard has the same gaps.
 
 - [ ] **Step 2: Run them to see them fail.** `dotnet test App.slnx --filter "FullyQualifiedName~App.Tests.Auth"`. Expected: build errors (`EfTicketStore`, `AuthEndpoints` missing).
 
@@ -674,7 +682,7 @@ public partial class Program { }
 
 - [ ] **Step 4: Generate the migration.** `dotnet ef migrations add Init --project App.Data --startup-project App.Api`. Open the generated `Init.cs` and confirm it creates `AspNetUserPasskeys`, `Notes`, `NoteMember`, `UserSessions` and `AuthEvents` (recipe trap: a missing passkey table means Identity's schema version was not wired). If `NoteMember` is named `NoteMember`, keep it; do not add a `ToTable` call. Then `dotnet ef migrations has-pending-model-changes --project App.Data --startup-project App.Api`. Expected: no changes.
 
-- [ ] **Step 5: Run the tests.** `dotnet test App.slnx --filter "FullyQualifiedName!~LocalizationTests"`. Expected: Config 2/2, Copy 2/2, Guard 15 runs, plus everything from Tasks 1-3, all green. If an analyzer stops the build, fix the code (Global Constraints) and add it to the sync-back list in the ledger.
+- [ ] **Step 5: Run the tests.** `dotnet test App.slnx --filter "FullyQualifiedName!~LocalizationTests"`. Expected: Config 2/2, Copy 2/2, Guard 20 runs, plus everything from Tasks 1-3, all green. If an analyzer stops the build, fix the code (Global Constraints) and add it to the sync-back list in the ledger.
 
 - [ ] **Step 6: Format and commit.**
 ```bash
@@ -735,7 +743,7 @@ git commit -m "Wire the auth recipe into csharp-api: sessions, passkeys, TOTP, t
 
 - [ ] **Step 3: Adapt the localization tests.** `LocalizationTests` signs in first (`SeedUser` + `SignIn` on an `AuthApiFactory` client) so `POST /api/notes` reaches model validation; `Malformed_accept_language_still_returns_200` calls `GET /health` (public). The five `[TestCase]` rows and the other three tests keep their assertions.
 
-- [ ] **Step 4: Run them to see them fail.** `dotnet test App.slnx`. Expected: the new Notes cases fail (no PATCH body limit, no member routes, 404 instead of 201 on create while the controller is the Task 3 stub).
+- [ ] **Step 4: Run them to see them fail.** `dotnet test App.slnx`. Expected: the new Notes cases that need the member routes or the 32 KB limit fail (the Task 3 stub has neither: share and unshare answer 404 or 405, and the 33 KB body is not refused). Create, read, PATCH and delete already work through the stub, so their cases may pass here.
 
 - [ ] **Step 5: Write the controller.**
 ```csharp
@@ -794,7 +802,7 @@ public class NotesController(NoteService service) : ControllerBase
 }
 ```
 
-- [ ] **Step 6: Update `App.Api.http`.** Sign up, confirm (a comment: "paste the uid and token from the newest file in `.dev-mail/`"), sign in, then every Notes route of spec § 5 in table order, including both member routes and a PATCH with `{ "archived": true }`. `@host = http://localhost:5005`.
+- [ ] **Step 6: Update `App.Api.http`.** Sign up, confirm (a comment: "paste the uid and token from the newest file in `.dev-mail/`"), sign in, then every Notes route of spec § 5 in table order, including both member routes and a PATCH with `{ "archived": true }`. `@host = http://localhost:5005`. A comment above the share request: "Sign-up gives every account its own tenant (the recipe's rule), so sharing with a second signed-up account answers 204 and changes nothing. To try sharing, move that account into yours first: `sqlite3 app.db \"UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUsers WHERE NormalizedEmail = 'YOU@EXAMPLE.TEST') WHERE NormalizedEmail = 'THEM@EXAMPLE.TEST';\"`" A comment above the sign-in request: "Sign-in sets a Secure cookie. A client built on .NET's HttpClient (Visual Studio, the tests' Kestrel client) won't send it over plain http, so every request after this answers 401. Run the https profile and set @host to https://localhost:7005 if that happens."
 
 - [ ] **Step 7: Run everything.** `dotnet test App.slnx` with no filter. Expected: all green, Http 48/62 among them, LocalizationTests green again.
 
@@ -876,9 +884,17 @@ git commit -m "Account delete and export cover owned notes and memberships"
     public void The_file_mailer_is_only_registered_in_Development(string env, Type expected) =>
         Assert.That(AuthMailers.For(new TestHostEnvironment(env, ".")), Is.EqualTo(expected));
 
+    [TestCase("Development", true)]
+    [TestCase("Testing", false)]
+    [TestCase("Production", false)]
+    public void The_app_registers_the_file_mailer_only_in_Development(string env, bool expected)
+    // a factory per environment (_app.WithWebHostBuilder(b => b.UseEnvironment(env))); the factory's RecordingAuthEmail is
+    // registered last, so the host starts everywhere. Assert factory.Services.GetServices<IAuthEmail>().Any(m => m is DevFileAuthEmail)
+    // equals expected. This is the case that goes red if Program.cs registers the file mailer without AuthMailers.For.
+
     [Test] public async Task The_file_mailer_writes_one_file_per_email_named_by_time_and_kind()
-    // temp content root; two SendAsync calls with kind "confirm"; two files in .dev-mail/; no file name contains "@" or the address;
-    // each name ends with "-confirm-<6 hex>.txt"; the captured log lines hold the kind and never the address or the link
+    // temp content root, deleted in [TearDown]; two SendAsync calls with kind "confirm"; two files in .dev-mail/; no file name contains
+    // "@" or the address; each name ends with "-confirm-<6 hex>.txt"; the captured log lines hold the kind and never the address or the link
 
     [TestCase("Production", typeof(LogOnlyAuthEmail), "https://app.example.test")]
     [TestCase("Production", typeof(DevFileAuthEmail), "https://app.example.test")]
@@ -898,7 +914,10 @@ git commit -m "Account delete and export cover owned notes and memberships"
 
     [TestCase("Testing")]
     [TestCase("Production")]
-    public async Task The_check_page_is_404_outside_Development(string env) // GET /dev/auth-check/ and /dev/auth-check/auth-check.js both 404 (Production keeps the factory's RecordingAuthEmail, so it starts)
+    public async Task The_check_page_is_not_served_outside_Development(string env)
+    // GET /dev/auth-check/ and /dev/auth-check/auth-check.js: 401 without a session (no static file matches, so the request
+    // reaches the fallback policy, which covers requests with no endpoint), 404 once signed in (SeedUser + SignIn). Neither
+    // answer carries the page. Production keeps the factory's RecordingAuthEmail, so it starts.
 
     [Test] public async Task The_check_page_is_served_in_Development() // 200 for both, and the page's CSP header is the recipe's, unchanged
 
@@ -1008,7 +1027,7 @@ if (app.Environment.IsDevelopment())
       </li>
       <li><button type="button" id="run-sign-in">Sign in</button> <span id="step-sign-in" role="status"></span></li>
       <li><button type="button" id="run-passkey-add">Register a passkey</button> <span id="step-passkey-add" role="status"></span></li>
-      <li><button type="button" id="run-sign-out-1">Sign out</button> <span id="step-sign-out-1" role="status"></span></li>
+      <li><button type="button" id="run-sign-out-1">Sign out before the passkey sign-in</button> <span id="step-sign-out-1" role="status"></span></li>
       <li><button type="button" id="run-passkey-sign-in">Sign in with the passkey</button> <span id="step-passkey-sign-in" role="status"></span></li>
       <li><button type="button" id="run-passkey-remove">Remove the passkey</button> <span id="step-passkey-remove" role="status"></span></li>
       <li><button type="button" id="run-totp-start">Start TOTP</button> <span id="step-totp-start" role="status"></span></li>
@@ -1018,7 +1037,7 @@ if (app.Environment.IsDevelopment())
         <button type="button" id="run-totp">Turn on TOTP</button> <span id="step-totp" role="status"></span>
       </li>
       <li><button type="button" id="run-codes-once">Recovery codes show once</button> <span id="step-codes-once" role="status"></span></li>
-      <li><button type="button" id="run-sign-out-2">Sign out</button> <span id="step-sign-out-2" role="status"></span></li>
+      <li><button type="button" id="run-sign-out-2">Sign out at the end</button> <span id="step-sign-out-2" role="status"></span></li>
     </ol>
 
     <h2>Secrets</h2>
@@ -1030,47 +1049,58 @@ if (app.Environment.IsDevelopment())
 ```
   - `App.Api/DevPages/auth-check.js`:
 ```js
-// The manual browser check from the auth skill, one button per step. Status lines get "pass" or "fail <key>" and
-// nothing else; secrets go only into #secrets.
+// The manual browser check from the auth skill, one button per step. Each status line gets "<step>: pass" or
+// "<step>: fail <key>" and nothing else; secrets go only into #secrets.
 import { addPasskey, signInWithPasskey } from '/passkeys.js';
 
 const $ = (id) => document.getElementById(id);
 const email = () => $('email').value.trim();
 const password = () => $('password').value;
 const AUTH_KEY = /^[a-z0-9_]+(\.[A-Za-z]+)*$/; // "auth.error.wrongCode", "not_found", "status_404": a key, never free text
+const busy = new Set();
 
+// The line names its step, so a reader of the status lines never needs anything else on the page.
 function report(step, ok, key) {
-  $(`step-${step}`).textContent = ok ? 'pass' : `fail ${AUTH_KEY.test(key ?? '') ? key : 'unexpected'}`;
+  $(`step-${step}`).textContent = `${step}: ${ok ? 'pass' : `fail ${AUTH_KEY.test(key ?? '') ? key : 'unexpected'}`}`;
 }
 
 function showSecret(label, lines) {
   $('secrets').textContent += `${label}\n${lines.join('\n')}\n\n`;
 }
 
-async function post(path, body) {
+async function send(method, path, body, options = {}) {
   const res = await fetch(path, {
-    method: 'POST',
+    method,
     headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+    ...options,
   });
   let data = null;
   try {
     data = await res.json();
   } catch {
-    // 204 or an empty body
+    // 204, a redirect or an empty body
   }
-  return { ok: res.ok, status: res.status, data };
+  return { ok: res.ok, status: res.status, type: res.type, data };
 }
 
+const post = (path, body, options) => send('POST', path, body, options);
 const keyOf = (r) => r.data?.error ?? `status_${r.status}`;
+const hasCodes = (codes) => Array.isArray(codes) && codes.length > 0;
 
+// One run per button at a time: a second click while the first is in flight does nothing,
+// so "Start TOTP" can't mint a second key behind the one already on screen.
 function step(name, run) {
   $(`run-${name}`).addEventListener('click', async () => {
-    $(`step-${name}`).textContent = 'running';
+    if (busy.has(name)) return;
+    busy.add(name);
+    $(`step-${name}`).textContent = `${name}: running`;
     try {
       await run();
     } catch {
       report(name, false, 'unexpected');
+    } finally {
+      busy.delete(name);
     }
   });
 }
@@ -1088,15 +1118,18 @@ step('confirm', async () => {
   report('confirm', r.ok, keyOf(r));
 });
 
+// A good sign-in answers 302 (LocalRedirect to "/"). Followed, it would end on a 404 and read as a failure, so the
+// redirect is not followed: an opaque redirect is the pass. The browser stores the session cookie either way.
 step('sign-in', async () => {
-  const r = await post('/auth/sign-in', { email: email(), password: password() });
-  report('sign-in', r.ok, keyOf(r));
+  const r = await post('/auth/sign-in', { email: email(), password: password() }, { redirect: 'manual' });
+  report('sign-in', r.type === 'opaqueredirect', keyOf(r));
 });
 
+// The first factor brings ten recovery codes, shown once.
 step('passkey-add', async () => {
   const result = await addPasskey('Auth check');
-  if (result.recoveryCodes) showSecret('Recovery codes (passkey)', result.recoveryCodes);
-  report('passkey-add', result.ok === true, result.error);
+  if (hasCodes(result.recoveryCodes)) showSecret('Recovery codes (passkey)', result.recoveryCodes);
+  report('passkey-add', result.ok === true && hasCodes(result.recoveryCodes), result.error ?? 'no_codes');
 });
 
 step('sign-out-1', async () => {
@@ -1110,32 +1143,35 @@ step('passkey-sign-in', async () => {
 });
 
 step('passkey-remove', async () => {
-  const list = await fetch('/account/passkeys');
-  const passkeys = list.ok ? await list.json() : [];
-  if (passkeys.length !== 1) return report('passkey-remove', false, 'unexpected');
-  const res = await fetch(`/account/passkey/${encodeURIComponent(passkeys[0].id)}`, { method: 'DELETE' });
-  const after = await fetch('/account/passkeys');
-  report('passkey-remove', res.ok && after.ok && (await after.json()).length === 0, `status_${res.status}`);
+  const list = await send('GET', '/account/passkeys');
+  if (!list.ok || !Array.isArray(list.data) || list.data.length !== 1) {
+    return report('passkey-remove', false, list.ok ? 'unexpected' : keyOf(list));
+  }
+  const removed = await send('DELETE', `/account/passkey/${encodeURIComponent(list.data[0].id)}`);
+  const after = await send('GET', '/account/passkeys');
+  report('passkey-remove', removed.status === 204 && after.ok && after.data?.length === 0, keyOf(removed));
 });
 
 step('totp-start', async () => {
   const r = await post('/account/mfa/enrol', { code: null });
-  if (r.ok) showSecret('TOTP key', [r.data.key, r.data.uri]);
+  if (r.ok) showSecret('TOTP key (only the newest one works)', [r.data.key, r.data.uri]);
   report('totp-start', r.ok && typeof r.data?.key === 'string', keyOf(r));
 });
 
+// With the passkey gone, TOTP is the only factor, so turning it on brings fresh codes.
 step('totp', async () => {
   const input = $('totp-code');
   const r = await post('/account/mfa/enrol', { code: input.value.trim() });
-  input.value = '';
-  if (r.ok && Array.isArray(r.data?.recoveryCodes)) showSecret('Recovery codes (TOTP)', r.data.recoveryCodes);
-  report('totp', r.ok, keyOf(r));
+  input.value = ''; // the code leaves the page as soon as it is used
+  if (hasCodes(r.data?.recoveryCodes)) showSecret('Recovery codes (TOTP)', r.data.recoveryCodes);
+  report('totp', r.ok && hasCodes(r.data?.recoveryCodes), r.ok ? 'no_codes' : keyOf(r));
 });
 
-// Once TOTP is on, asking again issues nothing: the codes were shown once, with the enrolment.
+// Once TOTP is on, asking again is refused with auth.error.wrongCode (R:1005) and issues nothing. Any other answer
+// (401, 429, 503) fails the step, so an expired session can't pass it.
 step('codes-once', async () => {
   const r = await post('/account/mfa/enrol', { code: null });
-  report('codes-once', !r.ok && !r.data?.recoveryCodes, r.ok ? 'unexpected' : 'auth.error.wrongCode');
+  report('codes-once', r.status === 400 && r.data?.error === 'auth.error.wrongCode' && !hasCodes(r.data?.recoveryCodes), keyOf(r));
 });
 
 step('sign-out-2', async () => {
@@ -1145,7 +1181,7 @@ step('sign-out-2', async () => {
 ```
   Before running it, check two names against the copied recipe and fix the page if they differ: the property `ListPasskeys` returns per passkey (the page reads `id`; `Lists_the_account_s_passkeys_with_the_id_the_remove_button_sends` in HttpTests names it), and that a 400 from enrol on an enabled account is `auth.error.wrongCode` (R:1005).
 
-- [ ] **Step 5: Run everything.** `dotnet test App.slnx`. Expected: all green, DevTests 18 runs among them. Then start the API once (`dotnet run --project App.Api`, stop it), and check `git status --short scaffolds/csharp-api`: no `keys/`, `.dev-mail/` or `*.db` entries.
+- [ ] **Step 5: Run everything.** `dotnet test App.slnx`. Expected: all green, DevTests 21 runs among them. Then start the API once (`dotnet run --project App.Api`, stop it), and check `git status --short scaffolds/csharp-api`: no `keys/`, `.dev-mail/` or `*.db` entries.
 
 - [ ] **Step 6: Format and commit.**
 ```bash
@@ -1159,14 +1195,14 @@ git commit -m "Development mailbox, startup guard and the auth check page"
 
 **Files:**
 - Create: `scaffolds/csharp-api/CLAUDE.md`
-- Modify: `scaffolds/csharp-api/README.md`, `tools/csharp-api.test.mjs`, `tools/csharp-wpf.test.mjs` (comment only), `.github/workflows/ward.yml` (root), `index.html`, `guide/index.html`
+- Modify: `scaffolds/csharp-api/README.md`, `tools/csharp-api.test.mjs`, `tools/csharp-wpf.test.mjs` and `tools/csharp-locales.test.mjs` (comments only), `.github/workflows/ward.yml` and `.github/dependabot.yml` (root), `index.html`, `guide/index.html`
 
 **Interfaces:**
 - Consumes: every file Tasks 1-7 created.
 - Produces: the PR.
 
 - [ ] **Step 1: Write the failing workbench tests.** In `tools/csharp-api.test.mjs`:
-  - Add to the load-bearing list: `"CLAUDE.md"`, `"App.Core/Authorization/Policy.cs"`, `"App.Core/Interfaces/ICurrentUser.cs"`, `"App.Core/Interfaces/ITenantProvider.cs"`, `"App.Core/Models/NoteMember.cs"`, `"App.Data/AuthEntities.cs"`, `"App.Api/Auth/Sessions.cs"`, `"App.Api/Auth/Context.cs"`, `"App.Api/Auth/Passwords.cs"`, `"App.Api/Auth/Tokens.cs"`, `"App.Api/Auth/AccountService.cs"`, `"App.Api/Auth/DevFileAuthEmail.cs"`, `"App.Api/Auth/StartupGuard.cs"`, `"App.Api/Auth/Http/AuthEndpoints.cs"`, `"App.Api/Auth/Http/AppEndpoints.cs"`, `"App.Api/Auth/Http/Web.cs"`, `"App.Api/wwwroot/passkeys.js"`, `"App.Api/DevPages/index.html"`, `"App.Api/DevPages/auth-check.js"`, `"App.Api/appsettings.Development.json"`, and the `App.Tests/Auth/` files.
+  - Add to the load-bearing list: `"CLAUDE.md"`, `"App.Core/Authorization/Policy.cs"`, `"App.Core/Interfaces/ICurrentUser.cs"`, `"App.Core/Interfaces/ITenantProvider.cs"`, `"App.Core/Models/NoteMember.cs"`, `"App.Data/AuthEntities.cs"`, `"App.Api/Auth/Sessions.cs"`, `"App.Api/Auth/Context.cs"`, `"App.Api/Auth/Passwords.cs"`, `"App.Api/Auth/Tokens.cs"`, `"App.Api/Auth/AccountService.cs"`, `"App.Api/Auth/DevFileAuthEmail.cs"`, `"App.Api/Auth/StartupGuard.cs"`, `"App.Api/Auth/Http/AuthEndpoints.cs"`, `"App.Api/Auth/Http/AppEndpoints.cs"`, `"App.Api/Auth/Http/Web.cs"`, `"App.Api/wwwroot/passkeys.js"`, `"App.Api/DevPages/index.html"`, `"App.Api/DevPages/auth-check.js"`, `"App.Api/appsettings.Development.json"`, `"App.Tests/Auth/TestUsers.cs"`, `"App.Tests/Auth/TestDb.cs"`, `"App.Tests/Auth/TestApp.cs"`, `"App.Tests/Auth/MatrixTests.cs"`, `"App.Tests/Auth/AgreementTests.cs"`, `"App.Tests/Auth/GuardTests.cs"`, `"App.Tests/Auth/HttpTests.cs"`, `"App.Tests/Auth/ConfigTests.cs"`, `"App.Tests/Auth/PrivacyTests.cs"`, `"App.Tests/Auth/CopyTests.cs"` and `"App.Tests/Auth/DevTests.cs"`.
   - New tests:
 ```js
 test("scaffold CLAUDE.md carries the auth skill line", () => {
@@ -1205,21 +1241,24 @@ Permissions live in `App.Core/Authorization/`. Follow the loadout `auth` skill; 
     - "Folder structure": `App.Tests/` says NUnit; `App.Api/` mentions `Auth/`, `wwwroot/passkeys.js` and `DevPages/`; `App.Core/` mentions `Authorization/`.
     - New section "Sign-in and permissions": why two endpoint styles (auth is the recipe's Minimal API so a security fix syncs in as a near-copy; Notes is a controller because that's the scaffold's teaching shape); a short version of the spec § 3 table; the dev mailbox (`App.Api/.dev-mail/`, one file per email, paste the link into the check page); the check page at `http://localhost:5005/dev/auth-check/` and the steps it walks; a frontend on another port uses its dev server's proxy, so requests reach the API from the same origin; and the line `Synced from loadout auth v0.8.0, recipe verified 10.11.2026 on packages 10.0.14.`
     - New section "Before you ship (adoption checklist)": the seven items of spec § 7, one line each.
+    - In "Sign-in and permissions", one paragraph on tenants: sign-up gives every account its own tenant (the recipe's rule, kept so recipe syncs stay near-copies), so sharing only reaches accounts in the same tenant. It gives the one-line SQL from `App.Api.http` that moves an account into another tenant for local testing, and says a real project decides how accounts join a tenant (an invite, an admin, a domain rule).
     - "Request lifecycle": the POST walkthrough gains the cross-site guard, the session, the second-factor gate, `NotePolicy.Can(create)` in `NoteService`, and the 401/403/404 answers.
     - "Working rules": add the guard-folder rule. "First 5 steps" stays as it is.
   - `tools/csharp-wpf.test.mjs` line 6: the comment becomes "CI runs no dotnet for this scaffold (only csharp-api's suite runs in Ward's dotnet job), so this is the guard that sees a WPF layout regression on every pull request. dotnet test runs the real audit."
+  - `tools/csharp-locales.test.mjs` lines 4-5: "CI runs no dotnet, so this is the guard that sees a bundle edit on every pull request" becomes "Only csharp-api's suite runs in CI (Ward's dotnet job), so this is the guard that sees a bundle edit in the other C# scaffolds on every pull request." Both comments go stale the moment Ward's dotnet job runs.
   - `index.html` and `guide/index.html`: the csharp-api card and the `id="csharp-api"` guide section each gain one sentence: "Ships sign-in (passkeys, TOTP, recovery codes, server-side sessions) and permissions in one folder, with the Note sample showing both." Match the surrounding markup; run the layout audit on both pages if the card's text length changes its row.
   - Root `.github/workflows/ward.yml`: `dotnet: "scaffolds/csharp-api/App.slnx"`, `dotnet-ef-project: "scaffolds/csharp-api/App.Data"`, and a new `dotnet-ef-startup-project: "scaffolds/csharp-api/App.Api"` line with the same comment style as the scaffold's own caller.
+  - Root `.github/dependabot.yml` (decided by me 10.11.2026): a `nuget` entry for `directory: /scaffolds/csharp-api`, weekly, with minor and patch grouped in one PR, in the style of the existing entries. A bump also fails the pin-versus-sync-line test in `tools/csharp-api.test.mjs` until the recipe is re-verified on the new version. That is intended: a package bump in the scaffold is a recipe re-verification, not an auto-merge.
 
 - [ ] **Step 3: Run the workbench suite.** From the root: `node --test "tools/*.test.mjs"` and `node tools/check-links.mjs`. Expected: all green. From the scaffold: `dotnet build App.slnx`, `dotnet format App.slnx --verify-no-changes`, `dotnet test App.slnx`, the pending-model check. Write the exact passed count into the ledger; it must be at least 88 recipe runs plus 32 rewritten plus the new ones, with 0 skipped.
 
 - [ ] **Step 4: Commit, push and open the PR.**
 ```bash
-git add scaffolds/csharp-api/CLAUDE.md scaffolds/csharp-api/README.md tools/csharp-api.test.mjs tools/csharp-wpf.test.mjs .github/workflows/ward.yml index.html guide/index.html
+git add scaffolds/csharp-api/CLAUDE.md scaffolds/csharp-api/README.md tools/csharp-api.test.mjs tools/csharp-wpf.test.mjs tools/csharp-locales.test.mjs .github/workflows/ward.yml .github/dependabot.yml index.html guide/index.html
 git commit -m "Document sign-in and permissions in csharp-api and run its suite in Ward"
 git push -u origin feat/csharp-api-auth
 ```
-  Open the PR to `main` with `gh pr create`. Title: "Sign-in and permissions in the csharp-api scaffold". Body, first person, no em dashes: what it adds (two sentences), the test count read off Step 3, the deviations from the recipe (spec § 4 plus the ones this plan added: `ICurrentUser`, `Source.Root`, cascade keys for account data, the duplicate-key and blank-title field rules, the guard's extra service rule), and the **recipe sync-back list** from the ledger. Then confirm Ward's dotnet job ran and is green on the PR; if it fails, read its log and fix it on the branch before Task 9.
+  Open the PR to `main` with `gh pr create`. Title: "Sign-in and permissions in the csharp-api scaffold". Body, first person, no em dashes: what it adds (two sentences), the test count read off Step 3, the deviations from the recipe (spec § 4 plus the ones this plan added: `ICurrentUser`, `Source.Root`, cascade keys for account data, the duplicate-key and blank-title field rules, the guard's extra service rule and its wider role-check, endpoint-folder and member-row matches, the AgreementTests user rows the foreign keys need) and two places the build differs from the spec's wording: the check page is `DevPages/index.html` (spec § 6.4 says `auth-check.html`) so `UseFileServer` serves it as the folder's default document, and outside Development `/dev/auth-check/` answers 401 without a session and 404 with one (spec § 6.4 says 404), because the locked fallback policy covers requests that match no endpoint. Then the **recipe sync-back list** from the ledger. Then confirm Ward's dotnet job ran and is green on the PR; if it fails, read its log and fix it on the branch before Task 9.
 
 ---
 
@@ -1227,13 +1266,23 @@ git push -u origin feat/csharp-api-auth
 
 **Files:** none changed unless a step fails.
 
-- [ ] **Step 1: Start the API.** Through `.claude/launch.json` and `preview_start` (add a `csharp-api` entry running `dotnet run --project scaffolds/csharp-api/App.Api --launch-profile http` on port 5005 if none exists; that file is in `.claude/`, so ask before creating it). Open `http://localhost:5005/dev/auth-check/` in the browser pane.
+- [ ] **Step 1: Create the database and start the API.** From `scaffolds/csharp-api`, if `App.Api/app.db` does not exist yet: `dotnet ef database update --project App.Data --startup-project App.Api` (the app never creates its schema itself, so without this the first sign-up answers 500). Then start it through `.claude/launch.json` and `preview_start`. That file already exists with a `web-react-ts-preview` entry; adding a `csharp-api` entry edits `.claude/`, so ask before adding it. The entry runs `dotnet run --project scaffolds/csharp-api/App.Api --launch-profile http` on port 5005 with `DOTNET_CLI_TELEMETRY_OPTOUT=1` set for the process (an `env` block if the launcher reads one; otherwise `bash` with `-c "DOTNET_CLI_TELEMETRY_OPTOUT=1 exec dotnet run ..."`). Open `http://localhost:5005/dev/auth-check/` in the browser pane. Before any step runs, read the pane's browser version once with `javascript_tool` (`navigator.userAgent`, nothing else) for the PR comment.
 
-- [ ] **Step 2: Hand over the secret parts.** Tell Malin, in one message: I fill the email and the test passphrase (`AuthApiFactory.TestPhrase`) and click each step; she approves every Windows Hello prompt, opens the newest `.dev-mail/` file and pastes the link into the confirm field, scans the TOTP key from the Secrets box into her authenticator and types the code, and looks after the recovery codes. I read nothing but the status lines.
+- [ ] **Step 2: Hand over the secret parts.** Tell Malin, in one message: I fill the email `check@example.test` and the passphrase `AuthApiFactory.NewTestPhrase`, and click each step. Not `TestPhrase`: it appears 391 times in Pwned Passwords (range API, checked 10.11.2026), and Development runs the real breach check, so sign-up would answer `auth.error.passwordRejected`. `NewTestPhrase` is still one of the test constants (spec § 6.5) and is not in the list. She approves every Windows Hello prompt, opens the newest `.dev-mail/` file and pastes the link into the confirm field, copies the TOTP key from the Secrets box into her authenticator and types the code into the code field, and looks after the recovery codes. She tells me "done" in chat after each hand-off and never pastes a link, key or code into the chat. I read nothing but the status lines.
 
-- [ ] **Step 3: Run the steps.** After each click, read only that step's status element: `find` with the query `step-<name>`, or `read_page` with `ref_id` set to that element. No screenshots, no `get_page_text`, no full-page `read_page`.
+- [ ] **Step 3: Collect the refs, then run the steps.** `find` matches an element's role, name and text, never its id, so the refs are collected once, right after the page loads, while it holds no secret:
+  - one `find` per control by its full visible label: "Email", "Passphrase", "Sign up", "Confirm email", "Sign in" (the first match; the second is "Sign in with the passkey"), "Register a passkey", "Sign out before the passkey sign-in", "Sign in with the passkey", "Remove the passkey", "Start TOTP", "Turn on TOTP", "Recovery codes show once", "Sign out at the end";
+  - one `find` with the query `status`, which returns the eleven `role="status"` elements in page order (plus two static sentences that mention status lines).
 
-- [ ] **Step 4: Record and close.** Expected: eleven `pass` lines. Write them into the PR as a comment ("Browser check 10.11.2026: 11/11 pass, Windows Hello, Edge <version>"). If `http://localhost` refuses a Secure cookie or WebAuthn, move `Auth:Origin` in `appsettings.Development.json` to `https://localhost:7005`, run on the `https` profile, update the README and `App.Api.http`, commit, and run the check again. Stop the server and confirm `git status` shows no `keys/`, `.dev-mail/` or database files.
+  From then on, no `find` and no other read of the page. Fill the two fields with `form_input` by ref, click with `computer` `left_click` by ref, and after each click read only that step's status with `read_page` and `ref_id` set to its status ref. Each line names its step (`sign-in: pass`), which confirms the ref. No screenshots, no `get_page_text`, no full-page `read_page`, no `find` after the first secret appears. If a ref goes stale, reload the page (that clears the Secrets box), sign in again and collect the refs again.
+
+- [ ] **Step 4: Record and close.** Expected: eleven `pass` lines. Write them into the PR as a comment ("Browser check <today, dd.mm.yyyy>: 11/11 pass, Windows Hello, browser pane <version from Step 1>").
+  - **A step says `fail auth.error.reauthRequired`:** adding or removing a factor needs a session under 10 minutes old. Click the latest sign-in step again (the passkey one while a passkey exists, else the password one) and repeat the failed step.
+  - **A rerun** uses a new address (`check2@example.test`, and so on). An address that already has an account gets an "account-exists" mail with no link, and each address gets at most three auth mails an hour.
+  - **The pane can't run WebAuthn** (the passkey step fails with `auth.error.passkeyUnknown` or `auth.error.noPasskeyHere` before any Windows Hello prompt shows): stop and ask Malin. Don't switch browsers on my own.
+  - **`http://localhost` refuses the Secure cookie or WebAuthn:** move `Auth:Origin` in `appsettings.Development.json` to `https://localhost:7005`, run on the `https` profile, update the README and `App.Api.http`, commit, and run the check again. The https profile needs a trusted dev certificate. `dotnet dev-certs https --check --trust` only reads; if it reports none, Malin runs `dotnet dev-certs https --trust` herself, because it changes the Windows certificate store, which I never do.
+
+  Stop the server and confirm `git status` shows no `keys/`, `.dev-mail/` or database files.
 
 ---
 
@@ -1242,3 +1291,17 @@ git push -u origin feat/csharp-api-auth
 - [ ] **Step 1:** Wait for Malin to merge the PR. Do not merge it.
 - [ ] **Step 2:** On her yes: `git checkout main && git pull`, tag `v2.24.0` on the merge commit, push the tag, and cut a GitHub Release marked Latest with notes in my voice: what the scaffold now ships, the browser-check result, and that the design system is unchanged at 3.11.1.
 - [ ] **Step 3:** Delete `feat/csharp-api-auth` and `docs/csharp-api-auth-spec` locally and on the remote once the Release exists.
+
+---
+
+## Considered and rejected (stress test)
+
+- **Eleven `role="status"` regions on the check page.** My accessibility rule asks for few live regions per page. Spec § 6.4 puts one beside each step, only the clicked step's region changes, and the page is a Development-only tool, so they stay.
+- **The Secrets box overflows at 320 px, and the page shows error keys instead of copy.** The page has no stylesheet by design (spec § 6.4), runs in a desktop browser pane, and the keys are what the check reads. A long otpauth URI scrolling sideways costs nothing there.
+- **The owner's member list shows whether a shared email matched.** The 204 rule keeps other tenants and unconfirmed addresses out of view, and they never reach the list. What the owner learns is which confirmed accounts are in their own tenant, which a tenant's members already know of each other.
+- **Two shares of one email at the same moment.** Both pass the "already a member" check, and the second save hits the primary key and answers 500. Nothing is damaged and a retry answers 204. Catching it needs an EF exception type in Core, which stays package-free.
+- **A third startup-guard rule for `AllowedHosts`.** `appsettings.Development.json` sets `AllowedHosts` to `localhost`, so a public host running as Development already answers 400 to every request. The gap needs both that and `Auth:Origin` overridden by hand, and the README checklist names both settings.
+- **Per-line guard regexes can be dodged on purpose** (`Set<App.Core.Models.Note>`, a local variable named `filter`). The guard catches drift, not intent. Closing every spelling needs a Roslyn analyzer, which is out of scope here and in the recipe.
+- **`keys/` in `.gitignore` matches a folder named `keys` at any depth.** A source folder with that name is unlikely, and a narrower `/App.Api/keys/` would miss the data protection keys when the app runs from another working directory.
+
+> Stress-tested 2026-11-10 (skill 5065c26): 21 applied, 3 adapted, 2 decided by me.
