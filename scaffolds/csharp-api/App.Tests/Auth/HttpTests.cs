@@ -6,7 +6,7 @@ public class HttpTests
 {
     private AuthApiFactory _app = null!;
     private static readonly string[] RevokeFailedLog = ["App.Api.Auth.AuthLog: auth.session.revokeFailed error=DbUpdateException "];
-    private static readonly string[] ExportKeys = ["email", "name", "passkeys", "sessions", "events"];
+    private static readonly string[] ExportKeys = ["email", "name", "passkeys", "sessions", "events", "notes", "memberships"];
     private const string Pw = AuthApiFactory.TestPhrase;
     private const string NewPw = AuthApiFactory.NewTestPhrase;
     [SetUp] public void SetUp() => _app = new AuthApiFactory();
@@ -777,12 +777,17 @@ public class HttpTests
     [Test]
     public async Task The_account_export_holds_the_account_s_own_data()
     {
-        await _app.SeedUser("a@example.test");
+        var user = await _app.SeedUser("a@example.test");
+        var other = await _app.SeedUser("b@example.test");
+        await _app.SeedNote(user.Id, "t1");
+        var shared = await _app.SeedNote(other.Id, "t1", user.Id);
         var c = _app.Client(); await c.SignIn("a@example.test", Pw);
         var export = await c.GetFromJsonAsync<JsonElement>("/account/export");
         Assert.That(export.EnumerateObject().Select(p => p.Name), Is.EqualTo(ExportKeys));
         Assert.That(export.GetProperty("email").GetString(), Is.EqualTo("a@example.test"));
         Assert.That(export.GetProperty("sessions").GetArrayLength(), Is.EqualTo(1));
         Assert.That(export.GetProperty("events").EnumerateArray().Select(e => e.GetProperty("kind").GetString()), Does.Contain("sign-in"));
+        Assert.That(export.GetProperty("notes")[0].GetProperty("title").GetString(), Is.EqualTo("Note"));
+        Assert.That(export.GetProperty("memberships")[0].GetProperty("noteId").GetInt32(), Is.EqualTo(shared));
     }
 }
