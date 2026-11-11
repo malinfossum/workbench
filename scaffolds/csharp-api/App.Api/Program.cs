@@ -3,6 +3,7 @@ using App.Api.Localization;
 using App.Core.Services;
 using App.Data.Repositories;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,7 @@ s.AddScoped<AuthEventLog>();
 s.AddSingleton<SignInThrottle>();
 s.AddSingleton<AuthMailer>();
 s.AddSingleton(new AuthLinks(origin));
-s.AddSingleton<IAuthEmail, LogOnlyAuthEmail>();
+s.AddSingleton(typeof(IAuthEmail), AuthMailers.For(builder.Environment));
 s.AddSingleton<EfTicketStore>();
 s.AddSingleton<SessionCleanup>();
 s.AddHostedService(sp => sp.GetRequiredService<SessionCleanup>());
@@ -153,6 +154,7 @@ s.AddCors(options => options.AddPolicy("dev", policy =>
         .AllowAnyMethod()));
 
 var app = builder.Build();
+StartupGuard.Check(app.Environment, app.Services.GetRequiredService<IAuthEmail>(), origin);
 var hsts = !app.Environment.IsDevelopment();
 
 app.UseForwardedHeaders(); // first: the limiter, the session rows and the logs need the real client IP
@@ -169,6 +171,15 @@ if (!app.Environment.IsDevelopment())
 app.UseRequestLocalization();
 app.UseMiddleware<CrossSiteGuard>(origin); // before the session lookup: a cross-site form never reaches it
 app.UseStaticFiles();
+if (app.Environment.IsDevelopment())
+{
+    // The manual auth check (README). Development only: everywhere else /dev/auth-check is 404.
+    app.UseFileServer(new FileServerOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "DevPages")),
+        RequestPath = "/dev/auth-check",
+    });
+}
 app.UseRouting(); // before authentication: the ticket store reads the endpoint's StartsSession marker
 if (app.Environment.IsDevelopment())
 {
