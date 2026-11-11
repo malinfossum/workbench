@@ -31,8 +31,12 @@ layered API + repository shape: controller → service → repository → DbCont
 
 ## Sign-in and permissions
 
-Passkeys first, then a passphrase, with TOTP and recovery codes as the second factor and
-server-side cookie sessions. Every permission rule sits in `App.Core/Authorization/` and
+A passkey is the main way in. A passphrase is the other way. A passkey sign-in counts as the
+second factor by itself. A passphrase sign-in on an account with TOTP enrolled asks for a
+TOTP code or a recovery code as a second step. Sessions are server-side cookies. An account
+above a plain member needs a second factor in its session, or the policy admits nothing.
+
+Every permission rule sits in `App.Core/Authorization/` and
 doubles as the query filter, so a rule and the rows it hides cannot drift apart. The
 design follows the loadout `auth` skill; the spec is
 `docs/specs/2026-11-10-csharp-api-auth.md`.
@@ -56,7 +60,12 @@ checks nothing itself.
 **Tenants.** Sign-up gives every account its own tenant. That is the recipe's rule and I
 kept it so recipe syncs stay near-copies. Sharing a note only reaches accounts in the same
 tenant, so sharing with a second signed-up account answers 204 and changes nothing. To try
-sharing locally, move that account into yours with the one-line SQL in `App.Api.http`.
+sharing locally, move that account into yours with this line (from `App.Api.http`):
+
+```sql
+sqlite3 app.db "UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUsers WHERE NormalizedEmail = 'YOU@EXAMPLE.TEST') WHERE NormalizedEmail = 'THEM@EXAMPLE.TEST';"
+```
+
 A real project decides how accounts join a tenant: an invite, an admin or a domain rule.
 
 **Dev mailbox.** In Development the app writes each email to a file in `App.Api/.dev-mail/`

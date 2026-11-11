@@ -25,8 +25,8 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
-  # A bump here is a recipe re-verification (tools/csharp-api.test.mjs pins the packages
-  # to the README's sync line), so it is never auto-merged.
+  # A bump here fails the pin test in tools/csharp-api.test.mjs (it ties the packages to
+  # the README's sync line), so it can't auto-merge until I re-verify the recipe.
   - package-ecosystem: nuget
     directory: /scaffolds/csharp-api
     schedule:
