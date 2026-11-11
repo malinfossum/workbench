@@ -12,7 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <!-- Explicit pin: transitive dependency had a known vulnerability; remove when the parent package updates past it. -->
+    <!-- Explicit pin, kept as a floor: Microsoft.AspNetCore.OpenApi now requires this version itself. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
   </ItemGroup>
 

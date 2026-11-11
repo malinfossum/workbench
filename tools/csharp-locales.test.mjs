@@ -1,8 +1,8 @@
 // tools/csharp-locales.test.mjs
 // The C# scaffolds' locale bundles follow the same rules as the web scaffolds'
 // (locale standard § 7.2, § 8, § 10): one key set per scaffold, flat strings,
-// no empty values, no hard-coded prices. CI runs no dotnet, so this is the
-// guard that sees a bundle edit on every pull request.
+// no empty values, no hard-coded prices. Only csharp-api's suite runs in CI (Ward's dotnet job), so this is the
+// guard that sees a bundle edit in the other C# scaffolds on every pull request.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";

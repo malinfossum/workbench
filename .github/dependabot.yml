@@ -25,6 +25,17 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # A bump here is a recipe re-verification (tools/csharp-api.test.mjs pins the packages
+  # to the README's sync line), so it is never auto-merged.
+  - package-ecosystem: nuget
+    directory: /scaffolds/csharp-api
+    schedule:
+      interval: weekly
+    groups:
+      nuget-minor-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
   - package-ecosystem: npm # package.json: jsdom for the design system's behaviour tests
     directory: /
     schedule:

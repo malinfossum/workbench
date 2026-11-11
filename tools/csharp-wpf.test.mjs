@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// CI runs no dotnet (see csharp-locales.test.mjs), so this is the guard that sees a
+// CI runs no dotnet for this scaffold (only csharp-api's suite runs in Ward's dotnet job), so this is the guard that sees a
 // WPF layout regression on every pull request. dotnet test runs the real audit.
 const WPF = join(import.meta.dirname, "..", "scaffolds", "csharp-wpf");
 const read = (p) => readFileSync(join(WPF, p), "utf8").replaceAll("\r\n", "\n");

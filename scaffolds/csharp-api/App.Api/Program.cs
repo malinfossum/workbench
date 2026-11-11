@@ -173,7 +173,7 @@ app.UseMiddleware<CrossSiteGuard>(origin); // before the session lookup: a cross
 app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
-    // The manual auth check (README). Development only: everywhere else /dev/auth-check is 404.
+    // The manual auth check (README). Development only: everywhere else /dev/auth-check is 401 without a session and 404 with one.
     app.UseFileServer(new FileServerOptions
     {
         FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "DevPages")),
