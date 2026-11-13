@@ -18,10 +18,14 @@ publish/
 Thumbs.db
 .DS_Store
 
-# SQLite database — real data must never be committed (spec §6)
+# SQLite database: real data must never be committed (spec §6)
 # WAL mode also writes -wal/-shm sidecar files that can hold uncommitted data (-journal in rollback mode).
 app.db
 *.db
 *.db-shm
 *.db-wal
 *.db-journal
+
+# Data protection keys and the dev mailbox: never committed (README, Sign-in and permissions)
+keys/
+.dev-mail/

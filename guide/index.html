@@ -238,12 +238,13 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 				<p>
 					An ASP.NET Core Web API in the layered API + repository shape:
 					controllers → service (<code>App.Core</code>, no IO) → repository →
-					EF Core + SQLite. xUnit tests cover the service with a hand-rolled fake
+					EF Core + SQLite. NUnit tests cover the service with a hand-rolled fake
 					and the full HTTP pipeline via <code>WebApplicationFactory</code>.
 					Responses are localized from <code>Locales/&lt;tag&gt;.json</code> (the web
 					i18n bundle format) through a JSON <code>IStringLocalizer</code>, resolved
 					from <code>Accept-Language</code> with <code>no</code> and <code>nn</code>
 					mapped to <code>nb</code>.
+					Ships sign-in (passkeys, TOTP, recovery codes, server-side sessions) and permissions in one folder, with the Note sample showing both.
 				</p>
 				<ol>
 					<li>Copy <code>scaffolds/csharp-api/</code> to wherever the project lives.</li>

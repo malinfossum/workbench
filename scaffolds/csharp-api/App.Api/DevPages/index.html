@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auth check</title>
+  <script type="module" src="auth-check.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Auth check</h1>
+    <p>Development only. Run the steps in order. Each step writes pass or fail into its status line.</p>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username webauthn">
+    <label for="password">Passphrase</label>
+    <input id="password" type="password" autocomplete="new-password">
+
+    <ol>
+      <li><button type="button" id="run-sign-up">Sign up</button> <span id="step-sign-up" role="status"></span></li>
+      <li>
+        <label for="confirm-link">Confirmation link from the newest file in .dev-mail/</label>
+        <input id="confirm-link" type="url" autocomplete="off">
+        <button type="button" id="run-confirm">Confirm email</button> <span id="step-confirm" role="status"></span>
+      </li>
+      <li><button type="button" id="run-sign-in">Sign in</button> <span id="step-sign-in" role="status"></span></li>
+      <li><button type="button" id="run-passkey-add">Register a passkey</button> <span id="step-passkey-add" role="status"></span></li>
+      <li><button type="button" id="run-sign-out-1">Sign out before the passkey sign-in</button> <span id="step-sign-out-1" role="status"></span></li>
+      <li><button type="button" id="run-passkey-sign-in">Sign in with the passkey</button> <span id="step-passkey-sign-in" role="status"></span></li>
+      <li><button type="button" id="run-passkey-remove">Remove the passkey</button> <span id="step-passkey-remove" role="status"></span></li>
+      <li><button type="button" id="run-totp-start">Start TOTP</button> <span id="step-totp-start" role="status"></span></li>
+      <li>
+        <label for="totp-code">Code from the authenticator app</label>
+        <input id="totp-code" inputmode="numeric" autocomplete="one-time-code">
+        <button type="button" id="run-totp">Turn on TOTP</button> <span id="step-totp" role="status"></span>
+      </li>
+      <li><button type="button" id="run-codes-once">Recovery codes show once</button> <span id="step-codes-once" role="status"></span></li>
+      <li><button type="button" id="run-sign-out-2">Sign out at the end</button> <span id="step-sign-out-2" role="status"></span></li>
+    </ol>
+
+    <h2>Secrets</h2>
+    <p>The TOTP key and recovery codes appear here, never in a status line.</p>
+    <pre id="secrets"></pre>
+  </main>
+</body>
+</html>
