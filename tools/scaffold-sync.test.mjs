@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { join, resolve } from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { extract } from "./extract.mjs";
 
 const WORKBENCH = resolve(import.meta.dirname, "..");
@@ -31,3 +32,33 @@ for (const [library, targets] of Object.entries(BUNDLES)) {
     });
   }
 }
+
+// The Modern Web Guidance skill is vendored into both web scaffolds by its own
+// installer, not by extract. Both copies and their lock must stay identical, so
+// an update re-run in one scaffold only fails CI instead of drifting.
+const SKILL_SCAFFOLDS = ["web-vite", "web-react-ts"];
+const SKILL_FILES = [".claude/skills/modern-web-guidance", "skills-lock.json"];
+
+function listFiles(root) {
+  if (!statSync(root).isDirectory()) return [""];
+  return readdirSync(root, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => relative(root, join(e.parentPath, e.name)).replaceAll("\\", "/"))
+    .sort();
+}
+
+test("both web scaffolds vendor the same Modern Web Guidance skill", () => {
+  const [a, b] = SKILL_SCAFFOLDS.map((s) => join(WORKBENCH, "scaffolds", s));
+  for (const item of SKILL_FILES) {
+    const filesA = listFiles(join(a, item));
+    assert.deepEqual(listFiles(join(b, item)), filesA, `${item}: file lists differ`);
+    assert.ok(filesA.length > 0, `${item} is empty`);
+    for (const f of filesA) {
+      assert.equal(
+        readFileSync(join(b, item, f), "utf8").replaceAll("\r\n", "\n"),
+        readFileSync(join(a, item, f), "utf8").replaceAll("\r\n", "\n"),
+        `${item}/${f} differs. Re-run the install command from the scaffold README in both scaffolds.`,
+      );
+    }
+  }
+});
