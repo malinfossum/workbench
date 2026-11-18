@@ -4,7 +4,8 @@
 	"description": "Root test runner for tools/. Not a package: jsdom is here for the design system's behaviour tests only.",
 	"scripts": {
 		"test": "node --test \"tools/*.test.mjs\"",
-		"links": "node tools/check-links.mjs"
+		"links": "node tools/check-links.mjs",
+		"tokens": "node tools/check-tokens.mjs"
 	},
 	"devDependencies": {
 		"jsdom": "^31.0.1"

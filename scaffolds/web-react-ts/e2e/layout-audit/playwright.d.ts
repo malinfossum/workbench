@@ -65,3 +65,19 @@ export function layoutSuite(options: {
 	known?: KnownViolation[]
 	checkLang?: boolean
 }): void
+
+export interface VitalsBudget {
+	/** Largest Contentful Paint in ms */
+	lcp: number
+	/** Cumulative Layout Shift, worst session window */
+	cls: number
+}
+
+export const VITALS_BUDGET: VitalsBudget
+
+/** Optional, Chromium only. Localhost numbers are lab numbers. */
+export function measureVitals(
+	page: Page,
+	url: string,
+	options?: { budget?: VitalsBudget; settleMs?: number },
+): Promise<{ lcp: number | null; cls: number | null; errors: string[] }>
