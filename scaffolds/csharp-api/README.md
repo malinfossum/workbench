@@ -105,6 +105,9 @@ Synced from loadout auth v0.13.0, recipe verified 18.11.2026 on packages 10.0.14
 5. Name the Pwned Passwords range call in the privacy notice.
 6. The throttle is in memory, so a multi-instance deploy moves it to the database.
 7. Run the manual browser check before shipping passkeys.
+8. Importing accounts? Every stored email must be a bare address (no white space, no
+   display name, no trailing dot). `BareEmailValidator` runs on every user update, so an
+   account whose address isn't bare can't confirm, reset or enroll until it is corrected.
 
 ## Where your data lives
 
