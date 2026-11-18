@@ -16,8 +16,14 @@ test("raw colors are flagged, tokens and color-mix are not", () => {
 	assert.deepEqual(rules(".a { color: color-mix(in oklab, var(--accent) 20%, transparent); }"), []);
 });
 
-test("an id selector is not a hex color", () => {
+test("an id selector or a url fragment is not a hex color", () => {
 	assert.deepEqual(rules("#fab { color: var(--text); }"), []);
+	assert.deepEqual(rules(".a { mask: url(#fade); fill: url(icons.svg#abc); }"), []);
+});
+
+test("a corner radius gets the right logical name", () => {
+	assert.match(checkCss(".a { border-top-left-radius: 0; }")[0].message, /use border-start-start-radius$/);
+	assert.match(checkCss(".a { border-bottom-right-radius: 0; }")[0].message, /use border-end-end-radius$/);
 });
 
 test("physical properties and values are flagged, logical ones are not", () => {
@@ -40,6 +46,9 @@ test(":focus needs :focus-visible", () => {
 test("comments are ignored and an allow comment exempts its line", () => {
 	assert.deepEqual(rules("/* margin-left: #fff; */ .a { color: var(--text); }"), []);
 	assert.deepEqual(rules(".a { box-shadow: 0 0 0 rgb(0 0 0); /* token-check: allow reason */ }"), []);
+	const multiLine = ".a {\n\tbox-shadow:\n\t\t0 0 0 var(--x),\n\t\t0 1px 0 #000; /* token-check: allow reason */\n}";
+	assert.deepEqual(rules(multiLine), []);
+	assert.deepEqual(rules(multiLine.replace("token-check: allow reason", "note")), ["2:raw-color"]);
 });
 
 test("at-rules and custom properties do not trip the walker", () => {
