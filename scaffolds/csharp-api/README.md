@@ -94,7 +94,7 @@ manual run on the check page.
 **Frontend on another port.** Use the dev server's proxy, so requests reach the API from
 the same origin and pass the cross-site guard. The `dev` CORS policy carries no credentials.
 
-Synced from loadout auth v0.13.0, recipe verified 18.11.2026 on packages 10.0.14.
+Synced from loadout auth v0.13.0, recipe verified 18.11.2026 on packages 10.0.15.
 
 ## Before you ship (adoption checklist)
 
