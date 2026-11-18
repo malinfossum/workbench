@@ -3,6 +3,10 @@
 Versions track the `VERSION` file. Consumers: compare your extracted copy's version, then
 re-run `node tools/extract.mjs design-system <target>` to catch up.
 
+## 3.12.1 — 2026-11-18
+
+A layout fix in `components/tabs.css`: `.tab-list` now wraps (`flex-wrap: wrap`). A strip too wide for the viewport becomes two rows instead of pushing the page sideways; measured in the gallery, the three-tab specimen at 320 px and 200 % text went from 288 px of overflow to none. The known-gap line in `docs/component-rules.md` § Tabs is replaced by the rule. Pinned in `tools/design-system-layout.test.mjs`.
+
 ## 3.12.0 — 2026-11-18
 
 Rules and hygiene. No visual change in a left-to-right page.

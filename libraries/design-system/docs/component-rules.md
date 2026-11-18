@@ -53,7 +53,7 @@ Token hygiene (no raw colors, logical properties, `:focus-visible` rings) is che
 
 ## Tabs
 - **Do:** `role="tablist"` with `role="tab"` children and `aria-selected`; page links in a router use the nav pattern with `aria-current` instead.
-- **Don't:** let the tab strip push the page wider than 320 px. Known gap: the shipped `.tab-list` is a row that doesn't wrap, so it overflows at 320 px with 200 % text until the scroll-or-wrap decision lands. Keep tab labels short until then.
+- **Don't:** let the tab strip push the page wider than 320 px. `.tab-list` wraps, so a strip that is too wide for the viewport becomes two rows; nothing is hidden and nothing scrolls sideways. Keep tab labels short so the strip stays on one row where it can.
 - **WCAG:** 2.1.1 Keyboard, 4.1.2, 1.4.11.
 - **States:** rest, hover, selected, `:focus-visible`.
 - **Ratio:** label 4.5:1; the selected underline 3:1 against the page.

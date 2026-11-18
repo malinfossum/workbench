@@ -141,3 +141,12 @@ test("a label beside its value differs in weight and colour: dt over dd, [data-a
 });
 
 export { read, shippedCss };
+
+test(".tab-list wraps instead of pushing the page wider than the viewport", () => {
+	// Measured in the gallery before 3.12.1: a three-tab strip at 320 px and 200 % text ran
+	// 288 px past the right edge. Wrapping keeps every tab reachable with no sideways scroll.
+	const list = read("components/tabs.css").match(/\.tab-list \{([^}]*)\}/)?.[1];
+	assert.ok(list, "tabs.css must define .tab-list");
+	assert.ok(list.includes("display: flex;"), ".tab-list must be a flex row");
+	assert.ok(list.includes("flex-wrap: wrap;"), ".tab-list must wrap");
+});
