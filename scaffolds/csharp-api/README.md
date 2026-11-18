@@ -78,6 +78,15 @@ enrol TOTP, see the recovery codes once, sign out. Each step writes `pass` or `f
 error key into its own status element. Outside Development the page answers 401 without a
 session and 404 with one.
 
+**Check script.** `node App.Tests/Browser/auth-check.mjs` runs the same eleven steps in
+Playwright's Chromium with an emulated passkey authenticator and prints the status lines. It
+starts and stops the API itself, reads the confirmation link from the dev mailbox and works
+out the TOTP code, so no secret reaches the screen. It needs Node, the database from step 4
+and `playwright-core` with its Chromium build. A project with no Node packages of its own
+passes a folder that has them: `node App.Tests/Browser/auth-check.mjs <folder with node_modules>`.
+The authenticator is emulated, so the Windows Hello dialog and hardware keys still need one
+manual run on the check page.
+
 **Frontend on another port.** Use the dev server's proxy, so requests reach the API from
 the same origin and pass the cross-site guard. The `dev` CORS policy carries no credentials.
 

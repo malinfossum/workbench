@@ -33,7 +33,7 @@ test("scaffold ships every load-bearing file", () => {
     "App.Tests/Auth/TestUsers.cs", "App.Tests/Auth/TestDb.cs", "App.Tests/Auth/TestApp.cs",
     "App.Tests/Auth/MatrixTests.cs", "App.Tests/Auth/AgreementTests.cs", "App.Tests/Auth/GuardTests.cs",
     "App.Tests/Auth/HttpTests.cs", "App.Tests/Auth/ConfigTests.cs", "App.Tests/Auth/PrivacyTests.cs",
-    "App.Tests/Auth/CopyTests.cs", "App.Tests/Auth/DevTests.cs",
+    "App.Tests/Auth/CopyTests.cs", "App.Tests/Auth/DevTests.cs", "App.Tests/Browser/auth-check.mjs",
   ]) assert.ok(existsSync(join(SCAFFOLD, p)), `missing ${p}`);
 });
 
