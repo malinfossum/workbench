@@ -183,33 +183,125 @@ public class HttpTests
         Assert.That(known, Is.EqualTo(await Answer("new@example.test")));
     }
 
-    [Test]
-    public async Task Sign_up_takes_an_email_with_an_apostrophe()
+    [TestCase("o'brien@example.test")]
+    [TestCase("blåbær@example.test")]
+    [TestCase("bla\u030Abær@example.test")] // å sent as a + U+030A, as a paste from macOS can be
+    public async Task Sign_up_takes_an_email_with_an_apostrophe_or_a_non_ASCII_letter(string email)
     {
-        const string email = "o'brien@example.test";
         var res = await _app.Client().PostAsJsonAsync("/auth/sign-up", new SignInRequest(email, Pw));
         Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
         Assert.That(await _app.With(sp => sp.GetRequiredService<UserManager<AppUser>>().FindByEmailAsync(email)), Is.Not.Null);
         Assert.That(_app.Mail.Sent.Any(m => m.To == email && m.Kind == "confirm"), Is.True);
     }
 
-    // A missing field is a bad request. It never reaches Identity as a null.
+    // JSON can't carry half a surrogate pair, but code that creates users can pass one. The rule reads characters and parses nothing, so it can't throw.
+    [Test]
+    public void An_address_that_is_not_valid_text_is_refused_without_an_exception() =>
+        Assert.That(BareEmailValidator.IsBare("a@example.test (\ud800)"), Is.False);
+
+    // Each of these can reach the mailbox victim@example.test under another spelling. A mailer would deliver the
+    // confirm mail there, and each would be a second account for that mailbox.
+    [TestCase("a1 <victim@example.test>")]
+    [TestCase(" victim@example.test ")]
+    [TestCase("victim@example.test (work)")]
+    [TestCase("\"victim\"@example.test")]
+    [TestCase("victim@example.test.")]
+    [TestCase("victim@[192.0.2.1]")]
+    [TestCase("victim@example\u3002test")] // the ideographic full stop, which international domain names read as a dot
+    public async Task Sign_up_creates_nothing_for_an_address_that_is_not_bare(string email)
+    {
+        var res = await _app.Client().PostAsJsonAsync("/auth/sign-up", new SignInRequest(email, Pw));
+        Assert.That(await Said(res), Is.EqualTo("""202 {"message":"auth.notice.checkInbox"}""")); // the answer a bare address gets
+        Assert.That(_app.Mail.Sent, Is.Empty);
+        Assert.That(await _app.With(sp => sp.GetRequiredService<AppDbContext>().Users.CountAsync()), Is.Zero);
+    }
+
+    // A parallel sign-up for the same address wins the race: its row lands just before this request's insert.
+    private sealed class RivalSignUp(AuthApiFactory app) : SaveChangesInterceptor
+    {
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData e, InterceptionResult<int> result, CancellationToken ct = default)
+        {
+            if (e.Context!.ChangeTracker.Entries<AppUser>().SingleOrDefault(x => x.State == EntityState.Added)?.Entity is { } mine)
+            {
+                await using var db = TestDb.Context(app.KeepAlive, "");
+                db.Users.Add(new AppUser { UserName = mine.UserName, NormalizedUserName = mine.NormalizedUserName, Email = mine.Email, NormalizedEmail = mine.NormalizedEmail, TenantId = "rival" });
+                await db.SaveChangesAsync(ct);
+            }
+            return await base.SavingChangesAsync(e, result, ct);
+        }
+    }
+
+    [Test]
+    public async Task A_sign_up_that_loses_the_race_for_its_address_answers_the_same_and_sends_no_mail()
+    {
+        using var racing = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(new RivalSignUp(_app)))));
+        var res = await AuthApiFactory.ClientOf(racing).PostAsJsonAsync("/auth/sign-up", new SignInRequest("a@example.test", Pw));
+        Assert.That(await Said(res), Is.EqualTo("""202 {"message":"auth.notice.checkInbox"}"""));
+        Assert.That(_app.Mail.Sent, Is.Empty); // the winner's request sends the mail
+        Assert.That(await _app.With(sp => sp.GetRequiredService<AppDbContext>().Users.CountAsync()), Is.EqualTo(1)); // the rival's row and no second one
+    }
+
+    // The insert fails and no rival took the address: the database is in trouble, not a race.
+    private sealed class FailingUserInserts : SaveChangesInterceptor
+    {
+        public const string Message = "the users table is down";
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData e, InterceptionResult<int> result, CancellationToken ct = default) =>
+            e.Context!.ChangeTracker.Entries<AppUser>().Any(x => x.State == EntityState.Added) ? throw new DbUpdateException(Message) : base.SavingChangesAsync(e, result, ct);
+    }
+
+    [Test]
+    public async Task A_sign_up_whose_insert_fails_without_a_rival_answers_500_and_leaves_an_error_in_the_log()
+    {
+        using var broken = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(new FailingUserInserts()))));
+        var res = await AuthApiFactory.ClientOf(broken).PostAsJsonAsync("/auth/sign-up", new SignInRequest("a@example.test", Pw));
+        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError)); // 202 would promise a mail that never comes
+        Assert.That(await ErrorOf(res), Is.EqualTo("server_error"));
+        Assert.That(_app.Logs.Errors, Has.Some.StartsWith("App.Api.Auth.AuthLog: auth.unhandled Microsoft.EntityFrameworkCore.DbUpdateException: " + FailingUserInserts.Message));
+        Assert.That(_app.Mail.Sent, Is.Empty);
+    }
+
+    // A missing field is a bad request. It never reaches Identity as a null. The framework answers before the handler
+    // runs, so the body is empty. A 400 with an error key would be the handler's own answer to the null.
     [TestCase("/auth/sign-in")]
     [TestCase("/auth/sign-up")]
     [TestCase("/auth/confirm-email")]
     [TestCase("/auth/mfa")]
+    [TestCase("/auth/recovery")]
     [TestCase("/auth/reset")]
+    [TestCase("/auth/reset/confirm")]
+    [TestCase("/auth/passkey/sign-in")]
     public async Task An_empty_JSON_object_answers_400(string path)
     {
         var res = await _app.Client().PostAsJsonAsync(path, new { });
+        Assert.That(await Said(res), Is.EqualTo("400 "));
+    }
+
+    [TestCase("/account/password")]
+    [TestCase("/account/passkey")]
+    public async Task An_empty_JSON_object_answers_400_on_an_account_path(string path)
+    {
+        await _app.SeedUser("a@example.test");
+        var c = _app.Client(); await c.SignIn("a@example.test", Pw);
+        Assert.That(await Said(await c.PostAsJsonAsync(path, new { })), Is.EqualTo("400 "));
+    }
+
+    // In Development the framework throws on a bad body instead (RouteHandlerOptions.ThrowOnBadRequest), so the error
+    // handler answers: this scaffold's ProblemDetails shape with the error key, where the recipe answers the key alone.
+    [Test]
+    public async Task A_missing_field_answers_bad_request_in_Development()
+    {
+        using var dev = _app.WithWebHostBuilder(b => b.UseEnvironment("Development"));
+        var res = await AuthApiFactory.ClientOf(dev).PostAsJsonAsync("/auth/sign-in", new { });
         Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(await ErrorOf(res), Is.EqualTo("bad_request"));
     }
 
     [Test]
     public async Task A_null_email_and_password_answer_400_at_sign_in()
     {
-        var res = await _app.Client().PostAsJsonAsync("/auth/sign-in", new { email = (string?)null, password = (string?)null });
-        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        string? none = null;
+        var res = await _app.Client().PostAsJsonAsync("/auth/sign-in", new { email = none, password = none });
+        Assert.That(await Said(res), Is.EqualTo("400 "));
     }
 
     // Counts every hash and every hash check: the slow part a stopwatch would see.
@@ -716,6 +808,47 @@ public class HttpTests
         Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
         Assert.That(body, Does.Contain("server_error").And.Not.Contain(BrokenNotes.Message)); // the message stays on the server
         Assert.That(_app.Logs.Errors.Where(l => l.Contains(BrokenNotes.Message)), Is.Not.Empty);
+    }
+
+    // The session is revoked between the store's read and its write, as a sign-out elsewhere does.
+    private sealed class RevokedMidRequest(AuthApiFactory app) : SaveChangesInterceptor
+    {
+        public volatile bool On;
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData e, InterceptionResult<int> result, CancellationToken ct = default)
+        {
+            if (On && e.Context!.ChangeTracker.Entries<UserSession>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            {
+                await using var db = TestDb.Context(app.KeepAlive, "");
+                await db.UserSessions.ExecuteDeleteAsync(ct);
+            }
+            return await base.SavingChangesAsync(e, result, ct);
+        }
+    }
+
+    [Test]
+    public async Task A_session_revoked_mid_request_is_signed_out()
+    {
+        await _app.SeedUser("a@example.test");
+        var revoking = new RevokedMidRequest(_app);
+        using var racing = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(revoking))));
+        var c = AuthApiFactory.ClientOf(racing); await c.SignIn("a@example.test", Pw);
+        _app.Clock.Advance(TimeSpan.FromMinutes(1)); // so the store has a new LastSeenAt to write
+        revoking.On = true;
+        Assert.That((await c.GetAsync("/api/notes")).StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized)); // 503 would tell the client to retry a session that is over
+    }
+
+    // Two requests on one aged session, or the cleanup job purging it mid-request: the row is gone before this request's delete.
+    [Test]
+    public async Task An_aged_session_that_is_already_gone_is_signed_out()
+    {
+        var user = await _app.SeedUser("a@example.test");
+        var revoking = new RevokedMidRequest(_app);
+        using var racing = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(revoking))));
+        var c = AuthApiFactory.ClientOf(racing); await c.SignIn("a@example.test", Pw);
+        await _app.AgeSessions(user.Id, TimeSpan.FromDays(31));
+        revoking.On = true;
+        Assert.That((await c.GetAsync("/api/notes")).StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(_app.Logs.Lines.Where(l => l.Contains("auth.session.revokeFailed")), Is.Empty); // nothing failed: the session had ended
     }
 
     [Test]

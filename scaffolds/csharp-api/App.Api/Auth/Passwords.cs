@@ -39,6 +39,24 @@ public sealed class BreachedPasswordValidator(IBreachedPasswords breached) : IPa
             : IdentityResult.Success;
 }
 
+// The user name is the email, and Identity's own email check takes "a <victim@example.test>", a comment and a padded
+// address. A mailer delivers each of them to victim@example.test, so each would be one more account for that mailbox,
+// and all but the padded one would get a mail budget of its own (AuthMailer trims). Only a bare address passes: no
+// white space, none of the characters that address syntax gives a meaning, and no trailing dot.
+// That refuses a display name, a comment, a quoted local part, an address literal and a domain written with a
+// full-width or ideographic dot, without parsing anything.
+public sealed class BareEmailValidator : IUserValidator<AppUser>
+{
+    // RFC 5322 specials without the dot and the @, then the three dots that international domain names read as a dot.
+    private const string Specials = "<>()[]\",;:\\\u3002\uFF0E\uFF61";
+
+    public Task<IdentityResult> ValidateAsync(UserManager<AppUser> manager, AppUser user) =>
+        Task.FromResult(IsBare(user.Email) ? IdentityResult.Success : IdentityResult.Failed(new IdentityError { Code = "EmailNotBare", Description = "The email must be a bare address." }));
+
+    public static bool IsBare(string? email) =>
+        email is not null && !email.EndsWith('.') && !email.Any(c => char.IsWhiteSpace(c) || Specials.Contains(c));
+}
+
 // Sign-in with an unknown email checks the password against this hash, so it costs the same hash check as a known
 // email, and the answer time doesn't tell a stranger which emails have accounts.
 public static class DummyHash

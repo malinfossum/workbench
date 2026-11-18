@@ -94,10 +94,7 @@ manual run on the check page.
 **Frontend on another port.** Use the dev server's proxy, so requests reach the API from
 the same origin and pass the cross-site guard. The `dev` CORS policy carries no credentials.
 
-Synced from loadout auth v0.8.0, recipe verified 10.11.2026 on packages 10.0.14.
-For US spelling, `enrol` is `enroll` and `cancelled` is `canceled` in every name here: the
-route `/account/mfa/enroll`, the copy key `auth.error.passkeyCanceled`, `EnrollMfa` and
-`MfaEnrollRequest`. A recipe sync keeps these names until the recipe follows.
+Synced from loadout auth v0.13.0, recipe verified 18.11.2026 on packages 10.0.14.
 
 ## Before you ship (adoption checklist)
 
