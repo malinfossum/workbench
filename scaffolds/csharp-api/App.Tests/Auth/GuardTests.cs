@@ -44,6 +44,18 @@ public class GuardTests
             .Where(x => RepositoryRead.IsMatch(x.Line) && !FromPolicy.IsMatch(x.Line))
             .Select(x => $"{x.Path}:{x.No}: read without NotePolicy.Filter").ToList();
 
+    // Per line, in the account export: a read past the Tenant filter is keyed on the account, as owner or as member, so
+    // it reaches that account's rows and nobody else's.
+    private const string ExportFile = "App.Api/Auth/AccountService.cs";
+    private static readonly Regex PastTheFilter = new(@"IgnoreQueryFilters\("),
+        KeyedOnTheAccount = new(@"\.Where\(n => n\.(OwnerId == userId|Members\.Any\(m => m\.UserId == userId\))\)");
+
+    public static List<string> FindUnkeyedExportLines(IEnumerable<(string Path, string Text)> files) =>
+        files.Where(f => f.Path == ExportFile)
+            .SelectMany(f => f.Text.Split('\n').Select((line, i) => (f.Path, Line: line, No: i + 1)))
+            .Where(x => PastTheFilter.IsMatch(x.Line) && !KeyedOnTheAccount.IsMatch(x.Line))
+            .Select(x => $"{x.Path}:{x.No}: a read past the Tenant filter without the account's key").ToList();
+
     private static readonly string[] Projects = ["App.Core", "App.Data", "App.Api"]; // never App.Tests: it holds the negative fixtures
 
     private static IEnumerable<(string, string)> SourceFiles() =>
@@ -80,9 +92,23 @@ public class GuardTests
     public void Allows_a_named_IgnoreQueryFilters_in_the_account_export_and_nowhere_else_in_Auth()
     {
         const string line = "var mine = db.Notes.IgnoreQueryFilters([\"Tenant\"]).Where(n => n.OwnerId == userId);";
-        Assert.That(FindViolations([("App.Api/Auth/AccountService.cs", line)]), Is.Empty);
+        Assert.That(FindViolations([(ExportFile, line)]), Is.Empty);
         Assert.That(FindViolations([("App.Api/Auth/Sessions.cs", line)]), Has.Count.EqualTo(1));
     }
+
+    [Test]
+    public void Every_export_read_past_the_Tenant_filter_is_keyed_on_the_account()
+    {
+        var export = SourceFiles().Where(f => f.Item1 == ExportFile).ToList();
+        Assert.That(export, Has.Count.EqualTo(1)); // the file exists under that path, so the rule has something to read
+        Assert.That(FindUnkeyedExportLines(export), Is.Empty);
+    }
+
+    [TestCase("var all = await db.Notes.IgnoreQueryFilters([\"Tenant\"]).ToListAsync();")]
+    [TestCase("var all = await db.Notes.IgnoreQueryFilters([\"Tenant\"]).Where(n => n.Archived).ToListAsync();")]
+    [TestCase("var theirs = await db.Notes.IgnoreQueryFilters([\"Tenant\"]).Where(n => n.OwnerId == otherId).ToListAsync();")]
+    public void Turns_red_on_an_export_read_without_the_account_s_key(string line) =>
+        Assert.That(FindUnkeyedExportLines([(ExportFile, line)]), Has.Count.EqualTo(1));
 
     [Test]
     public void Every_note_query_in_a_repository_applies_its_filter() =>

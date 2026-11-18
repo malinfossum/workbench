@@ -2,7 +2,7 @@ namespace App.Tests.Auth;
 
 public class CopyTests
 {
-    // Every key in the failure table in the auth skill's authn.md.
+    // Every key in the failure table in the auth skill's authn.md, in US spelling: passkeyCanceled is passkeyCancelled there.
     private static readonly string[] Keys =
     [
         "auth.error.signInFailed", "auth.error.wrongCode", "auth.error.expiredCode", "auth.error.recoveryCodeWrong",

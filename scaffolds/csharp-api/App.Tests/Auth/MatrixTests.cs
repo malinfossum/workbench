@@ -31,13 +31,15 @@ public class MatrixTests
     ];
 
     // Reports every missing cell and every wrong answer at once, so one run shows the whole gap.
-    public static void CheckMatrix(Func<UserContext, string, Note, bool> can)
+    public static void CheckMatrix(Func<UserContext, string, Note, bool> can) => Check(Matrix, can);
+
+    private static void Check((UserContext User, string Action, Note Note, bool Expected)[] matrix, Func<UserContext, string, Note, bool> can)
     {
         var missing = from action in NoteActions.All
                       from user in All
-                      where !Matrix.Any(r => r.User == user && r.Action == action && r.Note == Own)
+                      where !matrix.Any(r => r.User == user && r.Action == action && r.Note == Own)
                       select $"no matrix cell for {user.Id} (second factor used: {user.SecondFactorUsed}) {action}";
-        var wrong = from r in Matrix
+        var wrong = from r in matrix
                     where can(r.User, r.Action, r.Note) != r.Expected
                     select $"{r.User.Id} {r.Action} note {r.Note.Id}: expected {r.Expected}";
         var problems = missing.Concat(wrong).ToList();
@@ -45,12 +47,18 @@ public class MatrixTests
     }
 
     [Test] public void Matches_every_cell() { CheckMatrix(NotePolicy.Can); Assert.Pass(); }
-    [Test] public void Turns_red_on_the_broken_fixture() => Assert.Throws<InvalidOperationException>(() => CheckMatrix((_, _, _) => true));
 
     [Test]
-    public void Reports_every_wrong_cell_in_one_run()
+    public void Turns_red_on_the_broken_fixture()
     {
         var ex = Assert.Throws<InvalidOperationException>(() => CheckMatrix((_, _, _) => true));
-        Assert.That(ex!.Message.Split("; "), Has.Length.EqualTo(Matrix.Count(r => !r.Expected)));
+        Assert.That(ex!.Message.Split("; "), Has.Length.EqualTo(Matrix.Count(r => !r.Expected))); // every wrong cell, in one run
+    }
+
+    [Test]
+    public void Turns_red_on_a_missing_cell()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() => Check(Matrix[1..], NotePolicy.Can)); // the first row is the owner's read
+        Assert.That(ex!.Message, Is.EqualTo("no matrix cell for u1 (second factor used: False) read"));
     }
 }

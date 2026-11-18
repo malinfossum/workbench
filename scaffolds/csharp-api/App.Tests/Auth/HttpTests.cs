@@ -849,6 +849,7 @@ public class HttpTests
         // Each note sits in one list only: the owned one is no membership, the shared one is no owned note.
         Assert.That(export.GetProperty("notes").EnumerateArray().Select(n => n.GetProperty("id").GetInt32()), Is.EqualTo(new[] { owned }));
         Assert.That(export.GetProperty("memberships").EnumerateArray().Select(m => m.GetProperty("noteId").GetInt32()), Is.EqualTo(new[] { shared }));
+        Assert.That(export.GetProperty("memberships")[0].GetProperty("title").GetString(), Is.EqualTo("Note")); // same tenant: the member may read it
     }
 
     [Test]
@@ -858,11 +859,14 @@ public class HttpTests
         var other = await _app.SeedUser("b@example.test", tenant: "t2");
         var here = await _app.SeedNote(user.Id, "t1");
         var left = await _app.SeedNote(user.Id, "t2"); // owned, in a tenant the account has left: the delete cascade reaches it too
-        await _app.SeedNote(other.Id, "t2", user.Id); // another account's note there: its title stays behind the filter
+        var theirs = await _app.SeedNote(other.Id, "t2", user.Id); // another account's note there: the member row is listed, the title is not
+        await _app.SeedNote(other.Id, "t2"); // and one the account has no part in
         var c = _app.Client(); await c.SignIn("a@example.test", Pw);
         var export = await c.GetFromJsonAsync<JsonElement>("/account/export");
         Assert.That(export.GetProperty("notes").EnumerateArray().Select(n => n.GetProperty("id").GetInt32()), Is.EqualTo(new[] { here, left }));
-        Assert.That(export.GetProperty("memberships").GetArrayLength(), Is.Zero);
+        var membership = export.GetProperty("memberships").EnumerateArray().Single();
+        Assert.That(membership.GetProperty("noteId").GetInt32(), Is.EqualTo(theirs));
+        Assert.That(membership.GetProperty("title").ValueKind, Is.EqualTo(JsonValueKind.Null));
         Assert.That((await c.GetAsync($"/api/notes/{left}")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound)); // the export is the only way in
     }
 }

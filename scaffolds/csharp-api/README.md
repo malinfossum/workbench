@@ -69,7 +69,8 @@ sqlite3 app.db "UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUs
 A real project decides how accounts join a tenant: an invite, an admin or a domain rule.
 Moving an account to another tenant leaves the notes it owns in the old one, outside its
 view, so a project that moves accounts moves their notes too. The account export and the
-account delete still reach those notes: both follow the owner, in every tenant.
+account delete still reach those notes: both follow the account, in every tenant. The
+export lists a membership in another tenant by note id only, without the title.
 
 **Dev mailbox.** In Development the app writes each email to a file in `App.Api/.dev-mail/`
 (gitignored, one file per email). Open the file and paste its link into the check page.
@@ -94,6 +95,9 @@ manual run on the check page.
 the same origin and pass the cross-site guard. The `dev` CORS policy carries no credentials.
 
 Synced from loadout auth v0.8.0, recipe verified 10.11.2026 on packages 10.0.14.
+For US spelling, `enrol` is `enroll` and `cancelled` is `canceled` in every name here: the
+route `/account/mfa/enroll`, the copy key `auth.error.passkeyCanceled`, `EnrollMfa` and
+`MfaEnrollRequest`. A recipe sync keeps these names until the recipe follows.
 
 ## Before you ship (adoption checklist)
 

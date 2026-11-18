@@ -36,7 +36,7 @@
 
 ## Review Focus
 
-1. **Share by an email typed with other casing or stray spaces** (`" Bob@Example.TEST "`). Expected: it finds the confirmed account `bob@example.test` in the same tenant, still answers 204, and the owner's DTO lists Bob. Pinned by "share matches the normalised email" in `NotesApiTests` (Task 5).
+1. **Share by an email typed with other casing or stray spaces** (`" Bob@Example.TEST "`). Expected: it finds the confirmed account `bob@example.test` in the same tenant, still answers 204, and the owner's DTO lists Bob. Pinned by "share matches the normalized email" in `NotesApiTests` (Task 5).
 2. **PATCH with a `null` value** (`{"title": null}`, `{"archived": null}`). Expected: 400 `invalid_field` naming the key, nothing saved. Pinned by the `[TestCase]` rows in `NoteServiceTests.Patch_rejects_a_wrong_type` (Task 3).
 3. **A title of only spaces**, by PATCH. Expected: the same 400 that `POST` gives through `[Required]` (`invalid_field` here), so create and update agree. Pinned by `Patch_rejects_a_blank_title` (Task 3). This tightens the recipe's rule; it goes on the sync-back list.
 4. **The account of a member is deleted.** Expected: the owner's note stays, the member row is gone, and the owner's `members` no longer lists that user. Pinned by `Deleting_a_member_s_account_leaves_the_owner_s_note` in `PrivacyTests` (Task 6).
@@ -44,7 +44,7 @@
 
 ---
 
-### Task 1: Versions and NUnit, no behaviour change
+### Task 1: Versions and NUnit, no behavior change
 
 **Files:**
 - Modify: `scaffolds/csharp-api/App.Api/App.Api.csproj`, `App.Data/App.Data.csproj`, `App.Tests/App.Tests.csproj`, `.config/dotnet-tools.json`
@@ -724,7 +724,7 @@ git commit -m "Wire the auth recipe into csharp-api: sessions, passkeys, TOTP, t
     [Test] public async Task A_form_style_PATCH_from_another_origin_is_refused() // 403 "forbidden", the note unchanged
     [Test] public async Task Create_needs_a_verified_email() // SeedUser then set EmailConfirmed = false on the row; the existing session's next POST is 403
     [Test] public async Task Share_adds_a_confirmed_user_in_the_tenant() // 204, the owner's GET lists { id, email }
-    [Test] public async Task Share_matches_the_normalised_email() // " Bob@Example.TEST " finds bob@example.test (Review Focus 1)
+    [Test] public async Task Share_matches_the_normalized_email() // " Bob@Example.TEST " finds bob@example.test (Review Focus 1)
     [TestCase("nobody@example.test")]       // unknown
     [TestCase("other-tenant@example.test")] // seeded in t2
     [TestCase("unconfirmed@example.test")]  // EmailConfirmed false
@@ -1153,7 +1153,7 @@ step('passkey-remove', async () => {
 });
 
 step('totp-start', async () => {
-  const r = await post('/account/mfa/enrol', { code: null });
+  const r = await post('/account/mfa/enroll', { code: null });
   if (r.ok) showSecret('TOTP key (only the newest one works)', [r.data.key, r.data.uri]);
   report('totp-start', r.ok && typeof r.data?.key === 'string', keyOf(r));
 });
@@ -1161,7 +1161,7 @@ step('totp-start', async () => {
 // With the passkey gone, TOTP is the only factor, so turning it on brings fresh codes.
 step('totp', async () => {
   const input = $('totp-code');
-  const r = await post('/account/mfa/enrol', { code: input.value.trim() });
+  const r = await post('/account/mfa/enroll', { code: input.value.trim() });
   input.value = ''; // the code leaves the page as soon as it is used
   if (hasCodes(r.data?.recoveryCodes)) showSecret('Recovery codes (TOTP)', r.data.recoveryCodes);
   report('totp', r.ok && hasCodes(r.data?.recoveryCodes), r.ok ? 'no_codes' : keyOf(r));
@@ -1170,7 +1170,7 @@ step('totp', async () => {
 // Once TOTP is on, asking again is refused with auth.error.wrongCode (R:1005) and issues nothing. Any other answer
 // (401, 429, 503) fails the step, so an expired session can't pass it.
 step('codes-once', async () => {
-  const r = await post('/account/mfa/enrol', { code: null });
+  const r = await post('/account/mfa/enroll', { code: null });
   report('codes-once', r.status === 400 && r.data?.error === 'auth.error.wrongCode' && !hasCodes(r.data?.recoveryCodes), keyOf(r));
 });
 
@@ -1179,7 +1179,7 @@ step('sign-out-2', async () => {
   report('sign-out-2', r.status === 204, keyOf(r));
 });
 ```
-  Before running it, check two names against the copied recipe and fix the page if they differ: the property `ListPasskeys` returns per passkey (the page reads `id`; `Lists_the_account_s_passkeys_with_the_id_the_remove_button_sends` in HttpTests names it), and that a 400 from enrol on an enabled account is `auth.error.wrongCode` (R:1005).
+  Before running it, check two names against the copied recipe and fix the page if they differ: the property `ListPasskeys` returns per passkey (the page reads `id`; `Lists_the_account_s_passkeys_with_the_id_the_remove_button_sends` in HttpTests names it), and that a 400 from enroll on an enabled account is `auth.error.wrongCode` (R:1005).
 
 - [ ] **Step 5: Run everything.** `dotnet test App.slnx`. Expected: all green, DevTests 21 runs among them. Then start the API once (`dotnet run --project App.Api`, stop it), and check `git status --short scaffolds/csharp-api`: no `keys/`, `.dev-mail/` or `*.db` entries.
 
