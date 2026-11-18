@@ -183,6 +183,35 @@ public class HttpTests
         Assert.That(known, Is.EqualTo(await Answer("new@example.test")));
     }
 
+    [Test]
+    public async Task Sign_up_takes_an_email_with_an_apostrophe()
+    {
+        const string email = "o'brien@example.test";
+        var res = await _app.Client().PostAsJsonAsync("/auth/sign-up", new SignInRequest(email, Pw));
+        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+        Assert.That(await _app.With(sp => sp.GetRequiredService<UserManager<AppUser>>().FindByEmailAsync(email)), Is.Not.Null);
+        Assert.That(_app.Mail.Sent.Any(m => m.To == email && m.Kind == "confirm"), Is.True);
+    }
+
+    // A missing field is a bad request. It never reaches Identity as a null.
+    [TestCase("/auth/sign-in")]
+    [TestCase("/auth/sign-up")]
+    [TestCase("/auth/confirm-email")]
+    [TestCase("/auth/mfa")]
+    [TestCase("/auth/reset")]
+    public async Task An_empty_JSON_object_answers_400(string path)
+    {
+        var res = await _app.Client().PostAsJsonAsync(path, new { });
+        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task A_null_email_and_password_answer_400_at_sign_in()
+    {
+        var res = await _app.Client().PostAsJsonAsync("/auth/sign-in", new { email = (string?)null, password = (string?)null });
+        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
     // Counts every hash and every hash check: the slow part a stopwatch would see.
     private sealed class CountingHasher : IPasswordHasher<AppUser>
     {
@@ -660,6 +689,33 @@ public class HttpTests
         var res = await c.GetAsync("/api/notes");
         Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.ServiceUnavailable));
         Assert.That(await ErrorOf(res), Is.EqualTo("unavailable"));
+    }
+
+    // Every call fails with an exception the error mapper has no rule for.
+    private sealed class BrokenNotes : INoteRepository
+    {
+        public const string Message = "the notes store is down";
+        private static InvalidOperationException Down() => new(Message);
+        public Task<List<Note>> ListAsync(Expression<Func<Note, bool>> filter) => throw Down();
+        public Task<Note?> FindAsync(Expression<Func<Note, bool>> filter, int id) => throw Down();
+        public Task AddAsync(Note note) => throw Down();
+        public Task SaveAsync() => throw Down();
+        public Task RemoveAsync(Note note) => throw Down();
+        public Task<string?> FindShareableUserIdAsync(string email, string tenantId) => throw Down();
+        public Task<IReadOnlyDictionary<string, string>> EmailsAsync(IReadOnlyCollection<string> userIds) => throw Down();
+    }
+
+    [Test]
+    public async Task An_unknown_exception_answers_500_and_leaves_an_error_in_the_log()
+    {
+        await _app.SeedUser("a@example.test");
+        using var broken = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.AddScoped<INoteRepository, BrokenNotes>()));
+        var c = AuthApiFactory.ClientOf(broken); await c.SignIn("a@example.test", Pw);
+        var res = await c.GetAsync("/api/notes");
+        var body = await res.Content.ReadAsStringAsync();
+        Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+        Assert.That(body, Does.Contain("server_error").And.Not.Contain(BrokenNotes.Message)); // the message stays on the server
+        Assert.That(_app.Logs.Errors.Where(l => l.Contains(BrokenNotes.Message)), Is.Not.Empty);
     }
 
     [Test]

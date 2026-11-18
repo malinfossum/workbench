@@ -48,6 +48,7 @@ s.AddIdentityCore<AppUser>(o =>
     o.Password.RequireDigit = o.Password.RequireLowercase = o.Password.RequireUppercase = o.Password.RequireNonAlphanumeric = false;
     o.Password.RequiredUniqueChars = 1;
     o.User.RequireUniqueEmail = true;
+    o.User.AllowedUserNameCharacters = ""; // the user name is the email, so the email check is the only rule; an empty list means no character rule
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddUserStore<HashedRecoveryCodeStore>() // replaces the store AddEntityFrameworkStores registered
@@ -111,6 +112,8 @@ s.AddRateLimiter(o =>
     };
 });
 
+// A missing or null field in a Minimal API body answers 400 instead of reaching Identity as a null. Controllers keep their own JSON options.
+s.ConfigureHttpJsonOptions(o => { o.SerializerOptions.RespectNullableAnnotations = true; o.SerializerOptions.RespectRequiredConstructorParameters = true; });
 s.AddControllers();
 
 // Localization (locale standard § 10): Locales/<tag>.json, same keys as the web bundles.

@@ -134,7 +134,7 @@ public class NoteService(INoteRepository repository, ICurrentUser current, TimeP
     // Member emails only for whoever may share the note (its owner), so an address is shown only to the person who typed it.
     private async Task<List<NoteDto>> ToDtosAsync(List<Note> notes)
     {
-        var shown = notes.Where(n => NotePolicy.Can(Me, NoteActions.Share, n)).ToList();
+        var shown = notes.Where(n => NotePolicy.Can(Me, NoteActions.Share, n)).ToHashSet();
         var ids = shown.SelectMany(n => n.Members).Select(m => m.UserId).Distinct().ToList();
         var emails = ids.Count == 0 ? new Dictionary<string, string>() : await repository.EmailsAsync(ids);
         return notes.ConvertAll(n => new NoteDto(n.Id, n.Title, n.Body, n.Archived, n.CreatedAt, n.UpdatedAt, NotePolicy.Flags(Me, n),

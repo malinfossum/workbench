@@ -93,6 +93,8 @@ public static class SecurityHeaders
 
 public sealed class AuthExceptionHandler(ILogger<AuthLog> log, IProblemDetailsService problems) : IExceptionHandler
 {
+    private const string Unknown = "server_error"; // no rule below maps the exception
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         (int Status, string Error, string? Field) result = exception switch
@@ -104,11 +106,15 @@ public sealed class AuthExceptionHandler(ILogger<AuthLog> log, IProblemDetailsSe
             ReauthRequiredException => (401, "auth.error.reauthRequired", null),
             SessionLookupException => (503, "unavailable", null),
             BadHttpRequestException b => (b.StatusCode, "bad_request", null), // a malformed body, too large, or a bad header
-            _ => (500, "server_error", null),
+            _ => (500, Unknown, null),
         };
         if (result.Status == 403 && log.IsEnabled(LogLevel.Information))
         {
             log.Forbidden(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), httpContext.Request.Path.Value);
+        }
+        if (result.Error == Unknown)
+        {
+            log.Unhandled(exception); // the middleware writes no log line once a handler answers, so this is the only trace of it
         }
         httpContext.Response.StatusCode = result.Status;
         var details = new ProblemDetails { Status = result.Status };

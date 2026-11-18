@@ -250,7 +250,7 @@ bash ~/Documents/Development/workbench/scaffolds/csharp-console/init.sh</code></
 					<li>Copy <code>scaffolds/csharp-api/</code> to wherever the project lives.</li>
 					<li>Rename <code>App.slnx</code> and each <code>App.*</code> project + folder to <code>&lt;YourName&gt;.*</code> (find/replace <code>App.</code> across files). Also rename <code>App.Api.http</code>.</li>
 					<li><code>dotnet tool restore &amp;&amp; dotnet restore &amp;&amp; dotnet build &amp;&amp; dotnet test</code></li>
-					<li>Create the database: <code>dotnet ef migrations add Init --project &lt;YourName&gt;.Data --startup-project &lt;YourName&gt;.Api</code>, then <code>dotnet ef database update</code> with the same flags.</li>
+					<li>Create the database from the <code>Init</code> migration the scaffold ships: <code>dotnet ef database update --project &lt;YourName&gt;.Data --startup-project &lt;YourName&gt;.Api</code>.</li>
 					<li><code>dotnet run --project &lt;YourName&gt;.Api</code> and send the requests in <code>&lt;YourName&gt;.Api.http</code>.</li>
 				</ol>
 				<a class="wb-ghlink" href="https://github.com/malinfossum/workbench/tree/main/scaffolds/csharp-api">View csharp-api on GitHub →</a>

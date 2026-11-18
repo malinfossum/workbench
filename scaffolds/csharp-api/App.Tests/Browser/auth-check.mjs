@@ -48,17 +48,19 @@ async function isUp() {
 }
 
 function startServer() {
-  return spawn('dotnet', ['run', '--launch-profile', 'http'], {
+  const child = spawn('dotnet', ['run', '--launch-profile', 'http'], {
     cwd: API_DIR,
     env: { ...process.env, DOTNET_CLI_TELEMETRY_OPTOUT: '1', DOTNET_NOLOGO: '1' },
     stdio: 'ignore', // server logs are never read here
     detached: process.platform !== 'win32', // its own process group, so the stop reaches the app under dotnet run
     windowsHide: true,
   });
+  child.once('error', () => { child.spawnFailed = true; }); // dotnet is not on PATH: reported below as a setup error
+  return child;
 }
 
 function stopServer(child) {
-  if (!child || child.exitCode !== null) return;
+  if (!child || !child.pid || child.exitCode !== null) return;
   try {
     if (process.platform === 'win32') execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
     else process.kill(-child.pid, 'SIGTERM');
@@ -142,6 +144,7 @@ try {
   server = startServer();
   const deadline = Date.now() + 180_000; // a cold dotnet run builds first
   while (!(await isUp())) {
+    if (server.spawnFailed) throw named('DotnetNotFound');
     if (server.exitCode !== null) throw named(`ServerExited_${server.exitCode}`);
     if (Date.now() > deadline) throw named('ServerStartTimeout');
     await sleep(500);

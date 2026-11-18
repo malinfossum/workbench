@@ -46,7 +46,9 @@ Content-Type: application/json
 { "archived": true }
 
 ### Delete a note (the owner, or a tenant admin)
+# A browser sends Origin itself. This client does not, and the cross-site guard refuses a DELETE without it.
 DELETE {{host}}/api/notes/1
+Origin: {{host}}
 
 ### Share a note with a user by email (the owner only; the answer is 204 whether or not it matched)
 # Sign-up gives every account its own tenant (the recipe's rule), so sharing with a second signed-up account answers 204
@@ -59,6 +61,7 @@ Content-Type: application/json
 
 ### Stop sharing with a member (the owner only; take the id from the note's members list)
 DELETE {{host}}/api/notes/1/members/PASTE-USER-ID
+Origin: {{host}}
 
 ### Validation error: missing title (expect 400 problem+json)
 POST {{host}}/api/notes

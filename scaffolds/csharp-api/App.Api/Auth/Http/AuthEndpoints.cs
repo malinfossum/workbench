@@ -4,10 +4,10 @@ public sealed record SignInRequest(string Email, string Password);
 public sealed record EmailRequest(string Email);
 public sealed record CodeRequest(string Code);
 public sealed record LinkRequest(string UserId, string Token);
-public sealed record ResetConfirmRequest(string UserId, string Token, string NewPassword, string? Code);
-public sealed record PasskeyRequest(string Credential, string? Name);
+public sealed record ResetConfirmRequest(string UserId, string Token, string NewPassword, string? Code = null);
+public sealed record PasskeyRequest(string Credential, string? Name = null);
 public sealed record ChangePasswordRequest(string Current, string New);
-public sealed record MfaEnrolRequest(string? Code);
+public sealed record MfaEnrolRequest(string? Code = null);
 
 public static class AuthEndpoints
 {
@@ -40,7 +40,10 @@ public static class AuthEndpoints
         }
         var user = new AppUser { UserName = req.Email, Email = req.Email, TenantId = Guid.NewGuid().ToString() };
         user.PasswordHash = users.PasswordHasher.HashPassword(user, req.Password); // validated above; CreateAsync(user, password) would run the validators again
-        if ((await users.CreateAsync(user)).Succeeded)
+        var created = false;
+        try { created = (await users.CreateAsync(user)).Succeeded; }
+        catch (DbUpdateException) { } // a parallel sign-up for this address won the unique index: no account, no mail, the same answer
+        if (created)
             mail.Send(user.Email!, "confirm", links.Confirm(user.Id, await users.GenerateEmailConfirmationTokenAsync(user)));
         return Results.Accepted(value: new { message = "auth.notice.checkInbox" });
     }

@@ -40,5 +40,5 @@ public class NoteRepository(AppDbContext db, ILookupNormalizer normalizer) : INo
     }
 
     public async Task<IReadOnlyDictionary<string, string>> EmailsAsync(IReadOnlyCollection<string> userIds) =>
-        await db.Users.Where(u => userIds.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Email ?? "");
+        await db.Users.Where(u => userIds.Contains(u.Id)).Select(u => new { u.Id, u.Email }).ToDictionaryAsync(u => u.Id, u => u.Email ?? "");
 }

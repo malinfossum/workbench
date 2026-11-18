@@ -62,11 +62,13 @@ kept it so recipe syncs stay near-copies. Sharing a note only reaches accounts i
 tenant, so sharing with a second signed-up account answers 204 and changes nothing. To try
 sharing locally, move that account into yours with this line (from `App.Api.http`):
 
-```sql
+```bash
 sqlite3 app.db "UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUsers WHERE NormalizedEmail = 'YOU@EXAMPLE.TEST') WHERE NormalizedEmail = 'THEM@EXAMPLE.TEST';"
 ```
 
 A real project decides how accounts join a tenant: an invite, an admin or a domain rule.
+Moving an account to another tenant leaves the notes it owns in the old one, outside its view
+and its export, so a project that moves accounts moves their notes too.
 
 **Dev mailbox.** In Development the app writes each email to a file in `App.Api/.dev-mail/`
 (gitignored, one file per email). Open the file and paste its link into the check page.

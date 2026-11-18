@@ -147,8 +147,9 @@ public static class AppEndpoints
     {
         FreshSession.Require(http);
         var user = await Me(http, users);
-        await sessions.RevokeAllAsync(user.Id);
-        await users.DeleteAsync(user); // cascades passkeys, logins, claims and tokens (recovery codes live in tokens); auth events stay their 90 days
+        await sessions.RevokeAllAsync(user.Id); // first, so a delete that fails still signs the account out
+        // The delete cascades passkeys, logins, claims and tokens (recovery codes live in tokens); auth events stay their 90 days.
+        if (!(await users.DeleteAsync(user)).Succeeded) return AuthResults.Fail("auth.error.unavailable", StatusCodes.Status503ServiceUnavailable); // the row changed under this request
         log.AccountDeleted(user.Id);
         http.Response.Headers["Clear-Site-Data"] = SecurityHeaders.ClearSiteData;
         return Results.NoContent();

@@ -97,7 +97,8 @@ public sealed class EfTicketStore(IServiceScopeFactory scopes, IHttpContextAcces
                 }
                 row.LastSeenAt = Now;
                 row.ExpiresAt = Now + Idle;
-                await db.SaveChangesAsync();
+                try { await db.SaveChangesAsync(); }
+                catch (DbUpdateConcurrencyException) { return null; } // revoked since the read: the session is over, so the request is signed out
                 if (http.HttpContext is { } c) c.Items[CurrentSession.ItemKey] = new CurrentSession(row.Key, row.CreatedAt, row.SignInMethod);
                 return TicketSerializer.Default.Deserialize(row.Ticket);
             });

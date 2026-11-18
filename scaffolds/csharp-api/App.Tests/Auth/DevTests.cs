@@ -26,10 +26,16 @@ public class DevTests
     [TearDown]
     public void TearDown()
     {
-        foreach (var d in _owned) d.Dispose();
-        _owned.Clear();
-        _app.Dispose();
-        if (_temp is not null && Directory.Exists(_temp)) Directory.Delete(_temp, true);
+        try
+        {
+            foreach (var d in _owned) d.Dispose();
+        }
+        finally // a Dispose that throws must not leave the factory and its database open
+        {
+            _owned.Clear();
+            _app.Dispose();
+            if (_temp is not null && Directory.Exists(_temp)) Directory.Delete(_temp, true);
+        }
     }
 
     // A factory for another environment, on the same database and with the same test mailer registered last.
@@ -89,7 +95,7 @@ public class DevTests
         {
             var name = Path.GetFileName(file);
             Assert.That(name, Does.Not.Contain("@").And.Not.Contain(address));
-            Assert.That(name, Does.Match(@"-confirm-[0-9a-f]{6}\.txt$"));
+            Assert.That(name, Does.Match(@"^\d{8}-\d{6}-\d{3}-confirm-[0-9a-f]{6}\.txt$"));
             var text = await File.ReadAllTextAsync(file);
             Assert.That(text, Does.Contain(address).And.Contain(link));
         }
@@ -165,8 +171,13 @@ public class DevTests
         var script = await c.GetAsync("/dev/auth-check/auth-check.js");
         Assert.That(page.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         Assert.That(script.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-        Assert.That(await page.Content.ReadAsStringAsync(), Does.Contain("<title>Auth check</title>"));
+        var html = await page.Content.ReadAsStringAsync();
+        Assert.That(html, Does.Contain("<title>Auth check</title>"));
         Assert.That(page.Headers.GetValues("Content-Security-Policy").Single(), Is.EqualTo(SecurityHeaders.Csp));
+        // The policy takes scripts and styles from this origin only, so the browser would drop anything inline.
+        var scripts = Regex.Matches(html, @"<script\b[^>]*>", RegexOptions.IgnoreCase).Select(m => m.Value).ToList();
+        Assert.That(scripts, Is.Not.Empty.And.All.Match(@"\ssrc\s*="));
+        Assert.That(html, Does.Not.Match(@"<style\b|\sstyle\s*=").IgnoreCase);
     }
 
     [Test]

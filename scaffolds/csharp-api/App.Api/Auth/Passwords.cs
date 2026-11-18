@@ -13,6 +13,7 @@ public sealed class PwnedPasswordsRange(HttpClient http, ILogger<PwnedPasswordsR
     public async Task<bool> IsBreachedAsync(string password)
     {
         // SHA-1 is the range API's lookup key here, not a protection: the hash never stores or proves anything.
+        // IncrementalHash stays, because the analyzer (CA5350) flags the shorter SHA1.HashData.
         using var sha1 = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
         sha1.AppendData(Encoding.UTF8.GetBytes(password));
         var hash = Convert.ToHexString(sha1.GetHashAndReset());

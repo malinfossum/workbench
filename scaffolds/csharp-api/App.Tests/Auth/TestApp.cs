@@ -43,14 +43,19 @@ public static class Source
 public sealed class CapturingLoggerProvider : ILoggerProvider
 {
     public ConcurrentQueue<string> Lines { get; } = new();
+    public ConcurrentQueue<string> Errors { get; } = new(); // the lines written at Error or above
     public ILogger CreateLogger(string categoryName) => new Logger(this, categoryName);
     public void Dispose() { }
     private sealed class Logger(CapturingLoggerProvider owner, string category) : ILogger
     {
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
         public bool IsEnabled(LogLevel level) => true;
-        public void Log<TState>(LogLevel level, EventId id, TState state, Exception? ex, Func<TState, Exception?, string> format) =>
-            owner.Lines.Enqueue($"{category}: {format(state, ex)} {ex}");
+        public void Log<TState>(LogLevel level, EventId id, TState state, Exception? ex, Func<TState, Exception?, string> format)
+        {
+            var line = $"{category}: {format(state, ex)} {ex}";
+            owner.Lines.Enqueue(line);
+            if (level >= LogLevel.Error) owner.Errors.Enqueue(line);
+        }
     }
 }
 

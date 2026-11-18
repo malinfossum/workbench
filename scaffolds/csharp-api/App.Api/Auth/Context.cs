@@ -194,4 +194,7 @@ public static partial class AuthLogMessages
 
     [LoggerMessage(Level = LogLevel.Error, Message = "auth.cleanup.failed error={Error}")]
     public static partial void CleanupFailed(this ILogger log, string error);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "auth.unhandled")]
+    public static partial void Unhandled(this ILogger log, Exception ex); // the whole exception, so the stack trace is kept
 }
