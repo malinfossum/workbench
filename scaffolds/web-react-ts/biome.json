@@ -17,7 +17,8 @@
 			"!**/*.min.js",
 			"!design-system",
 			"!i18n",
-			"!e2e/layout-audit"
+			"!e2e/layout-audit",
+			"!skills-lock.json"
 		]
 	},
 	"formatter": {
