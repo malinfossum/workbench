@@ -59,6 +59,18 @@ A cell fails when:
 
 `selector` matches the violator or any ancestor; a selector that matches `html`, `body` or `main`, or a wrapper that contains `main` (`#root`, `body > *`), is refused, since it would silence the whole page. `reason` is required. `paths`, `widths`, `textSizes`, `locales` and `spacing` scope an entry to the cells it names.
 
+## Core Web Vitals (optional)
+
+`measureVitals(page, url, { budget })` loads a page and reads LCP and CLS with `PerformanceObserver`, no extra dependency. Both adapters export it. The default `VITALS_BUDGET` is the "good" line: LCP 2500 ms, CLS 0.1.
+
+    import { measureVitals } from "./layout-audit/playwright.js"
+    test("home stays inside the vitals budget", async ({ page }) => {
+    	const { errors } = await measureVitals(page, "/")
+    	expect(errors).toEqual([])
+    })
+
+Chromium only. A localhost number is a lab number: no network, a fast machine and no real visitor. It catches a regression between two runs on the same machine. It says nothing about a phone on 4G, so the budget in a project's spec still needs a field check (PageSpeed Insights or the browser's own panel).
+
 ## Before Claude shows me UI
 
 In the browser pane, on the live preview:
@@ -79,4 +91,4 @@ In the browser pane, on the live preview:
     npx playwright install --only-shell chromium
     npm test
 
-`fixtures/good.html` keeps every contract (with zero items, one item, long unbroken strings, Norwegian labels, hidden content and nested primitives); `fixtures/bad.html` breaks each one once.
+`fixtures/good.html` keeps every contract (with zero items, one item, long unbroken strings, Norwegian labels, hidden content and nested primitives); `fixtures/bad.html` breaks each one once. `fixtures/shift.html` moves its content after load, for the vitals test.

@@ -14,6 +14,7 @@ React + TypeScript starter, Vite + Biome + Vitest. Use this for web projects bui
 - VS Code setup (`.vscode/`): recommends Biome, Tailwind CSS IntelliSense and EditorConfig, formats, fixes and sorts imports on save
 - Tests via Vitest (`tests/`): service tests in Node, component tests in real Chromium (axe-core, ARIA snapshots, keyboard)
 - Full-page accessibility scan via Playwright + axe (`e2e/`), both themes, gated in CI
+- Google's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance) skill for Claude Code (`.claude/skills/modern-web-guidance/`, source commit pinned in `skills-lock.json`): Claude searches its guides before it writes HTML, CSS or client-side JS. Copied unmodified from that repository; code under [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0), guides under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ## First 5 steps
 
@@ -40,6 +41,16 @@ npm run lint           # run linter
 npm run check          # format + lint + organize imports (write changes)
 ```
 
+## Modern Web Guidance
+
+The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set. `.claude/settings.json` sets it for every Claude Code session in this project, so the skill's calls stay off on any machine. The installer runs in your own shell, so set it there too (the command below does). To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
+
+```powershell
+$env:DISABLE_TELEMETRY = "1"; npx -y modern-web-guidance@latest install --agent claude-code --copy
+```
+
+Keep `--agent claude-code --copy`: without it the skill lands in `.agents/` with a symlink in `.claude/skills/` that breaks when the project is copied or cloned on Windows. The command runs the newest release, and Claude follows the skill with full agent permissions, so read the diff of `.claude/skills/` before you commit an update.
+
 ## Folder layout
 
 - `index.html`: app shell, React mounts into `#root`
@@ -58,6 +69,8 @@ npm run check          # format + lint + organize imports (write changes)
 - `tests/`: service tests (DOM-free, run in Node), `tests/guards.test.ts` (patterns that must never appear in the source) and `tests/components/` component tests (run in Chromium)
 - `e2e/`: full-page axe scan of the built app, the preference model and the keyboard walk against the built page, and `shadcn.spec.ts` for the examples (both themes, Norwegian, 320 px, focus trap, scroll lock)
 - `design-system/`: read-only foundation, do not edit
+- `.claude/skills/modern-web-guidance/` and `skills-lock.json`: vendored skill, do not edit; the update command replaces both
+- `.claude/settings.json`: project settings for Claude Code; switches telemetry off for the skill
 - `i18n/`: read-only translator (`t`, `plural`, `resolveLang`) with its type declarations, refresh with the extract tool
 - `biome.json`: formatter and linter config
 - `tsconfig.json`: strict TS, single config

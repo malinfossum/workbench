@@ -6,6 +6,7 @@ import { expect, test } from "@playwright/test";
 import { cellName, cells, knownFor, TEXT_SPACING_CSS, textSizeCss, unreachableKnown, VIEWPORT_HEIGHT, validateKnown, verdict } from "./shared.js";
 
 export { CONTRACTS, validateKnown, unreachableKnown } from "./shared.js";
+export { measureVitals, VITALS_BUDGET } from "./vitals.js";
 
 const AUDIT = fileURLToPath(new URL("./audit.js", import.meta.url));
 

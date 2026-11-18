@@ -1,4 +1,4 @@
-/* workbench-lib: layout-audit v1.0.0 — extracted; edit in the workbench, not here */
+/* workbench-lib: layout-audit v1.1.0 — extracted; edit in the workbench, not here */
 /* ======================================================================
    layout-audit: auditLayout(document, options)
    Checks the layout contracts of the design system primitives in a live page

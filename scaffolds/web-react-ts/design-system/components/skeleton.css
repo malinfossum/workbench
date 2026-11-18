@@ -13,7 +13,7 @@
 	animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 .skeleton-text { height: 0.75rem; }
-.skeleton-text + .skeleton-text { margin-top: var(--space-2); }
+.skeleton-text + .skeleton-text { margin-block-start: var(--space-2); }
 .skeleton-circle { width: 2.75rem; height: 2.75rem; border-radius: 50%; }
 .skeleton-card { height: 8rem; border-radius: var(--radius-md); }
 
