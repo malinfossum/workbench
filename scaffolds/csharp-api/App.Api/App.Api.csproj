@@ -13,7 +13,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <!-- Explicit pin, kept at or above the floor Microsoft.AspNetCore.OpenApi sets (2.13.0 for 10.0.15). -->
-    <PackageReference Include="Microsoft.OpenApi" Version="2.13.1" />
+    <PackageReference Include="Microsoft.OpenApi" Version="3.11.1" />
   </ItemGroup>
 
   <ItemGroup>
