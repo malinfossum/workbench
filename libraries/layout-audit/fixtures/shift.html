@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>layout-audit fixtures: a late layout shift</title>
+		<link rel="stylesheet" href="/libraries/design-system/tokens/index.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/reset.css" />
+		<link rel="stylesheet" href="/libraries/design-system/base/base.css" />
+	</head>
+	<body>
+		<main class="container stack">
+			<h1>A banner lands late</h1>
+			<p id="content" style="min-block-size: 70vh">This text is pushed down when the banner arrives, which is a layout shift a visitor would see.</p>
+		</main>
+		<script>
+			setTimeout(() => {
+				const banner = document.createElement("div");
+				banner.style.blockSize = "400px";
+				banner.textContent = "Late banner";
+				document.querySelector("main").prepend(banner);
+			}, 200);
+		</script>
+	</body>
+</html>

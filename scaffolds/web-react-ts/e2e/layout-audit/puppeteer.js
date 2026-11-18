@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { knownFor, TEXT_SPACING_CSS, textSizeCss, VIEWPORT_HEIGHT, verdict } from "./shared.js";
 
 export { CONTRACTS, cellName, cells, knownFor, unreachableKnown, validateKnown } from "./shared.js";
+export { measureVitals, VITALS_BUDGET } from "./vitals.js";
 
 const AUDIT = readFileSync(new URL("./audit.js", import.meta.url), "utf8");
 

@@ -1,5 +1,5 @@
 {
   "versionFile": "VERSION",
-  "include": ["audit.js", "shared.js", "playwright.js", "playwright.d.ts", "puppeteer.js"],
+  "include": ["audit.js", "shared.js", "playwright.js", "playwright.d.ts", "puppeteer.js", "vitals.js"],
   "anchor": "audit.js"
 }
