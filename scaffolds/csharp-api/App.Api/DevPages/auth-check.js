@@ -41,8 +41,8 @@ const post = (path, body, options) => send('POST', path, body, options);
 const keyOf = (r) => r.data?.error ?? `status_${r.status}`;
 const hasCodes = (codes) => Array.isArray(codes) && codes.length > 0;
 
-// One run per button at a time: a second click while the first is in flight does nothing,
-// so "Start TOTP" can't mint a second key behind the one already on screen.
+// One run per button at a time: a second click while the first is in flight does nothing. A finished
+// "Start TOTP" may run again on purpose; the box then replaces the key (see showSecret).
 function step(name, run) {
   $(`run-${name}`).addEventListener('click', async () => {
     if (busy.has(name)) return;

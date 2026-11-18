@@ -204,13 +204,18 @@ try {
       if (name === 'totp-start' && line === 'totp-start: pass') {
         await page.click('#run-totp-start');
         await page.waitForFunction(
-          () => document.getElementById('step-totp-start').textContent === 'totp-start: pass',
+          () => {
+            const text = document.getElementById('step-totp-start').textContent;
+            return text !== '' && !text.endsWith(': running');
+          },
           null,
           { timeout: 30_000 },
         );
+        const second = (await page.textContent('#step-totp-start')).trim();
         const blocks = (await totpKeyBlocks(page)).length;
         notes.push(`TOTP key blocks after a second start: ${blocks}`);
-        if (blocks !== 1) results[results.length - 1] = 'totp-start: fail stacked_keys';
+        if (second !== 'totp-start: pass') results[results.length - 1] = 'totp-start: fail second_start';
+        else if (blocks !== 1) results[results.length - 1] = `totp-start: fail ${blocks === 0 ? 'no_key' : 'stacked_keys'}`;
       }
     } catch (err) {
       results.push(`${name}: script-error ${nameOf(err)}`);
