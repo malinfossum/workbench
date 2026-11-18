@@ -16,7 +16,7 @@
 	border: 1px solid var(--border);
 	background: var(--elevated-bg);
 	color: var(--text);
-	box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+	box-shadow: 0 8px 24px rgb(0 0 0 / 40%); /* token-check: allow darker than --shadow-sm on purpose; no light-theme value yet */
 	animation: toast-in var(--duration-base) var(--ease-standard);
 }
 .toast-info { border-color: rgb(var(--info-rgb) / 35%); }
