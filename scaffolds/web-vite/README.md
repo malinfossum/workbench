@@ -12,6 +12,7 @@ Module-based MVC starter, Vite + Biome. Use this for personal projects and anyth
 - Biome (formatter + linter + import organizer)
 - VS Code setup (`.vscode/`): recommends Biome and EditorConfig, formats, fixes and sorts imports on save
 - Tests via node's built-in runner (`tests/`): model, controller and view tests, locale key-drift check, axe-core component a11y tests, Puppeteer e2e tests for the pickers
+- Google's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance) skill for Claude Code (`.claude/skills/modern-web-guidance/`, source commit pinned in `skills-lock.json`): Claude searches its guides before it writes HTML, CSS or client-side JS. Copied unmodified; code Apache-2.0, guides CC-BY 4.0
 
 ## First 5 steps
 
@@ -37,6 +38,16 @@ npm run format:check   # report files that would be reformatted
 npm run lint           # run linter
 npm run check          # format + lint + organize imports (write changes)
 ```
+
+## Modern Web Guidance
+
+The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set, so set it in your shell profile and under `env` in Claude Code's `settings.json`. To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
+
+```powershell
+$env:DISABLE_TELEMETRY = "1"; npx -y modern-web-guidance@latest install --agent claude-code --copy
+```
+
+Keep `--agent claude-code --copy`: without it the skill lands in `.agents/` with a symlink in `.claude/skills/` that breaks when the project is copied or cloned on Windows.
 
 ## Folder layout
 
