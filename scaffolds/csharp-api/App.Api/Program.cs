@@ -48,14 +48,15 @@ s.AddIdentityCore<AppUser>(o =>
     o.Password.RequireDigit = o.Password.RequireLowercase = o.Password.RequireUppercase = o.Password.RequireNonAlphanumeric = false;
     o.Password.RequiredUniqueChars = 1;
     o.User.RequireUniqueEmail = true;
-    o.User.AllowedUserNameCharacters = ""; // the user name is the email, so the email check is the only rule; an empty list means no character rule
+    o.User.AllowedUserNameCharacters = ""; // the user name is the email, so BareEmailValidator is the rule; an empty list means no character rule
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddUserStore<HashedRecoveryCodeStore>() // replaces the store AddEntityFrameworkStores registered
 .AddSignInManager()
 .AddDefaultTokenProviders()
 .AddTokenProvider<EmailConfirmationTokenProvider>(EmailConfirmationTokenProvider.ProviderName)
-.AddPasswordValidator<BreachedPasswordValidator>();
+.AddPasswordValidator<BreachedPasswordValidator>()
+.AddUserValidator<BareEmailValidator>();
 
 s.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
 s.ConfigureAll<CookieAuthenticationOptions>(o => // every Identity cookie, the two-factor one too

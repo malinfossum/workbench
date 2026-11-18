@@ -88,6 +88,7 @@ public sealed class EfTicketStore(IServiceScopeFactory scopes, IHttpContextAcces
                     // Fails closed: if the aged session can't be ended, the request gets 503, never the route.
                     db.UserSessions.Remove(row);
                     try { await db.SaveChangesAsync(); }
+                    catch (DbUpdateConcurrencyException) { } // already gone: a parallel request or the cleanup job ended it first
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         log.SessionRevokeFailed(ex.GetType().Name); // never the key or an id

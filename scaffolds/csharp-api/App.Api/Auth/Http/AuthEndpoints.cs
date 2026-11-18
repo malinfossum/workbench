@@ -42,7 +42,12 @@ public static class AuthEndpoints
         user.PasswordHash = users.PasswordHasher.HashPassword(user, req.Password); // validated above; CreateAsync(user, password) would run the validators again
         var created = false;
         try { created = (await users.CreateAsync(user)).Succeeded; }
-        catch (DbUpdateException) { } // a parallel sign-up for this address won the unique index: no account, no mail, the same answer
+        catch (DbUpdateException)
+        {
+            // A parallel sign-up for this address won the unique index: no account, no mail, the same answer.
+            // With no rival row the insert failed for another reason, and that failure must surface.
+            if (await users.FindByEmailAsync(req.Email) is null) throw;
+        }
         if (created)
             mail.Send(user.Email!, "confirm", links.Confirm(user.Id, await users.GenerateEmailConfirmationTokenAsync(user)));
         return Results.Accepted(value: new { message = "auth.notice.checkInbox" });
