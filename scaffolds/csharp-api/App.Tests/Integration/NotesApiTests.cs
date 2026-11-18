@@ -246,7 +246,7 @@ public class NotesApiTests
     }
 
     [Test]
-    public async Task Share_matches_the_normalised_email()
+    public async Task Share_matches_the_normalized_email()
     {
         var bob = await _app.SeedUser("bob@example.test");
         var id = await CreateViaApi();

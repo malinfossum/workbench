@@ -51,7 +51,7 @@ public class AgreementTests
         var byEach = all.Where(b => oneByOne(user, b)).Select(b => b.Id).OrderBy(id => id).ToList();
         var byQuery = db.Notes.IgnoreQueryFilters(["Tenant"]).Where(PolicyBinder.Bind(rule, user)).Select(b => b.Id).OrderBy(id => id).ToList();
         if (!byEach.SequenceEqual(byQuery))
-            throw new InvalidOperationException($"{user.Id}: single [{string.Join(",", byEach)}] vs query [{string.Join(",", byQuery)}]");
+            throw new InvalidOperationException($"{user.Id}: one by one [{string.Join(",", byEach)}] vs query [{string.Join(",", byQuery)}]");
     }
 
     [Test]

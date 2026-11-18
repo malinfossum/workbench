@@ -30,7 +30,7 @@ public static class SafeRedirect
 
     // Same-origin paths only. Decoded first, so "/%2F%2Fhost" can't pass as a path. "//host", "/\host", "https:host",
     // "https://this-host:8443/x" and control characters (an encoded CR or LF too) fall back to "/". The check runs
-    // again on the normalised result, because dot segments turn "/.//host" into "//host": the value returned is the
+    // again on the normalized result, because dot segments turn "/.//host" into "//host": the value returned is the
     // value checked, never the raw input.
     public static string Path(string? url)
     {

@@ -2,7 +2,7 @@
 const post = (url, body) =>
   fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body ?? {}) });
 
-const cancelled = (err, fallback) => (err?.name === 'NotAllowedError' ? 'auth.error.passkeyCancelled' : fallback);
+const canceled = (err, fallback) => (err?.name === 'NotAllowedError' ? 'auth.error.passkeyCanceled' : fallback);
 
 // The server's key when it sent one, else the status decides. A 429 is always "too many attempts".
 async function failureOf(res, fallback) {
@@ -28,7 +28,7 @@ export async function addPasskey(name) {
     const body = saved.status === 200 ? await saved.json() : {};
     return { ok: true, recoveryCodes: body.recoveryCodes }; // only with the first factor: show them once
   } catch (err) {
-    return { error: cancelled(err, 'auth.error.passkeyUnknown') };
+    return { error: canceled(err, 'auth.error.passkeyUnknown') };
   }
 }
 
@@ -43,6 +43,6 @@ export async function signInWithPasskey({ conditional = false } = {}) {
     const signedIn = await post('/auth/passkey/sign-in', { credential: JSON.stringify(credential.toJSON()) });
     return signedIn.ok ? { ok: true } : { error: await failureOf(signedIn, 'auth.error.passkeyUnknown') };
   } catch (err) {
-    return { error: cancelled(err, 'auth.error.noPasskeyHere') };
+    return { error: canceled(err, 'auth.error.noPasskeyHere') };
   }
 }

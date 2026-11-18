@@ -102,7 +102,7 @@ step('passkey-remove', async () => {
 });
 
 step('totp-start', async () => {
-  const r = await post('/account/mfa/enrol', { code: null });
+  const r = await post('/account/mfa/enroll', { code: null });
   if (r.ok) showSecret('TOTP key (only the newest one works)', [r.data.key, r.data.uri]);
   report('totp-start', r.ok && typeof r.data?.key === 'string', keyOf(r));
 });
@@ -110,7 +110,7 @@ step('totp-start', async () => {
 // With the passkey gone, TOTP is the only factor, so turning it on brings fresh codes.
 step('totp', async () => {
   const input = $('totp-code');
-  const r = await post('/account/mfa/enrol', { code: input.value.trim() });
+  const r = await post('/account/mfa/enroll', { code: input.value.trim() });
   input.value = ''; // the code leaves the page as soon as it is used
   if (hasCodes(r.data?.recoveryCodes)) showSecret('Recovery codes (TOTP)', r.data.recoveryCodes);
   report('totp', r.ok && hasCodes(r.data?.recoveryCodes), r.ok ? 'no_codes' : keyOf(r));
@@ -119,7 +119,7 @@ step('totp', async () => {
 // Once TOTP is on, asking again is refused with auth.error.wrongCode (R:1005) and issues nothing. Any other answer
 // (401, 429, 503) fails the step, so an expired session can't pass it.
 step('codes-once', async () => {
-  const r = await post('/account/mfa/enrol', { code: null });
+  const r = await post('/account/mfa/enroll', { code: null });
   report('codes-once', r.status === 400 && r.data?.error === 'auth.error.wrongCode' && !hasCodes(r.data?.recoveryCodes), keyOf(r));
 });
 

@@ -67,8 +67,9 @@ sqlite3 app.db "UPDATE AspNetUsers SET TenantId = (SELECT TenantId FROM AspNetUs
 ```
 
 A real project decides how accounts join a tenant: an invite, an admin or a domain rule.
-Moving an account to another tenant leaves the notes it owns in the old one, outside its view
-and its export, so a project that moves accounts moves their notes too.
+Moving an account to another tenant leaves the notes it owns in the old one, outside its
+view, so a project that moves accounts moves their notes too. The account export and the
+account delete still reach those notes: both follow the owner, in every tenant.
 
 **Dev mailbox.** In Development the app writes each email to a file in `App.Api/.dev-mail/`
 (gitignored, one file per email). Open the file and paste its link into the check page.
@@ -76,7 +77,7 @@ and its export, so a project that moves accounts moves their notes too.
 **Check page.** Run `dotnet run --project App.Api` and open
 `http://localhost:5005/dev/auth-check/`. It walks the manual check: sign up, confirm through
 the dev mailbox, sign in, register a passkey, sign out, sign in with the passkey, remove it,
-enrol TOTP, see the recovery codes once, sign out. Each step writes `pass` or `fail` and an
+enroll TOTP, see the recovery codes once, sign out. Each step writes `pass` or `fail` and an
 error key into its own status element. Outside Development the page answers 401 without a
 session and 404 with one.
 

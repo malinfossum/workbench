@@ -25,7 +25,7 @@ public sealed class UserContextMiddleware(RequestDelegate next)
 }
 
 // A session that used no second factor. Once the account has TOTP or a passkey, any role needs a session that used it
-// to add or remove a factor or get new recovery codes. So a stolen password can't enrol the thief's own factor, remove
+// to add or remove a factor or get new recovery codes. So a stolen password can't enroll the thief's own factor, remove
 // the owner's to make room for one, or mint codes that stand in for one in a reset. Above a plain member such a session
 // reaches sign-out, and the setup paths only while the account has no second factor yet. Paths are matched by route,
 // so case and a trailing slash change nothing. Endpoints open to anyone (health, the /auth group) are never gated:
@@ -33,7 +33,7 @@ public sealed class UserContextMiddleware(RequestDelegate next)
 public sealed class SecondFactorGate(RequestDelegate next)
 {
     public const string SignOut = "/auth/sign-out", NewCodes = "/account/mfa/codes", RemovePasskey = "/account/passkey/{credentialId}", DisableMfa = "/account/mfa/disable";
-    public static readonly string[] SetupPaths = ["/account/mfa/enrol", "/account/passkey/creation-options", "/account/passkey"];
+    public static readonly string[] SetupPaths = ["/account/mfa/enroll", "/account/passkey/creation-options", "/account/passkey"];
 
     public async Task InvokeAsync(HttpContext http, CurrentUser current, UserManager<AppUser> users)
     {
@@ -77,7 +77,7 @@ public sealed class SignInThrottle(TimeProvider clock)
     // One step, under a lock: either the time the caller must still wait, or Zero and the attempt is reserved.
     // A reserved attempt counts as a failure until Succeeded resets the key, so a parallel burst can't all
     // pass the check before the first failure lands. A refused attempt reserves nothing. The caller passes
-    // a normalised key (UserManager.NormalizeEmail, or a user id).
+    // a normalized key (UserManager.NormalizeEmail, or a user id).
     public TimeSpan Begin(string key)
     {
         var now = clock.GetUtcNow();
@@ -154,7 +154,7 @@ public sealed class AuthLinks(string origin)
 public sealed class AuthLog; // the logger category for auth events
 
 // Every auth log line, written once. The source generator builds them, so a line costs nothing while its level is off.
-public static partial class AuthLogMessages
+internal static partial class AuthLogMessages
 {
     [LoggerMessage(Level = LogLevel.Information, Message = "auth.email.queued kind={Kind}")]
     public static partial void EmailQueued(this ILogger log, string kind); // never the address, never the link

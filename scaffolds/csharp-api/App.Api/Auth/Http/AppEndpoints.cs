@@ -75,14 +75,14 @@ public static class AppEndpoints
     }
 
     // Two calls: without a code it returns a fresh key for the authenticator app; with a code it turns TOTP on.
-    private static async Task<IResult> EnrolMfa(MfaEnrolRequest req, HttpContext http, UserManager<AppUser> users, IUserStore<AppUser> store, SignInManager<AppUser> signIn, SessionService sessions, AuthEventLog events)
+    private static async Task<IResult> EnrollMfa(MfaEnrollRequest req, HttpContext http, UserManager<AppUser> users, IUserStore<AppUser> store, SignInManager<AppUser> signIn, SessionService sessions, AuthEventLog events)
     {
         FreshSession.Require(http);
         var user = await Me(http, users);
         if (user.TwoFactorEnabled) return AuthResults.Fail("auth.error.wrongCode"); // disable first; a second key would orphan the first
         if (string.IsNullOrWhiteSpace(req.Code))
         {
-            // Not ResetAuthenticatorKeyAsync: it also moves the security stamp, so an enrolment nobody finishes would sign
+            // Not ResetAuthenticatorKeyAsync: it also moves the security stamp, so an enrollment nobody finishes would sign
             // every session out at the next stamp check. TOTP is still off here, so there is nothing to revoke.
             await ((IUserAuthenticatorKeyStore<AppUser>)store).SetAuthenticatorKeyAsync(user, users.GenerateNewAuthenticatorKey(), http.RequestAborted);
             if (!(await users.UpdateAsync(user)).Succeeded) return AuthResults.Fail("auth.error.unavailable", StatusCodes.Status503ServiceUnavailable); // never a key that wasn't saved
@@ -126,7 +126,7 @@ public static class AppEndpoints
         account.MapPost("/passkey", AddPasskey);
         account.MapDelete("/passkey/{credentialId}", RemovePasskey);
         account.MapGet("/passkeys", ListPasskeys);
-        account.MapPost("/mfa/enrol", EnrolMfa).RequireRateLimiting("auth");
+        account.MapPost("/mfa/enroll", EnrollMfa).RequireRateLimiting("auth");
         account.MapPost("/mfa/disable", DisableMfa);
         account.MapPost("/mfa/codes", NewRecoveryCodes);
         account.MapGet("/sessions", (HttpContext http, SessionService s) => s.ListAsync(UserId(http), CurrentSession.Of(http)?.Key));

@@ -6,7 +6,7 @@ public class CopyTests
     private static readonly string[] Keys =
     [
         "auth.error.signInFailed", "auth.error.wrongCode", "auth.error.expiredCode", "auth.error.recoveryCodeWrong",
-        "auth.error.expiredLink", "auth.error.passkeyCancelled", "auth.error.noPasskeyHere", "auth.error.passkeyUnknown",
+        "auth.error.expiredLink", "auth.error.passkeyCanceled", "auth.error.noPasskeyHere", "auth.error.passkeyUnknown",
         "auth.error.tooManyAttempts", "auth.error.sessionExpired", "auth.error.reauthRequired", "auth.error.emailUnverified",
         "auth.error.passwordRejected", "auth.error.currentPasswordWrong", "auth.error.lastSignInMethod",
         "auth.error.secondFactorRequired", "auth.error.secondFactorNeeded", "auth.error.totpBeforePasskey", "auth.error.removePasskeysFirst",

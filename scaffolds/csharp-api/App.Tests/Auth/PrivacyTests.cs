@@ -1,4 +1,3 @@
-
 namespace App.Tests.Auth;
 
 public static class PrivacyCheck
@@ -59,6 +58,8 @@ public class PrivacyTests
                 + await db.Set<NoteMember>().CountAsync(m => m.UserId == user.Id);
         });
         Assert.That(left, Is.Zero);
+        // The other account's note outlives the member who left it.
+        Assert.That(await _app.With(sp => sp.GetRequiredService<AppDbContext>().Notes.IgnoreQueryFilters(["Tenant"]).CountAsync(n => n.Id == shared && n.OwnerId == other.Id)), Is.EqualTo(1));
     }
 
     [Test]

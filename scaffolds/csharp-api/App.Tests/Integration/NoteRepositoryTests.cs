@@ -81,6 +81,21 @@ public sealed class NoteRepositoryTests
     }
 
     [Test]
+    public async Task List_skips_notes_the_filter_hides()
+    {
+        _db.Users.Add(new AppUser { Id = "u2", UserName = "u2", TenantId = "t1" });
+        await _db.SaveChangesAsync();
+        var shared = Sample("Shared");
+        shared.Members.Add(new NoteMember { UserId = "u2" });
+        await _repo.AddAsync(Sample("Private"));
+        await _repo.AddAsync(shared);
+        var seen = await _repo.ListAsync(NotePolicy.Filter(NoteActions.Read, TestUsers.Member));
+        string[] expected = ["Shared"];
+        Assert.That(seen.Select(n => n.Title), Is.EqualTo(expected));
+        Assert.That(await _repo.ListAsync(NotePolicy.Filter(NoteActions.Read, TestUsers.Stranger)), Is.Empty);
+    }
+
+    [Test]
     public async Task FindShareableUserId_matches_only_a_confirmed_email_in_the_tenant()
     {
         _db.Users.AddRange(

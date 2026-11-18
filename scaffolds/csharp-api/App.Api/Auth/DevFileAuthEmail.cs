@@ -19,7 +19,7 @@ public static class AuthMailers
     public static Type For(IHostEnvironment env) => env.IsDevelopment() ? typeof(DevFileAuthEmail) : typeof(LogOnlyAuthEmail);
 }
 
-public static partial class DevFileLogMessages
+internal static partial class DevFileLogMessages
 {
     [LoggerMessage(Level = LogLevel.Information, Message = "auth.email.devFile kind={Kind}")]
     public static partial void DevFileWritten(this ILogger log, string kind);

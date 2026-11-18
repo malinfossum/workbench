@@ -22,7 +22,11 @@ public class NoteServiceTests
         _service = new NoteService(_repository, _current, _time);
     }
 
-    private static JsonElement Json(string s) => JsonDocument.Parse(s).RootElement.Clone();
+    private static JsonElement Json(string s)
+    {
+        using var doc = JsonDocument.Parse(s);
+        return doc.RootElement.Clone(); // the clone outlives the document
+    }
 
     private async Task<int> SeedAsync(UserContext owner, params string[] memberIds)
     {
@@ -117,15 +121,19 @@ public class NoteServiceTests
     public async Task Patch_rejects_a_blank_title()
     {
         var id = await SeedAsync(TestUsers.Owner);
-        Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json("{\"title\": \"   \"}")));
+        var ex = Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json("{\"title\": \"   \"}")));
+        Assert.That(ex!.Field, Is.EqualTo("title"));
     }
 
     [Test]
     public async Task Patch_accepts_a_4000_character_body_and_rejects_4001()
     {
         var id = await SeedAsync(TestUsers.Owner);
-        await _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4000)}\"}}"));
-        Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4001)}\"}}")));
+        var saved = await _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4000)}\"}}"));
+        Assert.That(saved.Body, Has.Length.EqualTo(4000));
+        var ex = Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4001)}\"}}")));
+        Assert.That(ex!.Field, Is.EqualTo("body"));
+        Assert.That((await _service.GetAsync(id)).Body, Has.Length.EqualTo(4000)); // the refused edit changed nothing
     }
 
     [Test]

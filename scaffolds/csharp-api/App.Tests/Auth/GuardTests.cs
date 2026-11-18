@@ -9,7 +9,8 @@ public class GuardTests
         ("database access", new Regex(@"DbSet<|\b_?db\.(Notes|UserSessions|AuthEvents|Users|Set<)"), new[] { "App.Data/", "App.Api/Auth/" }),
         ("database context", new Regex(@"\bAppDbContext\b"), new[] { "App.Data/", "App.Api/Auth/", "App.Api/Program.cs" }), // whatever the variable is called
         ("bare IgnoreQueryFilters", new Regex(@"IgnoreQueryFilters\(\s*\)"), Array.Empty<string>()),
-        ("named IgnoreQueryFilters", new Regex(@"IgnoreQueryFilters\(\s*[^\s)]"), new[] { "App.Data/Jobs/" }), // background jobs, as their system user
+        // Background jobs, as their system user, and the account export, which reads the account's own notes in every tenant.
+        ("named IgnoreQueryFilters", new Regex(@"IgnoreQueryFilters\(\s*[^\s)]"), new[] { "App.Data/Jobs/", "App.Api/Auth/AccountService.cs" }),
     ];
 
     // The endpoint files sit inside App.Api/Auth/ but stay out of the database, as the recipe's Http/ folder does.
@@ -74,6 +75,14 @@ public class GuardTests
     [Test]
     public void Allows_a_named_IgnoreQueryFilters_in_a_job() =>
         Assert.That(FindViolations([("App.Data/Jobs/Digest.cs", "var all = db.Notes.IgnoreQueryFilters([\"Tenant\"]);")]), Is.Empty);
+
+    [Test]
+    public void Allows_a_named_IgnoreQueryFilters_in_the_account_export_and_nowhere_else_in_Auth()
+    {
+        const string line = "var mine = db.Notes.IgnoreQueryFilters([\"Tenant\"]).Where(n => n.OwnerId == userId);";
+        Assert.That(FindViolations([("App.Api/Auth/AccountService.cs", line)]), Is.Empty);
+        Assert.That(FindViolations([("App.Api/Auth/Sessions.cs", line)]), Has.Count.EqualTo(1));
+    }
 
     [Test]
     public void Every_note_query_in_a_repository_applies_its_filter() =>

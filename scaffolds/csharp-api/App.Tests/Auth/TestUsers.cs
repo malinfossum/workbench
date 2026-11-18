@@ -12,4 +12,3 @@ public static class TestUsers
     public static readonly UserContext Nobody = new("", "", Role.Member, false, false, false); // empty id and tenant must never match
     public static readonly UserContext[] All = [Owner, Member, Stranger, Admin, AdminNoMfa, Foreign, Nobody];
 }
-

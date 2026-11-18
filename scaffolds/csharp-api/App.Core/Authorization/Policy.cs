@@ -40,18 +40,18 @@ public sealed record NoteCan(bool Edit, bool Delete);
 public static class NotePolicy
 {
     // Each rule is written once and runs both in C# and in SQL. Compare ids, enums, bools and dates only:
-    // SQL Server collations ignore case and C# does not. PolicyBinder denies an empty id or tenant, and a
+    // a database collation may ignore case (SQL Server's default does) and C# never does. PolicyBinder denies an empty id or tenant, and a
     // missing second factor, before any rule runs, so the rules don't repeat those checks.
-    private static readonly Expression<Func<UserContext, Note, bool>> ReadRule = (u, b) =>
-        b.TenantId == u.TenantId && (b.OwnerId == u.Id || b.Members.Any(m => m.UserId == u.Id) || u.Role == Role.TenantAdmin);
-    private static readonly Expression<Func<UserContext, Note, bool>> CreateRule = (u, b) =>
-        u.EmailVerified && b.TenantId == u.TenantId && b.OwnerId == u.Id;
-    private static readonly Expression<Func<UserContext, Note, bool>> UpdateRule = (u, b) =>
-        b.TenantId == u.TenantId && (b.OwnerId == u.Id || b.Members.Any(m => m.UserId == u.Id));
-    private static readonly Expression<Func<UserContext, Note, bool>> DeleteRule = (u, b) =>
-        b.TenantId == u.TenantId && (b.OwnerId == u.Id || u.Role == Role.TenantAdmin);
-    private static readonly Expression<Func<UserContext, Note, bool>> OwnerOnlyRule = (u, b) =>
-        b.TenantId == u.TenantId && b.OwnerId == u.Id;
+    private static readonly Expression<Func<UserContext, Note, bool>> ReadRule = (u, n) =>
+        n.TenantId == u.TenantId && (n.OwnerId == u.Id || n.Members.Any(m => m.UserId == u.Id) || u.Role == Role.TenantAdmin);
+    private static readonly Expression<Func<UserContext, Note, bool>> CreateRule = (u, n) =>
+        u.EmailVerified && n.TenantId == u.TenantId && n.OwnerId == u.Id;
+    private static readonly Expression<Func<UserContext, Note, bool>> UpdateRule = (u, n) =>
+        n.TenantId == u.TenantId && (n.OwnerId == u.Id || n.Members.Any(m => m.UserId == u.Id));
+    private static readonly Expression<Func<UserContext, Note, bool>> DeleteRule = (u, n) =>
+        n.TenantId == u.TenantId && (n.OwnerId == u.Id || u.Role == Role.TenantAdmin);
+    private static readonly Expression<Func<UserContext, Note, bool>> OwnerOnlyRule = (u, n) =>
+        n.TenantId == u.TenantId && n.OwnerId == u.Id;
 
     public static readonly IReadOnlyDictionary<string, Expression<Func<UserContext, Note, bool>>> Rules =
         new Dictionary<string, Expression<Func<UserContext, Note, bool>>>
@@ -67,18 +67,18 @@ public static class NotePolicy
     // Compiled once at startup for single checks on a loaded note.
     private static readonly Dictionary<string, Func<UserContext, Note, bool>> Compiled = Rules.ToDictionary(r => r.Key, r => r.Value.Compile());
 
-    public static bool Can(UserContext? u, string action, Note b) =>
-        u is not null && PolicyBinder.Admits(u) && Compiled.TryGetValue(action, out var rule) && rule(u, b);
+    public static bool Can(UserContext? u, string action, Note n) =>
+        u is not null && PolicyBinder.Admits(u) && Compiled.TryGetValue(action, out var rule) && rule(u, n);
 
     public static Expression<Func<Note, bool>> Filter(string action, UserContext u) => PolicyBinder.Bind(Rules[action], u);
 
     private static readonly HashSet<string> AllFields = ["title", "body", "archived"], TextFields = ["title", "body"], NoFields = [];
 
     // `archived` follows the Archive rule, so the field rule and the action rule can't drift apart.
-    public static IReadOnlySet<string> UpdatableFields(UserContext u, Note b) =>
-        !Can(u, NoteActions.Update, b) ? NoFields : Can(u, NoteActions.Archive, b) ? AllFields : TextFields;
+    public static IReadOnlySet<string> UpdatableFields(UserContext u, Note n) =>
+        !Can(u, NoteActions.Update, n) ? NoFields : Can(u, NoteActions.Archive, n) ? AllFields : TextFields;
 
-    public static NoteCan Flags(UserContext u, Note b) => new(Can(u, NoteActions.Update, b), Can(u, NoteActions.Delete, b));
+    public static NoteCan Flags(UserContext u, Note n) => new(Can(u, NoteActions.Update, n), Can(u, NoteActions.Delete, n));
 }
 
 public static class PolicyBinder

@@ -7,7 +7,7 @@ public sealed record LinkRequest(string UserId, string Token);
 public sealed record ResetConfirmRequest(string UserId, string Token, string NewPassword, string? Code = null);
 public sealed record PasskeyRequest(string Credential, string? Name = null);
 public sealed record ChangePasswordRequest(string Current, string New);
-public sealed record MfaEnrolRequest(string? Code = null);
+public sealed record MfaEnrollRequest(string? Code = null);
 
 public static class AuthEndpoints
 {
@@ -59,7 +59,7 @@ public static class AuthEndpoints
     private static async Task<IResult> SignIn(SignInRequest req, string? returnUrl, HttpContext http, UserManager<AppUser> users, SignInManager<AppUser> signIn,
         SignInThrottle throttle, AuthEventLog events, ILogger<AuthLog> log)
     {
-        var key = "sign-in:" + users.NormalizeEmail(req.Email); // Identity's normaliser: NFC and NFD spellings share one bucket
+        var key = "sign-in:" + users.NormalizeEmail(req.Email); // Identity's normalizer: NFC and NFD spellings share one bucket
         if (throttle.Begin(key) is var wait && wait > TimeSpan.Zero) return AuthResults.TooSoon(http, wait);
         var user = await users.FindByEmailAsync(req.Email);
         // Identity answers NotAllowed for an unconfirmed email before it looks at the password, which would tell
@@ -137,7 +137,7 @@ public static class AuthEndpoints
         return Results.NoContent();
     }
 
-    // A TOTP code counts only while TOTP is on: a key from an enrolment nobody finished is no factor.
+    // A TOTP code counts only while TOTP is on: a key from an enrollment nobody finished is no factor.
     private static async Task<bool> SecondFactorOk(UserManager<AppUser> users, AppUser user, string? code) =>
         !string.IsNullOrWhiteSpace(code)
         && ((user.TwoFactorEnabled && await users.VerifyTwoFactorTokenAsync(user, users.Options.Tokens.AuthenticatorTokenProvider, code))

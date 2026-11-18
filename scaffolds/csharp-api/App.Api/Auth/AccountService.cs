@@ -15,8 +15,11 @@ public sealed class AccountService(AppDbContext db, UserManager<AppUser> users, 
         var passkeys = (await users.GetPasskeysAsync(user)).Select(p => p.Name).ToArray();
         var events = await db.AuthEvents.Where(e => e.UserId == userId && e.At > since).OrderByDescending(e => e.At)
             .Select(e => new AuthEventDto(e.Kind, e.At)).ToListAsync();
-        var notes = await db.Notes.Where(n => n.OwnerId == userId).OrderBy(n => n.Id)
+        // Owned notes are read past the Tenant filter, keyed on the owner alone: deleting the account removes them in
+        // every tenant, so the export holds them in every tenant. GuardTests allows that bypass in this file only.
+        var notes = await db.Notes.IgnoreQueryFilters(["Tenant"]).Where(n => n.OwnerId == userId).OrderBy(n => n.Id)
             .Select(n => new NoteExport(n.Id, n.Title, n.Body, n.Archived, n.CreatedAt, n.UpdatedAt)).ToListAsync();
+        // Memberships stay behind the filter: the title belongs to another account's note, and the policy shows it in this tenant only.
         var memberships = await db.Notes.Where(n => n.Members.Any(m => m.UserId == userId)).OrderBy(n => n.Id)
             .Select(n => new MembershipExport(n.Id, n.Title)).ToListAsync();
         return new(user.Email!, user.UserName!, passkeys, await sessions.ListAsync(userId, currentKey), events, notes, memberships);

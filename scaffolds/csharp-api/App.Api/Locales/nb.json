@@ -10,7 +10,7 @@
 	"auth.error.expiredCode": "Koden er utløpt. Skriv inn den nyeste koden fra appen.",
 	"auth.error.recoveryCodeWrong": "Gjenopprettingskoden er feil eller allerede brukt. Sjekk den og prøv igjen.",
 	"auth.error.expiredLink": "Lenken er utløpt. Be om en ny.",
-	"auth.error.passkeyCancelled": "Innlogging med passnøkkel ble avbrutt. Prøv igjen når du er klar.",
+	"auth.error.passkeyCanceled": "Innlogging med passnøkkel ble avbrutt. Prøv igjen når du er klar.",
 	"auth.error.noPasskeyHere": "Denne enheten har ingen passnøkkel for dette nettstedet. Bruk en annen enhet, eller logg inn på en annen måte.",
 	"auth.error.passkeyUnknown": "Vi kjenner ikke igjen denne passnøkkelen. Prøv en annen, eller logg inn på en annen måte.",
 	"auth.error.tooManyAttempts": "For mange forsøk. Vent noen minutter og prøv igjen.",

@@ -127,7 +127,7 @@ public class HttpTests
     [TestCase("/x%0D%0ASet-Cookie:a=b")]
     [TestCase("/x\r\nSet-Cookie:a=b")]
     [TestCase("/\t/evil.example")]
-    [TestCase("/.//evil.example")] // dot segments that normalise to "//evil.example"
+    [TestCase("/.//evil.example")] // dot segments that normalize to "//evil.example"
     [TestCase("/..//evil.example")]
     [TestCase("/a/../..//evil.example")]
     [TestCase("/%2E%2E//evil.example")]
@@ -400,12 +400,12 @@ public class HttpTests
     }
 
     [Test]
-    public async Task Starting_TOTP_enrolment_signs_nobody_out()
+    public async Task Starting_TOTP_enrollment_signs_nobody_out()
     {
         await _app.SeedUser("a@example.test");
         var here = _app.Client(); await here.SignIn("a@example.test", Pw);
         var there = _app.Client(); await there.SignIn("a@example.test", Pw);
-        Assert.That((await here.PostAsJsonAsync("/account/mfa/enrol", new { })).StatusCode, Is.EqualTo(HttpStatusCode.OK)); // and never finished
+        Assert.That((await here.PostAsJsonAsync("/account/mfa/enroll", new { })).StatusCode, Is.EqualTo(HttpStatusCode.OK)); // and never finished
         _app.Clock.Advance(TimeSpan.FromMinutes(31)); // past Identity's 30-minute security stamp check
         Assert.That(((await here.GetAsync("/api/notes")).StatusCode, (await there.GetAsync("/api/notes")).StatusCode), Is.EqualTo((HttpStatusCode.OK, HttpStatusCode.OK)));
     }
@@ -482,11 +482,11 @@ public class HttpTests
     }
 
     [Test]
-    public async Task A_key_from_an_unfinished_enrolment_is_no_factor_in_a_reset()
+    public async Task A_key_from_an_unfinished_enrollment_is_no_factor_in_a_reset()
     {
         var owner = await _app.SeedUser("a@example.test");
         var c = _app.Client(); await c.SignIn("a@example.test", Pw);
-        var key = (await (await c.PostAsJsonAsync("/account/mfa/enrol", new { })).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("key").GetString()!;
+        var key = (await (await c.PostAsJsonAsync("/account/mfa/enroll", new { })).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("key").GetString()!;
         await _app.SeedPasskey(owner); // the account's real factor
         var code = Totp.Code(key, _app.Clock.GetUtcNow());
         // The code is right for the stored key, so only TwoFactorEnabled can refuse it.
@@ -518,7 +518,7 @@ public class HttpTests
         using var broken = _app.WithWebHostBuilder(b => b.ConfigureServices(s => s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(failing))));
         var c = AuthApiFactory.ClientOf(broken); await c.SignIn("a@example.test", Pw);
         failing.On = true;
-        Assert.That(await Said(await c.PostAsJsonAsync("/account/mfa/enrol", new { })), Is.EqualTo("""503 {"error":"auth.error.unavailable"}"""));
+        Assert.That(await Said(await c.PostAsJsonAsync("/account/mfa/enroll", new { })), Is.EqualTo("""503 {"error":"auth.error.unavailable"}"""));
     }
 
     [Test]
@@ -584,7 +584,7 @@ public class HttpTests
         var owner = await _app.SeedUser("passkey@example.test", role: role);
         var passkeyId = await _app.SeedPasskey(owner);
         var stolen = _app.Client(); await stolen.SignIn("passkey@example.test", Pw);
-        foreach (var path in new[] { "/account/mfa/enrol", "/account/passkey/creation-options", "/account/passkey", "/account/mfa/codes", "/account/mfa/disable" })
+        foreach (var path in new[] { "/account/mfa/enroll", "/account/passkey/creation-options", "/account/passkey", "/account/mfa/codes", "/account/mfa/disable" })
         {
             Assert.That(await Said(await stolen.PostAsJsonAsync(path, new { })), Is.EqualTo(SecondFactorRequired), path);
         }
@@ -594,7 +594,7 @@ public class HttpTests
         // The control: an account with no factor yet reaches setup with the password alone.
         await _app.SeedUser("new@example.test", role: role);
         var fresh = _app.Client(); await fresh.SignIn("new@example.test", Pw);
-        Assert.That((await fresh.PostAsJsonAsync("/account/mfa/enrol", new { })).StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That((await fresh.PostAsJsonAsync("/account/mfa/enroll", new { })).StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
@@ -796,7 +796,8 @@ public class HttpTests
         _app.UseKestrel(0); // TestServer can't cap a request body, so this test runs on Kestrel
         // Kestrel's client follows redirects and keeps cookies itself, and a Secure cookie never goes over plain HTTP. So
         // this client does neither, and the session cookie goes by hand.
-        var c = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = _app.CreateClient().BaseAddress };
+        using var probe = _app.CreateClient(); // only for the address Kestrel picked
+        using var c = new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = probe.BaseAddress };
         c.DefaultRequestHeaders.Host = "localhost"; // AllowedHosts
         var big = new string('x', 17 * 1024);
         var res = await c.PostAsJsonAsync("/auth/sign-up", new { email = "big@example.test", password = Pw, name = big });
@@ -835,7 +836,7 @@ public class HttpTests
     {
         var user = await _app.SeedUser("a@example.test");
         var other = await _app.SeedUser("b@example.test");
-        await _app.SeedNote(user.Id, "t1");
+        var owned = await _app.SeedNote(user.Id, "t1");
         var shared = await _app.SeedNote(other.Id, "t1", user.Id);
         var c = _app.Client(); await c.SignIn("a@example.test", Pw);
         var export = await c.GetFromJsonAsync<JsonElement>("/account/export");
@@ -845,5 +846,23 @@ public class HttpTests
         Assert.That(export.GetProperty("events").EnumerateArray().Select(e => e.GetProperty("kind").GetString()), Does.Contain("sign-in"));
         Assert.That(export.GetProperty("notes")[0].GetProperty("title").GetString(), Is.EqualTo("Note"));
         Assert.That(export.GetProperty("memberships")[0].GetProperty("noteId").GetInt32(), Is.EqualTo(shared));
+        // Each note sits in one list only: the owned one is no membership, the shared one is no owned note.
+        Assert.That(export.GetProperty("notes").EnumerateArray().Select(n => n.GetProperty("id").GetInt32()), Is.EqualTo(new[] { owned }));
+        Assert.That(export.GetProperty("memberships").EnumerateArray().Select(m => m.GetProperty("noteId").GetInt32()), Is.EqualTo(new[] { shared }));
+    }
+
+    [Test]
+    public async Task The_account_export_follows_the_owner_into_another_tenant()
+    {
+        var user = await _app.SeedUser("a@example.test");
+        var other = await _app.SeedUser("b@example.test", tenant: "t2");
+        var here = await _app.SeedNote(user.Id, "t1");
+        var left = await _app.SeedNote(user.Id, "t2"); // owned, in a tenant the account has left: the delete cascade reaches it too
+        await _app.SeedNote(other.Id, "t2", user.Id); // another account's note there: its title stays behind the filter
+        var c = _app.Client(); await c.SignIn("a@example.test", Pw);
+        var export = await c.GetFromJsonAsync<JsonElement>("/account/export");
+        Assert.That(export.GetProperty("notes").EnumerateArray().Select(n => n.GetProperty("id").GetInt32()), Is.EqualTo(new[] { here, left }));
+        Assert.That(export.GetProperty("memberships").GetArrayLength(), Is.Zero);
+        Assert.That((await c.GetAsync($"/api/notes/{left}")).StatusCode, Is.EqualTo(HttpStatusCode.NotFound)); // the export is the only way in
     }
 }
