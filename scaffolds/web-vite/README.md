@@ -41,7 +41,7 @@ npm run check          # format + lint + organize imports (write changes)
 
 ## Modern Web Guidance
 
-The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set, so set it in your shell profile and under `env` in Claude Code's `settings.json`. To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
+The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set. `.claude/settings.json` sets it for every Claude Code session in this project, so the skill's calls stay off on any machine. The installer runs in your own shell, so set it there too (the command below does). To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
 
 ```powershell
 $env:DISABLE_TELEMETRY = "1"; npx -y modern-web-guidance@latest install --agent claude-code --copy
@@ -60,6 +60,7 @@ Keep `--agent claude-code --copy`: without it the skill lands in `.agents/` with
 - `tests/`: model and controller tests (DOM-free), view tests (jsdom), `tests/a11y/` component a11y tests (jsdom + axe-core), `tests/e2e/` browser tests (Puppeteer), node's built-in runner
 - `design-system/`: read-only foundation, do not edit. `tokens/tailwind.css` rides along from extract and is never imported here; it only does something under Tailwind, which this scaffold does not use
 - `.claude/skills/modern-web-guidance/` and `skills-lock.json`: vendored skill, do not edit; the update command replaces both
+- `.claude/settings.json`: project settings for Claude Code; switches telemetry off for the skill
 - `i18n/`: read-only translator (`t`, `plural`, `resolveLang`, `displayName`, `money`), refresh with the extract tool
 
 ## Preferences: language, theme, currency

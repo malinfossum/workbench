@@ -43,7 +43,7 @@ npm run check          # format + lint + organize imports (write changes)
 
 ## Modern Web Guidance
 
-The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set, so set it in your shell profile and under `env` in Claude Code's `settings.json`. To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
+The installer and the skill's own `npx` calls send usage data unless `DISABLE_TELEMETRY=1` is set. `.claude/settings.json` sets it for every Claude Code session in this project, so the skill's calls stay off on any machine. The installer runs in your own shell, so set it there too (the command below does). To update the skill, run this in PowerShell from the project root (it replaces the folder and `skills-lock.json`):
 
 ```powershell
 $env:DISABLE_TELEMETRY = "1"; npx -y modern-web-guidance@latest install --agent claude-code --copy
@@ -70,6 +70,7 @@ Keep `--agent claude-code --copy`: without it the skill lands in `.agents/` with
 - `e2e/`: full-page axe scan of the built app, the preference model and the keyboard walk against the built page, and `shadcn.spec.ts` for the examples (both themes, Norwegian, 320 px, focus trap, scroll lock)
 - `design-system/`: read-only foundation, do not edit
 - `.claude/skills/modern-web-guidance/` and `skills-lock.json`: vendored skill, do not edit; the update command replaces both
+- `.claude/settings.json`: project settings for Claude Code; switches telemetry off for the skill
 - `i18n/`: read-only translator (`t`, `plural`, `resolveLang`) with its type declarations, refresh with the extract tool
 - `biome.json`: formatter and linter config
 - `tsconfig.json`: strict TS, single config

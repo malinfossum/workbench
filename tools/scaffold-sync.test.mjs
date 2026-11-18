@@ -37,7 +37,7 @@ for (const [library, targets] of Object.entries(BUNDLES)) {
 // installer, not by extract. Both copies and their lock must stay identical, so
 // an update re-run in one scaffold only fails CI instead of drifting.
 const SKILL_SCAFFOLDS = ["web-vite", "web-react-ts"];
-const SKILL_FILES = [".claude/skills/modern-web-guidance", "skills-lock.json"];
+const SKILL_FILES = [".claude/skills/modern-web-guidance", "skills-lock.json", ".claude/settings.json"];
 
 function listFiles(root) {
   if (!statSync(root).isDirectory()) return [""];
