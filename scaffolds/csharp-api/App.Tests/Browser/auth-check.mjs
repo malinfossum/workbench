@@ -117,10 +117,13 @@ function totp(key, now = Date.now()) {
   return String((mac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000).padStart(6, '0');
 }
 
-// The page appends "label\nkey\nuri\n\n" blocks to #secrets, and only the newest TOTP key works.
+// #secrets holds "label\nkey\nuri\n\n" blocks. The page keeps one TOTP key block (a new start replaces it, since
+// only the newest key works), so the block count after a second start is the check for that.
+const totpKeyBlocks = async (page) =>
+  (await page.textContent('#secrets')).split('\n\n').filter((block) => block.startsWith('TOTP key'));
+
 async function newestTotpKey(page) {
-  const blocks = (await page.textContent('#secrets')).split('\n\n').filter((block) => block.startsWith('TOTP key'));
-  const lines = blocks.at(-1)?.split('\n') ?? [];
+  const lines = (await totpKeyBlocks(page)).at(-1)?.split('\n') ?? [];
   if (lines.length < 2) throw named('NoTotpKey');
   return base32Decode(lines[1]);
 }
@@ -195,6 +198,24 @@ try {
       if (name === 'passkey-add') {
         const { credentials } = await cdp.send('WebAuthn.getCredentials', { authenticatorId });
         notes.push(`passkeys on the emulated authenticator after passkey-add: ${credentials.length}`);
+      }
+
+      // A second start mints a new key, which must replace the dead one on screen rather than stack above it.
+      if (name === 'totp-start' && line === 'totp-start: pass') {
+        await page.click('#run-totp-start');
+        await page.waitForFunction(
+          () => {
+            const text = document.getElementById('step-totp-start').textContent;
+            return text !== '' && !text.endsWith(': running');
+          },
+          null,
+          { timeout: 30_000 },
+        );
+        const second = (await page.textContent('#step-totp-start')).trim();
+        const blocks = (await totpKeyBlocks(page)).length;
+        notes.push(`TOTP key blocks after a second start: ${blocks}`);
+        if (second !== 'totp-start: pass') results[results.length - 1] = 'totp-start: fail second_start';
+        else if (blocks !== 1) results[results.length - 1] = `totp-start: fail ${blocks === 0 ? 'no_key' : 'stacked_keys'}`;
       }
     } catch (err) {
       results.push(`${name}: script-error ${nameOf(err)}`);

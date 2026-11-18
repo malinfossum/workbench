@@ -13,8 +13,12 @@ function report(step, ok, key) {
   $(`step-${step}`).textContent = `${step}: ${ok ? 'pass' : `fail ${AUTH_KEY.test(key ?? '') ? key : 'unexpected'}`}`;
 }
 
-function showSecret(label, lines) {
-  $('secrets').textContent += `${label}\n${lines.join('\n')}\n\n`;
+// Recovery codes stack up (each factor brings its own set). The TOTP key replaces the one before it: a second
+// "Start TOTP" makes the old key dead on the server, so the box never shows a key that has stopped working.
+function showSecret(label, lines, { replace = false } = {}) {
+  const box = $('secrets');
+  if (replace) box.textContent = box.textContent.split('\n\n').filter((block) => !block.startsWith(label)).join('\n\n');
+  box.textContent += `${label}\n${lines.join('\n')}\n\n`;
 }
 
 async function send(method, path, body, options = {}) {
@@ -37,8 +41,8 @@ const post = (path, body, options) => send('POST', path, body, options);
 const keyOf = (r) => r.data?.error ?? `status_${r.status}`;
 const hasCodes = (codes) => Array.isArray(codes) && codes.length > 0;
 
-// One run per button at a time: a second click while the first is in flight does nothing,
-// so "Start TOTP" can't mint a second key behind the one already on screen.
+// One run per button at a time: a second click while the first is in flight does nothing. A finished
+// "Start TOTP" may run again on purpose; the box then replaces the key (see showSecret).
 function step(name, run) {
   $(`run-${name}`).addEventListener('click', async () => {
     if (busy.has(name)) return;
@@ -103,7 +107,7 @@ step('passkey-remove', async () => {
 
 step('totp-start', async () => {
   const r = await post('/account/mfa/enroll', { code: null });
-  if (r.ok) showSecret('TOTP key (only the newest one works)', [r.data.key, r.data.uri]);
+  if (r.ok) showSecret('TOTP key', [r.data.key, r.data.uri], { replace: true });
   report('totp-start', r.ok && typeof r.data?.key === 'string', keyOf(r));
 });
 
