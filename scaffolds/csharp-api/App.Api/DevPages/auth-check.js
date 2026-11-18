@@ -13,8 +13,12 @@ function report(step, ok, key) {
   $(`step-${step}`).textContent = `${step}: ${ok ? 'pass' : `fail ${AUTH_KEY.test(key ?? '') ? key : 'unexpected'}`}`;
 }
 
-function showSecret(label, lines) {
-  $('secrets').textContent += `${label}\n${lines.join('\n')}\n\n`;
+// Recovery codes stack up (each factor brings its own set). The TOTP key replaces the one before it: a second
+// "Start TOTP" makes the old key dead on the server, so the box never shows a key that has stopped working.
+function showSecret(label, lines, { replace = false } = {}) {
+  const box = $('secrets');
+  if (replace) box.textContent = box.textContent.split('\n\n').filter((block) => !block.startsWith(label)).join('\n\n');
+  box.textContent += `${label}\n${lines.join('\n')}\n\n`;
 }
 
 async function send(method, path, body, options = {}) {
@@ -103,7 +107,7 @@ step('passkey-remove', async () => {
 
 step('totp-start', async () => {
   const r = await post('/account/mfa/enroll', { code: null });
-  if (r.ok) showSecret('TOTP key (only the newest one works)', [r.data.key, r.data.uri]);
+  if (r.ok) showSecret('TOTP key', [r.data.key, r.data.uri], { replace: true });
   report('totp-start', r.ok && typeof r.data?.key === 'string', keyOf(r));
 });
 
