@@ -17,7 +17,8 @@ Then open <http://localhost:8099/gallery/>, or `/sandbox/` for the scratch page.
 ## Principles
 
 - Warm near-black dark mode (the house amber-gold, the default identity) with a restrained accent;
-  true black stays reserved for the deepest layer via `--surface-0`
+  the page itself is true black (`--surface-0` and `--surface-1`, which `--page-bg` uses), and raised
+  surfaces start at the warm near-black `--surface-2`
 - Semantic tokens over hard-coded values
 - Primitives before page-specific layout
 - Subtle motion only when it improves clarity
