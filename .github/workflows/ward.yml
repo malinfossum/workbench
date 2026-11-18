@@ -20,9 +20,10 @@ jobs:
     with:
       node: ""                 # npm project directory, e.g. "." or "web"
       a11y: "off"              # off | warn | strict
-      dotnet: ""               # solution directory or file, e.g. "." or "App.slnx"
+      dotnet: "scaffolds/csharp-api/App.slnx" # solution directory or file, e.g. "." or "App.slnx"
       dotnet-os: ubuntu-latest # windows-latest for WPF
-      dotnet-ef-project: ""    # EF Core project path, e.g. "src/App.Data"
+      dotnet-ef-project: "scaffolds/csharp-api/App.Data" # EF Core project path, e.g. "src/App.Data"
+      dotnet-ef-startup-project: "scaffolds/csharp-api/App.Api" # startup project for dotnet ef when it differs, e.g. "api/App.Api"
 
   # CodeQL on every pull request, forks included; the main ruleset waits for its results.
   codeql:

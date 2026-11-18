@@ -9,25 +9,41 @@ namespace App.Tests.Integration;
 
 // One test per rule in the locale standard (spec § 10): the alias provider,
 // the fallback to English, the key-as-fallback, and a header that fails to parse.
-public class LocalizationTests(ApiFactory factory) : IClassFixture<ApiFactory>
+public class LocalizationTests
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private AuthApiFactory _factory = null!;
+    private HttpClient _client = null!;
 
-    [Theory]
-    [InlineData("nn", "nb")]            // alias: Nynorsk readers get Bokmål
-    [InlineData("no", "nb")]            // alias: the macrolanguage tag
-    [InlineData("nb-NO", "nb")]         // region stripped by parent fallback
-    [InlineData("xx", "en")]            // unknown language falls back to English
-    [InlineData("en-GB, nb;q=0.8", "en")] // quality order wins, not list order
+    [SetUp]
+    public async Task SetUp()
+    {
+        _factory = new AuthApiFactory();
+        await _factory.SeedUser("owner@example.test");
+        _client = _factory.Client();
+        await _client.SignIn("owner@example.test", AuthApiFactory.TestPhrase);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
+
+    [TestCase("nn", "nb")]            // alias: Nynorsk readers get Bokmål
+    [TestCase("no", "nb")]            // alias: the macrolanguage tag
+    [TestCase("nb-NO", "nb")]         // region stripped by parent fallback
+    [TestCase("xx", "en")]            // unknown language falls back to English
+    [TestCase("en-GB, nb;q=0.8", "en")] // quality order wins, not list order
     public async Task Validation_title_follows_the_resolved_language(string acceptLanguage, string expectedLang)
     {
         var problem = await PostWithoutTitle(acceptLanguage);
 
         var expected = ReadBundle(expectedLang)["problem.400"];
-        Assert.Equal(expected, problem.Title);
+        Assert.That(problem.Title, Is.EqualTo(expected));
     }
 
-    [Fact]
+    [Test]
     public async Task Response_carries_content_language_of_the_resolved_culture()
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/notes");
@@ -36,31 +52,31 @@ public class LocalizationTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         var response = await _client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("nb", response.Content.Headers.ContentLanguage.Single());
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(response.Content.Headers.ContentLanguage.Single(), Is.EqualTo("nb"));
     }
 
-    [Fact]
+    [Test]
     public async Task Malformed_accept_language_still_returns_200()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/notes");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health");
         request.Headers.TryAddWithoutValidation("Accept-Language", ";;;, q=, *garbage=yes");
 
         var response = await _client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
-    [Fact]
+    [Test]
     public void Missing_key_returns_the_key_itself()
     {
-        var localizer = factory.Services.GetRequiredService<IStringLocalizer>();
+        var localizer = _factory.Services.GetRequiredService<IStringLocalizer>();
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("nb");
 
         var text = localizer["nope.key"];
 
-        Assert.Equal("nope.key", text.Value);
-        Assert.True(text.ResourceNotFound);
+        Assert.That(text.Value, Is.EqualTo("nope.key"));
+        Assert.That(text.ResourceNotFound, Is.True);
     }
 
     private async Task<ProblemDetails> PostWithoutTitle(string acceptLanguage)
@@ -71,9 +87,9 @@ public class LocalizationTests(ApiFactory factory) : IClassFixture<ApiFactory>
 
         var response = await _client.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.NotNull(problem);
+        Assert.That(problem, Is.Not.Null);
         return problem;
     }
 
