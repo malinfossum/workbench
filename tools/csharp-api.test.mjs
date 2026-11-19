@@ -89,6 +89,29 @@ test("README names the recipe it was synced from, and the pins match it", () => 
   assert.equal(tool.version, sync[3], "dotnet-ef is not on the sync-line version");
 });
 
+// The root config scans the scaffold in place and the scaffold's own config ships to new
+// projects, so a rule added to one has to land in the other. There is no YAML parser at the
+// root: this reads the one shape both files use, an `ignore:` key at the end of a nuget block.
+const ignoreRules = (yaml, isBlock) => {
+  const block = yaml.split(/^  - package-ecosystem: /m).slice(1).find(isBlock);
+  assert.ok(block, "nuget block missing");
+  const lines = block.split("\n").filter((line) => !/^\s*#/.test(line));
+  const rules = [];
+  for (const line of lines.slice(lines.indexOf("    ignore:") + 1)) {
+    if (!line.startsWith("      ")) break;
+    rules.push(line);
+  }
+  return rules;
+};
+
+test("root and scaffold Dependabot configs ignore the same NuGet updates", () => {
+  const root = readFileSync(join(ROOT, ".github", "dependabot.yml"), "utf8").replaceAll("\r\n", "\n");
+  const rootRules = ignoreRules(root, (b) => b.startsWith("nuget") && b.includes("directory: /scaffolds/csharp-api\n"));
+  const scaffoldRules = ignoreRules(read(".github/dependabot.yml"), (b) => b.startsWith("nuget"));
+  assert.ok(rootRules.length > 0, "root config has no ignore rules, or the reader no longer matches its layout");
+  assert.deepEqual(scaffoldRules, rootRules);
+});
+
 test("gitignore keeps keys and the dev mailbox out", () => {
   const gitignore = read(".gitignore");
   assert.match(gitignore, /^keys\/$/m);
