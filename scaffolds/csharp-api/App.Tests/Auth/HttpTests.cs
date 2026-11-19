@@ -88,10 +88,10 @@ public class HttpTests
     }
 
     [Test]
-    public void Turns_red_on_the_broken_fixture()
+    public async Task Turns_red_on_the_broken_fixture()
     {
         HttpClient Open() => new(new AnswersEverything()) { BaseAddress = new Uri(AuthApiFactory.Origin) };
-        var ex = Assert.ThrowsAsync<InvalidOperationException>(() => CheckStatusPaths(new StatusWorld(Open(), Open(), Open(), Open(), 1, 2)));
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => CheckStatusPaths(new StatusWorld(Open(), Open(), Open(), Open(), 1, 2)));
         Assert.That(ex!.Message, Does.StartWith("not signed in"));
     }
 
@@ -391,7 +391,7 @@ public class HttpTests
         static AuthenticationTicket Ticket(string userId) =>
             new(new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, userId)], "test")), IdentityConstants.ApplicationScheme);
         var key = await store.StoreAsync(Ticket("attacker"));
-        Assert.ThrowsAsync<InvalidOperationException>(() => store.RenewAsync(key, Ticket("victim")));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => store.RenewAsync(key, Ticket("victim")));
         Assert.That(await _app.With(sp => sp.GetRequiredService<AppDbContext>().UserSessions.Where(s => s.Key == key).Select(s => s.UserId).SingleAsync()), Is.EqualTo("attacker"));
         await store.RenewAsync(key, Ticket("attacker")); // the control: the same user renews
     }

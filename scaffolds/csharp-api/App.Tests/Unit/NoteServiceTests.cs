@@ -60,9 +60,9 @@ public class NoteServiceTests
     }
 
     [Test]
-    public void Get_unknown_id_throws_NotFound()
+    public async Task Get_unknown_id_throws_NotFound()
     {
-        Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync(999));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync(999));
     }
 
     [Test]
@@ -77,9 +77,9 @@ public class NoteServiceTests
     }
 
     [Test]
-    public void Update_unknown_id_throws_NotFound()
+    public async Task Update_unknown_id_throws_NotFound()
     {
-        Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(999, Json("{\"title\": \"x\"}")));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(999, Json("{\"title\": \"x\"}")));
     }
 
     [Test]
@@ -87,13 +87,13 @@ public class NoteServiceTests
     {
         var created = await _service.CreateAsync(new CreateNoteDto("First", null));
         await _service.DeleteAsync(created.Id);
-        Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync(created.Id));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync(created.Id));
     }
 
     [Test]
-    public void Delete_unknown_id_throws_NotFound()
+    public async Task Delete_unknown_id_throws_NotFound()
     {
-        Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(999));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(999));
     }
 
     [Test]
@@ -113,7 +113,7 @@ public class NoteServiceTests
     public async Task Patch_rejects_a_wrong_type(string json, string field)
     {
         var id = await SeedAsync(TestUsers.Owner);
-        var ex = Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json(json)));
+        var ex = await Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json(json)));
         Assert.That(ex!.Field, Is.EqualTo(field));
     }
 
@@ -121,7 +121,7 @@ public class NoteServiceTests
     public async Task Patch_rejects_a_blank_title()
     {
         var id = await SeedAsync(TestUsers.Owner);
-        var ex = Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json("{\"title\": \"   \"}")));
+        var ex = await Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json("{\"title\": \"   \"}")));
         Assert.That(ex!.Field, Is.EqualTo("title"));
     }
 
@@ -131,7 +131,7 @@ public class NoteServiceTests
         var id = await SeedAsync(TestUsers.Owner);
         var saved = await _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4000)}\"}}"));
         Assert.That(saved.Body, Has.Length.EqualTo(4000));
-        var ex = Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4001)}\"}}")));
+        var ex = await Assert.ThrowsAsync<InvalidFieldException>(() => _service.UpdateAsync(id, Json($"{{\"body\": \"{new string('x', 4001)}\"}}")));
         Assert.That(ex!.Field, Is.EqualTo("body"));
         Assert.That((await _service.GetAsync(id)).Body, Has.Length.EqualTo(4000)); // the refused edit changed nothing
     }
