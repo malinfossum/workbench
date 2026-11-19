@@ -96,7 +96,7 @@ test("README names the recipe it was synced from, and the pins match it", () => 
 const ignoreRules = (yaml, isBlock) => {
   const block = yaml.split(/^  - package-ecosystem: /m).slice(1).find(isBlock);
   assert.ok(block, "nuget block missing");
-  const lines = block.split("\n").map((line) => line.replace(/\s*#.*$/, "")).filter((line) => line !== "");
+  const lines = block.split("\n").map((line) => line.replace(/\s*#.*$/, "")).filter((line) => line.trim() !== "");
   const rules = [];
   for (const line of lines.slice(lines.indexOf("    ignore:") + 1)) {
     if (!line.startsWith("      ")) break;
