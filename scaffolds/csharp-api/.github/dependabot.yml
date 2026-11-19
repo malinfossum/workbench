@@ -44,8 +44,8 @@ updates:
       - dependency-name: "Microsoft.OpenApi"
         update-types: ["version-update:semver-major"]
       # Microsoft.EntityFrameworkCore.Sqlite 10.x ships the SQLitePCLRaw 2.1.x bundle, and the
-      # 3.x bundle dropped this package for SourceGear.sqlite3. A 3.x bump would put a 3.x
-      # native library under the 2.1.x provider. Recheck when EF Core moves its bundle to 3.x.
+      # 3.x bundle no longer depends on this package. A 3.x bump would put a 3.x native
+      # library under the 2.1.x provider. Recheck when EF Core moves its bundle to 3.x.
       - dependency-name: "SQLitePCLRaw.lib.e_sqlite3"
         update-types: ["version-update:semver-major"]
 
