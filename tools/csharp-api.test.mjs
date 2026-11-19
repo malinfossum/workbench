@@ -91,11 +91,12 @@ test("README names the recipe it was synced from, and the pins match it", () => 
 
 // The root config scans the scaffold in place and the scaffold's own config ships to new
 // projects, so a rule added to one has to land in the other. There is no YAML parser at the
-// root: this reads the one shape both files use, an `ignore:` key at the end of a nuget block.
+// root: this reads the one shape both files use, an `ignore:` key in a nuget block with its
+// rules indented under it. Comments and blank lines are skipped, so the rules compare in order.
 const ignoreRules = (yaml, isBlock) => {
   const block = yaml.split(/^  - package-ecosystem: /m).slice(1).find(isBlock);
   assert.ok(block, "nuget block missing");
-  const lines = block.split("\n").filter((line) => !/^\s*#/.test(line));
+  const lines = block.split("\n").map((line) => line.replace(/\s*#.*$/, "")).filter((line) => line !== "");
   const rules = [];
   for (const line of lines.slice(lines.indexOf("    ignore:") + 1)) {
     if (!line.startsWith("      ")) break;
