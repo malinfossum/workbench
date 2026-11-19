@@ -44,6 +44,11 @@ updates:
       nuget-minor-patch:
         patterns: ["*"]
         update-types: [minor, patch]
+    # Microsoft.AspNetCore.OpenApi 10.x requires Microsoft.OpenApi below 3.0.0, so a 3.x
+    # bump fails restore with NU1608. Recheck when Microsoft.AspNetCore.OpenApi moves to 11.
+    ignore:
+      - dependency-name: "Microsoft.OpenApi"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm # package.json: jsdom for the design system's behaviour tests
     directory: /
