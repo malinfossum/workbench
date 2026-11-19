@@ -7,8 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
-    <!-- Explicit pin, kept as a floor: at or above the version Microsoft.EntityFrameworkCore.Sqlite brings in through its SQLitePCLRaw bundle. -->
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
   </ItemGroup>
 
   <PropertyGroup>
